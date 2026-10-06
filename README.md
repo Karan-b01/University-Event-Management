@@ -251,3 +251,10 @@ University-Event-Management/
 ## 📜 License & Acknowledgements
 Built as an OOAD Backend Architecture Project for academic compliance and university event management systems.
 Developed with [FastAPI](https://fastapi.tiangolo.com/), [SQLAlchemy](https://www.sqlalchemy.org/), and [PostgreSQL](https://www.postgresql.org/).
+
+
+<div align="center">
+
+# Made With ♥️ By Karan Bhatia & Prakhar Sethi
+
+</div>
