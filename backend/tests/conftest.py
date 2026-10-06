@@ -39,7 +39,7 @@ def setup_database():
     """Creates tables and seeds default roles before each test, drops after."""
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
-    for role_name in ["Student", "Student Organizer", "Faculty Advisor", "Finance Officer", "Admin"]:
+    for role_name in ["Student", "Student Organizer", "Faculty Advisor", "Security Officer", "Finance Officer", "Admin"]:
         db.add(Role(role_name=role_name, description=f"{role_name} test role"))
     db.commit()
     db.close()

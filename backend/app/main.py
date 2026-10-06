@@ -4,7 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.database import engine, Base, SessionLocal
 from app.models.user import Role
-from app.routers import auth_router, users_router, proposals_router, resources_router, finance_router
+from app.routers import (
+    auth_router,
+    users_router,
+    proposals_router,
+    resources_router,
+    finance_router,
+    approvals_router,
+)
 
 
 def init_db_roles():
@@ -13,6 +20,7 @@ def init_db_roles():
         ("Student", "Standard student user for viewing and participating in events"),
         ("Student Organizer", "Student coordinator responsible for organizing university events"),
         ("Faculty Advisor", "Faculty member responsible for reviewing and approving event proposals"),
+        ("Security Officer", "Campus security coordinator for crowd control, fire safety, and overnight protocol clearances"),
         ("Finance Officer", "Finance staff reviewing event budgets and fund compliance"),
         ("Admin", "System administrator with full access to manage roles, users, and compliance rules")
     ]
@@ -77,6 +85,7 @@ app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(proposals_router, prefix=settings.API_V1_STR)
 app.include_router(resources_router, prefix=settings.API_V1_STR)
 app.include_router(finance_router, prefix=settings.API_V1_STR)
+app.include_router(approvals_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/", tags=["Health Check"])

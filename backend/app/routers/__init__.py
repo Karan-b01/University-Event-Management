@@ -3,6 +3,7 @@ from .users import router as users_router
 from .proposals import router as proposals_router
 from .resources import router as resources_router
 from .finance import router as finance_router
+from .approvals import router as approvals_router
 
 __all__ = [
     "auth_router",
@@ -10,4 +11,5 @@ __all__ = [
     "proposals_router",
     "resources_router",
     "finance_router",
+    "approvals_router",
 ]

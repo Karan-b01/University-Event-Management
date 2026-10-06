@@ -17,6 +17,7 @@ from .proposal_service import ProposalService
 from .resource_service import ResourceService
 from .finance_service import FinanceService
 from .compliance_validator import ComplianceValidatorService
+from .approval_service import ApprovalService
 
 __all__ = [
     "IEmailGateway",
@@ -36,4 +37,5 @@ __all__ = [
     "ResourceService",
     "FinanceService",
     "ComplianceValidatorService",
+    "ApprovalService",
 ]
