@@ -33,6 +33,19 @@ from .proposal import (
     ProposalResponse,
     ProposalExportResponse,
 )
+from .resource import (
+    ResourceBase,
+    ResourceCreate,
+    VenueCreate,
+    EquipmentCreate,
+    TransportCreate,
+    AccommodationCreate,
+    ResourceResponse,
+    BookingCreate,
+    BookingResponse,
+    DamageReportCreate,
+    DamageReportResponse,
+)
 
 __all__ = [
     "RoleBase",
@@ -66,4 +79,15 @@ __all__ = [
     "ProposalUpdate",
     "ProposalResponse",
     "ProposalExportResponse",
+    "ResourceBase",
+    "ResourceCreate",
+    "VenueCreate",
+    "EquipmentCreate",
+    "TransportCreate",
+    "AccommodationCreate",
+    "ResourceResponse",
+    "BookingCreate",
+    "BookingResponse",
+    "DamageReportCreate",
+    "DamageReportResponse",
 ]
