@@ -7,6 +7,15 @@ from .proposal import (
     Poster,
     VendorQuotation,
 )
+from .resource import (
+    Resource,
+    Venue,
+    Equipment,
+    Transport,
+    Accommodation,
+    Booking,
+    DamageReport,
+)
 
 __all__ = [
     "User",
@@ -20,4 +29,11 @@ __all__ = [
     "Document",
     "Poster",
     "VendorQuotation",
+    "Resource",
+    "Venue",
+    "Equipment",
+    "Transport",
+    "Accommodation",
+    "Booking",
+    "DamageReport",
 ]
