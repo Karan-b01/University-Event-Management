@@ -1,4 +1,4 @@
-from datetime import datetime, date
+import datetime as dt
 from typing import Optional, List, Any, Dict
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
@@ -29,7 +29,7 @@ class VendorResponse(VendorBase):
 
 class ReceiptBase(BaseModel):
     amount: float = Field(..., gt=0.0, description="Receipt total amount")
-    date: date = Field(..., description="Invoice / Receipt date")
+    date: dt.date = Field(..., description="Invoice / Receipt date")
     file_path: str = Field(..., description="Uploaded invoice document or image path")
 
 
@@ -41,7 +41,7 @@ class ReceiptResponse(ReceiptBase):
     id: int
     expense_id: int
     is_verified: bool
-    created_at: datetime
+    created_at: dt.datetime
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -62,7 +62,7 @@ class TransactionResponse(BaseModel):
     id: int
     expense_id: Optional[int] = None
     amount: float
-    timestamp: datetime
+    timestamp: dt.datetime
     type: str
     status: str
     transaction_ref: Optional[str] = None
@@ -98,7 +98,7 @@ class ExpenseResponse(BaseModel):
     category: str
     status: str
     parent_expense_id: Optional[int] = None
-    created_at: datetime
+    created_at: dt.datetime
     vendor: Optional[VendorResponse] = None
     receipts: List[ReceiptResponse] = []
     transactions: List[TransactionResponse] = []
@@ -130,8 +130,8 @@ class BudgetResponse(BaseModel):
     allocated_amount: float
     current_spent: float
     status: str
-    created_at: datetime
-    updated_at: datetime
+    created_at: dt.datetime
+    updated_at: dt.datetime
     expenses: List[ExpenseResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
