@@ -85,8 +85,45 @@ class CAPTCHA(ICAPTCHAGateway):
         return True
 
 
+# ==========================================
+# Payment Gateway Interface & Mock Adapter
+# ==========================================
+
+import time
+import uuid
+from typing import Dict, Any
+
+
+class IPaymentGateway(ABC):
+    """Interface for University Payment Gateway adapter."""
+
+    @abstractmethod
+    def process_payment(self, amount: float, account_details: Dict[str, Any]) -> Dict[str, str]:
+        """Process financial disbursement to a vendor or recipient."""
+        pass
+
+
+class UniversityPaymentGatewayAdapter(IPaymentGateway):
+    """
+    Mock adapter simulating University Core Banking / ERP payment gateway.
+    Simulates network latency and issues unique transaction references.
+    """
+
+    def process_payment(self, amount: float, account_details: Dict[str, Any]) -> Dict[str, str]:
+        print(f"[UniversityPaymentGateway] Initiating payment of ${amount:.2f} to account: {account_details}")
+        # Simulate network latency as specified
+        time.sleep(1)
+        txn_id = f"TXN-MOCK-{uuid.uuid4().hex[:12].upper()}"
+        print(f"[UniversityPaymentGateway] Payment SUCCESS. Transaction Reference: {txn_id}")
+        return {
+            "status": "success",
+            "transaction_id": txn_id
+        }
+
+
 # Global gateway singleton instances for dependency injection
 email_gateway = EmailGateway()
 sms_gateway = SMSGateway()
 captcha_service = CAPTCHA()
+payment_gateway = UniversityPaymentGatewayAdapter()
 
