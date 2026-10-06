@@ -108,3 +108,4 @@ class ComplianceValidatorService:
             "is_high_risk": is_high_risk,
             "flag_details": flags
         }
+

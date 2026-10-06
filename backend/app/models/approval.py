@@ -103,3 +103,4 @@ class RiskAssessment(Base):
 
     def __repr__(self) -> str:
         return f"<RiskAssessment(id={self.id}, risk_score={self.risk_score}, is_high_risk={self.is_high_risk})>"
+

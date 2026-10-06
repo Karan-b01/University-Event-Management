@@ -69,3 +69,4 @@ class WorkflowResponse(BaseModel):
     history: List[HistoryResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+

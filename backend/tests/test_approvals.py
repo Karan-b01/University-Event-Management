@@ -195,3 +195,4 @@ def test_workflow_rejection_halts_routing(client):
     # Audit history reflects rejection
     assert wf_data["history"][-1]["action_taken"] == "Rejected"
     assert "lacks academic mentor support" in wf_data["history"][-1]["remarks"]
+
