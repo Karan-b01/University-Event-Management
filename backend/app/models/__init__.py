@@ -26,6 +26,12 @@ from .finance import (
     UPITransfer,
     Cheque,
 )
+from .approval import (
+    ApprovalWorkflow,
+    ApprovalNode,
+    ApprovalHistory,
+    RiskAssessment,
+)
 
 __all__ = [
     "User",
@@ -54,4 +60,8 @@ __all__ = [
     "BankTransfer",
     "UPITransfer",
     "Cheque",
+    "ApprovalWorkflow",
+    "ApprovalNode",
+    "ApprovalHistory",
+    "RiskAssessment",
 ]
