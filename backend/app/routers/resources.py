@@ -126,3 +126,4 @@ def get_resource(
 ):
     """Endpoint to fetch specific resource details."""
     return ResourceService.get_resource_by_id(db, resource_id)
+

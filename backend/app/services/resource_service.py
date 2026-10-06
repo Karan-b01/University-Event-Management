@@ -199,3 +199,4 @@ class ResourceService:
         db.commit()
         db.refresh(damage_report)
         return damage_report
+

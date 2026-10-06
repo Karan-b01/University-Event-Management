@@ -16,6 +16,16 @@ from .resource import (
     Booking,
     DamageReport,
 )
+from .finance import (
+    Budget,
+    Vendor,
+    Expense,
+    Receipt,
+    Transaction,
+    BankTransfer,
+    UPITransfer,
+    Cheque,
+)
 
 __all__ = [
     "User",
@@ -36,4 +46,12 @@ __all__ = [
     "Accommodation",
     "Booking",
     "DamageReport",
+    "Budget",
+    "Vendor",
+    "Expense",
+    "Receipt",
+    "Transaction",
+    "BankTransfer",
+    "UPITransfer",
+    "Cheque",
 ]

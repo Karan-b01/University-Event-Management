@@ -218,3 +218,4 @@ def test_damage_report_submission(client):
     assert data["description"] == "HDMI port damaged during conference tear-down."
     assert data["estimated_cost"] == 150.0
     assert "report_date" in data
+

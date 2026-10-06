@@ -133,3 +133,4 @@ class DamageReport(Base):
 
     def __repr__(self) -> str:
         return f"<DamageReport(id={self.id}, resource_id={self.resource_id}, estimated_cost={self.estimated_cost})>"
+

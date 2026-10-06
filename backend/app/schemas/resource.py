@@ -118,3 +118,4 @@ class DamageReportResponse(BaseModel):
     estimated_cost: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
+
