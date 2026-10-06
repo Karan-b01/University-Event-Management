@@ -1,58 +1,13 @@
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from app.main import app
-from app.database import Base, get_db
-from app.models.user import Role
 
-from sqlalchemy.pool import StaticPool
-
-# Use in-memory SQLite database for testing with StaticPool so all connections share the same memory DB
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-
-@pytest.fixture(autouse=True)
-def setup_database():
-    Base.metadata.create_all(bind=engine)
-    # Seed default roles
-    db = TestingSessionLocal()
-    for role_name in ["Student", "Student Organizer", "Faculty Advisor", "Finance Officer", "Admin"]:
-        db.add(Role(role_name=role_name, description=f"{role_name} test role"))
-    db.commit()
-    db.close()
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-
-client = TestClient(app)
-
-
-def test_health_check():
+def test_health_check(client):
     response = client.get("/")
     assert response.status_code == 200
     assert response.json()["status"] == "online"
 
 
-def test_user_registration_and_profile():
+def test_user_registration_and_profile(client):
     payload = {
         "name": "Jane Organizer",
         "email": "jane@university.edu",
@@ -74,7 +29,7 @@ def test_user_registration_and_profile():
     assert data["profile"]["address"] == "Campus Building B, Room 301"
 
 
-def test_user_login_and_jwt_generation():
+def test_user_login_and_jwt_generation(client):
     # Register first
     reg_payload = {
         "name": "Faculty User",
@@ -100,7 +55,7 @@ def test_user_login_and_jwt_generation():
     assert any(r["role_name"] == "Faculty Advisor" for r in data["user"]["roles"])
 
 
-def test_rbac_access_control():
+def test_rbac_access_control(client):
     # Register Student Organizer
     organizer_payload = {
         "name": "Organizer Bob",
@@ -129,7 +84,7 @@ def test_rbac_access_control():
     assert res_admin.status_code == 403
 
 
-def test_session_invalidation_logout():
+def test_session_invalidation_logout(client):
     reg_payload = {
         "name": "Test Logout User",
         "email": "logout@university.edu",
@@ -158,7 +113,7 @@ def test_session_invalidation_logout():
     assert me_after_res.status_code == 401
 
 
-def test_duplicate_registration_fails():
+def test_duplicate_registration_fails(client):
     payload = {
         "name": "Duplicate User",
         "email": "dup@university.edu",
@@ -172,7 +127,7 @@ def test_duplicate_registration_fails():
     assert "already exists" in res2.json()["detail"]
 
 
-def test_invalid_login_credentials():
+def test_invalid_login_credentials(client):
     payload = {
         "email": "nonexistent@university.edu",
         "password": "WrongPassword"

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.database import engine, Base, SessionLocal
 from app.models.user import Role
-from app.routers import auth_router, users_router
+from app.routers import auth_router, users_router, proposals_router
 
 
 def init_db_roles():
@@ -74,6 +74,7 @@ if settings.BACKEND_CORS_ORIGINS:
 # Include API Routers under standard prefix
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(users_router, prefix=settings.API_V1_STR)
+app.include_router(proposals_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/", tags=["Health Check"])

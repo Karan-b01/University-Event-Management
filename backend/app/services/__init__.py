@@ -10,6 +10,7 @@ from .gateways import (
     captcha_service,
 )
 from .auth_service import AuthService
+from .proposal_service import ProposalService
 
 __all__ = [
     "IEmailGateway",
@@ -22,5 +23,5 @@ __all__ = [
     "sms_gateway",
     "captcha_service",
     "AuthService",
+    "ProposalService",
 ]
-

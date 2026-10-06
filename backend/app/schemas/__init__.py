@@ -14,6 +14,25 @@ from .user import (
     Token,
     TokenData,
 )
+from .proposal import (
+    TeamMember,
+    OrganizingTeam,
+    EventDetailsBase,
+    EventDetailsCreate,
+    EventDetailsUpdate,
+    EventDetailsResponse,
+    ScheduleBase,
+    ScheduleCreate,
+    ScheduleUpdate,
+    ScheduleResponse,
+    DocumentBase,
+    DocumentResponse,
+    ProposalDraftCreate,
+    ProposalCreate,
+    ProposalUpdate,
+    ProposalResponse,
+    ProposalExportResponse,
+)
 
 __all__ = [
     "RoleBase",
@@ -30,5 +49,21 @@ __all__ = [
     "SessionResponse",
     "Token",
     "TokenData",
+    "TeamMember",
+    "OrganizingTeam",
+    "EventDetailsBase",
+    "EventDetailsCreate",
+    "EventDetailsUpdate",
+    "EventDetailsResponse",
+    "ScheduleBase",
+    "ScheduleCreate",
+    "ScheduleUpdate",
+    "ScheduleResponse",
+    "DocumentBase",
+    "DocumentResponse",
+    "ProposalDraftCreate",
+    "ProposalCreate",
+    "ProposalUpdate",
+    "ProposalResponse",
+    "ProposalExportResponse",
 ]
-

@@ -1,0 +1,171 @@
+from typing import List, Optional
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+    UploadFile,
+    File,
+    Form,
+    HTTPException,
+)
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models.user import User
+from app.models.proposal import EventProposal
+from app.schemas.proposal import (
+    ProposalDraftCreate,
+    ProposalUpdate,
+    ProposalResponse,
+    DocumentResponse,
+    ProposalExportResponse,
+)
+from app.services.proposal_service import ProposalService
+from app.core.dependencies import get_current_user, require_role
+
+router = APIRouter(
+    prefix="/proposals",
+    tags=["Module 2: Event Proposal Management"],
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
+)
+
+
+@router.post(
+    "/draft",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Save initial proposal draft",
+    description="Creates an initial event proposal draft. Allows partial/nullable data so users can save their progress."
+)
+def create_proposal_draft(
+    draft_in: ProposalDraftCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Endpoint to save initial proposal draft."""
+    proposal = ProposalService.create_draft(db=db, user=current_user, draft_in=draft_in)
+    return proposal
+
+
+@router.put(
+    "/{proposal_id}",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update existing proposal",
+    description="Overwrites/updates the existing proposal data directly without creating a new version row."
+)
+def update_proposal(
+    proposal_id: str,
+    update_in: ProposalUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Endpoint to update/overwrite existing proposal draft."""
+    proposal = ProposalService.update_proposal(
+        db=db,
+        proposal_id=proposal_id,
+        user=current_user,
+        update_in=update_in
+    )
+    return proposal
+
+
+@router.post(
+    "/{proposal_id}/documents",
+    response_model=DocumentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload proposal document",
+    description="Uploads a supporting document (Poster or VendorQuotation) and stores it using Single Table Inheritance."
+)
+def upload_proposal_document(
+    proposal_id: str,
+    file: UploadFile = File(..., description="The document file to upload"),
+    doc_type: str = Form("Poster", description="Document type: 'Poster' or 'VendorQuotation'"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Endpoint for uploading documents linked to an event proposal."""
+    document = ProposalService.upload_document(
+        db=db,
+        proposal_id=proposal_id,
+        user=current_user,
+        file=file,
+        doc_type=doc_type
+    )
+    return document
+
+
+@router.post(
+    "/{proposal_id}/submit",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Submit proposal for compliance review",
+    description="Validates completeness (EventDetails, Schedule, and at least one Document required) and transitions status to 'Submitted'."
+)
+def submit_proposal(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Endpoint to validate and submit a proposal."""
+    proposal = ProposalService.submit_proposal(
+        db=db,
+        proposal_id=proposal_id,
+        user=current_user
+    )
+    return proposal
+
+
+@router.get(
+    "/{proposal_id}/export",
+    response_model=ProposalExportResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Export aggregated proposal (ExportManager simulation)",
+    description="Returns fully aggregated proposal details, schedule, team roster, and document metadata as structured JSON."
+)
+def export_proposal(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Endpoint simulating the UML ExportManager."""
+    export_data = ProposalService.export_proposal(
+        db=db,
+        proposal_id=proposal_id,
+        user=current_user
+    )
+    return export_data
+
+
+@router.get(
+    "/{proposal_id}",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get proposal by ID"
+)
+def get_proposal(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve single proposal by ID."""
+    proposal = ProposalService.get_proposal_by_id(db=db, proposal_id=proposal_id, user=current_user)
+    return proposal
+
+
+@router.get(
+    "/",
+    response_model=List[ProposalResponse],
+    status_code=status.HTTP_200_OK,
+    summary="List proposals for current user"
+)
+def list_my_proposals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List all proposals created by the current user (or all if admin)."""
+    user_role_names = {r.role_name for r in current_user.roles}
+    if "Admin" in user_role_names:
+        return db.query(EventProposal).all()
+    return db.query(EventProposal).filter(EventProposal.user_id == current_user.id).all()
+
