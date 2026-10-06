@@ -63,6 +63,13 @@ from .finance import (
     BudgetUpdate,
     BudgetResponse,
 )
+from .approval import (
+    ReviewRequest,
+    NodeResponse,
+    HistoryResponse,
+    RiskAssessmentResponse,
+    WorkflowResponse,
+)
 
 __all__ = [
     "RoleBase",
@@ -122,4 +129,9 @@ __all__ = [
     "BudgetCreate",
     "BudgetUpdate",
     "BudgetResponse",
+    "ReviewRequest",
+    "NodeResponse",
+    "HistoryResponse",
+    "RiskAssessmentResponse",
+    "WorkflowResponse",
 ]
