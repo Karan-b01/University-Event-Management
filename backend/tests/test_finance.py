@@ -172,3 +172,4 @@ def test_payment_disbursement_workflow(client):
     res_repay = client.post(f"/api/v1/finance/expenses/{expense_id}/pay", json=pay_payload, headers=finance_headers)
     assert res_repay.status_code == 400
     assert "already been paid" in res_repay.json()["detail"]
+

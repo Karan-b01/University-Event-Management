@@ -170,3 +170,4 @@ class Cheque(Transaction):
     __mapper_args__ = {
         "polymorphic_identity": "Cheque",
     }
+
