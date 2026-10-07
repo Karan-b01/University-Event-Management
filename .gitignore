@@ -1,0 +1,184 @@
+# ==============================================================================
+# Project Specific Ignored Files
+# ==============================================================================
+# Distinctive Frontend documentation and guidelines
+distinctive-frontend.md
+distinctive-frontend/
+*distinctive-frontend*
+
+# ==============================================================================
+# Environment Variables, Secrets & Credentials
+# ==============================================================================
+# Environment files
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!.env.example
+!backend/.env.example
+
+# Secret keys, certificates and authentication tokens
+*.pem
+*.key
+*.pub
+*.cert
+*.crt
+*.pfx
+*.p12
+*.pkcs12
+*.id_rsa
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
+# Secrets, credentials & token configurations
+secrets.json
+secrets.yaml
+secrets.yml
+.secrets*
+.credentials*
+credentials.json
+client_secret*.json
+token.json
+tokens.json
+auth_token*
+*.token
+session.json
+
+# ==============================================================================
+# Python / Backend
+# ==============================================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Uploads & User Generated Files
+backend/uploads/*
+!backend/uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Databases & SQLite
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# ==============================================================================
+# Frontend & Node.js
+# ==============================================================================
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Production builds
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.astro/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Framework caches
+.cache/
+.parcel-cache/
+.turbo/
+.vercel/
+
+# ==============================================================================
+# IDEs, Editors & OS Files
+# ==============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+
+# IDEs / Editors
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+*.sublime-project
+
+# AI Agent / Local Scratch
+.gemini/
+.antigravity/
+scratch/
+
