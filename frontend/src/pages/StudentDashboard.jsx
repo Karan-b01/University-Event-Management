@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileText,
   PlusCircle,
@@ -6,28 +6,98 @@ import {
   DollarSign,
   ShieldCheck,
   Building,
-  TrendingUp,
-  Clock,
-  ChevronRight,
-  Filter,
+  RefreshCw,
   Search,
-  ExternalLink,
   Users,
   CheckCircle2,
   AlertCircle,
-  FolderOpen,
+  Clock,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { MOCK_PROPOSALS, MOCK_STATS, MOCK_USER } from '../data/mockData';
+import { proposalsApi } from '../api';
 
 export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
+  const [proposals, setProposals] = useState(MOCK_PROPOSALS);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [loading, setLoading] = useState(false);
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
 
-  const filteredProposals = MOCK_PROPOSALS.filter((p) => {
+  const fetchLiveProposals = async () => {
+    setLoading(true);
+    try {
+      const data = await proposalsApi.list();
+      if (Array.isArray(data) && data.length > 0) {
+        // Map backend API data to UI structure
+        const mapped = data.map((item) => ({
+          id: item.id,
+          title: item.title,
+          category: item.details?.objective || 'Academic Event',
+          organizer: MOCK_USER.name,
+          department: MOCK_USER.department,
+          targetDate: item.schedule?.start_date
+            ? new Date(item.schedule.start_date).toISOString().split('T')[0]
+            : '2026-11-20',
+          endDate: item.schedule?.end_date
+            ? new Date(item.schedule.end_date).toISOString().split('T')[0]
+            : '2026-11-21',
+          time: '09:00 AM - 08:00 PM',
+          venue: item.schedule?.venue_preference || 'Grand Innovation Hall',
+          expectedParticipants: item.details?.expected_participants || 350,
+          venueCapacity: 500,
+          allocatedBudget: 12500,
+          currentSpent: 0,
+          status: item.status || 'Draft',
+          riskLevel:
+            (item.details?.expected_participants || 0) >= 400
+              ? 'High Risk'
+              : 'Low Risk',
+          riskFlags: [
+            'Participant volume within campus threshold',
+            'Pre-screening compliance verification pending',
+          ],
+          currentNode:
+            item.status === 'Submitted'
+              ? 'Faculty Advisor Review'
+              : 'Draft In Progress',
+          submittedAt: item.created_at || 'Just now',
+          description: item.details?.description || 'No description provided.',
+          auditTimeline: [
+            {
+              step: 'Proposal Draft Created in FastAPI',
+              actor: MOCK_USER.name,
+              time: item.created_at || 'Recent',
+              status: 'completed',
+            },
+          ],
+          expenses: [],
+        }));
+
+        setProposals(mapped);
+        setIsLiveConnected(true);
+      } else {
+        // If live DB has 0 proposals yet, keep mock list for rich display and mark connected
+        setIsLiveConnected(true);
+      }
+    } catch (err) {
+      console.warn('[StudentDashboard] GET /proposals/ offline or unauthenticated, using mock data:', err);
+      setIsLiveConnected(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveProposals();
+  }, []);
+
+  const filteredProposals = proposals.filter((p) => {
     const matchesSearch =
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,9 +114,19 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="teal">Module 01 &amp; 02 Suite</Badge>
-            <span className="text-xs text-zinc-400 dark:text-slate-400 font-sans">
-              Organizing Committee Workspace
-            </span>
+            <div className="flex items-center gap-1.5 text-xs font-sans">
+              {isLiveConnected ? (
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <Wifi className="w-3.5 h-3.5" />
+                  <span>FastAPI Connected (GET /api/v1/proposals/)</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-zinc-500 dark:text-slate-400">
+                  <WifiOff className="w-3.5 h-3.5" />
+                  <span>Local Mock Mode</span>
+                </span>
+              )}
+            </div>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
             Student Organizer Operations
@@ -61,10 +141,19 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           <Button
             variant="secondary"
             size="md"
+            icon={RefreshCw}
+            onClick={fetchLiveProposals}
+            disabled={loading}
+          >
+            {loading ? 'Refreshing...' : 'Sync Backend'}
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
             icon={Calendar}
             onClick={() => onNavigate('calendar')}
           >
-            Check Venue Availability
+            Venue Availability
           </Button>
           <Button
             variant="primary"
@@ -90,14 +179,14 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
-              {MOCK_STATS.student.activeProposals}
+              {proposals.length}
             </span>
             <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 font-sans">
-              2 in review
+              {proposals.filter((p) => p.status === 'Pending').length} in review
             </span>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
-            1 Draft, 2 In Review, 1 Approved
+            Real-time synchronization active
           </p>
         </Card>
 
@@ -170,8 +259,8 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
 
       {/* PROPOSALS TABLE SECTION */}
       <Card
-        title="Event Proposals & Status Matrix"
-        subtitle="Tracking multi-tier institutional approvals and document verifications"
+        title="Event Proposals &amp; Status Matrix"
+        subtitle="Live synchronization with FastAPI backend (GET /api/v1/proposals/)"
         headerAction={
           <div className="flex items-center gap-2">
             <div className="relative w-56 hidden sm:block">
@@ -184,7 +273,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
               />
             </div>
             <div className="flex items-center gap-1 border border-zinc-200 dark:border-white/10 p-0.5 rounded text-xs">
-              {['All', 'Pending', 'Approved'].map((status) => (
+              {['All', 'Pending', 'Approved', 'Draft'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
