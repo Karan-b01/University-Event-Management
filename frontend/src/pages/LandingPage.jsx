@@ -104,11 +104,12 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
   ];
 
   return (
-    <div className="w-full min-h-screen">
+    <div className="relative min-h-screen overflow-hidden">
       {/* FULL-VIEWPORT HERO SECTION (Centered Vertically and Horizontally) */}
       <section className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden border-b border-zinc-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-12">
         {/* HTML5 Live Video Background */}
         <video
+          src="/video.mp4"
           autoPlay
           loop
           muted
