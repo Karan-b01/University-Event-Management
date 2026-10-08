@@ -1,8 +1,19 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
+import bcrypt
 import jwt
 from passlib.context import CryptContext
 from app.core.config import settings
+
+# Compatibility patch for passlib with bcrypt >= 4.1.0 on modern Python
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = type("About", (), {"__version__": getattr(bcrypt, "__version__", "5.0.0")})
+_orig_hashpw = bcrypt.hashpw
+def _safe_hashpw(password, salt):
+    if isinstance(password, bytes) and len(password) > 72:
+        password = password[:72]
+    return _orig_hashpw(password, salt)
+bcrypt.hashpw = _safe_hashpw
 
 # Password Hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
