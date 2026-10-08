@@ -13,11 +13,12 @@ try:
         engine = create_engine(DATABASE_URL, connect_args=connect_args)
     else:
         engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-        # Attempt to inspect dialect/connection to catch missing driver early
-        _ = engine.dialect
+        # Verify connection early to catch missing database, driver, or auth failure
+        with engine.connect() as conn:
+            pass
 except Exception as e:
     # Graceful fallback to SQLite for local standalone development/testing
-    print(f"[Database Setup Notice] PostgreSQL driver or connection unavailable ({e}). Falling back to local SQLite DB.")
+    print(f"[Database Setup Notice] PostgreSQL connection unavailable ({e}). Falling back to local SQLite DB.")
     DATABASE_URL = "sqlite:///./event_system.db"
     connect_args = {"check_same_thread": False}
     engine = create_engine(DATABASE_URL, connect_args=connect_args)
