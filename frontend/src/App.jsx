@@ -1,122 +1,99 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
+import Navbar from './components/layout/Navbar';
+import AuthModal from './components/auth/AuthModal';
+import LandingPage from './pages/LandingPage';
+import StudentDashboard from './pages/StudentDashboard';
+import ProposalWizard from './pages/ProposalWizard';
+import ApprovalInbox from './pages/ApprovalInbox';
+import FinanceDesk from './pages/FinanceDesk';
+import ResourceCalendar from './pages/ResourceCalendar';
+import { MOCK_USER } from './data/mockData';
 
-function App() {
-  const [count, setCount] = useState(0)
+export function AppContent() {
+  const [activePage, setActivePage] = useState('landing');
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(MOCK_USER);
+  const [selectedProposal, setSelectedProposal] = useState(null);
+
+  const handleNavigate = (pageId) => {
+    setActivePage(pageId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectProposal = (proposal) => {
+    setSelectedProposal(proposal);
+  };
+
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen flex flex-col bg-white text-black dark:bg-[#05080A] dark:text-white transition-colors duration-300">
+      {/* Sticky Top Navigation */}
+      <Navbar
+        activePage={activePage}
+        setActivePage={handleNavigate}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+      />
 
-      <div className="ticks"></div>
+      {/* Main View Area */}
+      <main className="flex-1">
+        {activePage === 'landing' && (
+          <LandingPage
+            onNavigate={handleNavigate}
+            onOpenAuth={() => setIsAuthOpen(true)}
+          />
+        )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {activePage === 'student' && (
+          <StudentDashboard
+            onNavigate={handleNavigate}
+            onSelectProposal={handleSelectProposal}
+          />
+        )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {activePage === 'wizard' && (
+          <ProposalWizard onNavigate={handleNavigate} />
+        )}
+
+        {activePage === 'approvals' && (
+          <ApprovalInbox
+            selectedProposal={selectedProposal}
+            onNavigate={handleNavigate}
+          />
+        )}
+
+        {activePage === 'finance' && (
+          <FinanceDesk onNavigate={handleNavigate} />
+        )}
+
+        {activePage === 'calendar' && (
+          <ResourceCalendar onNavigate={handleNavigate} />
+        )}
+      </main>
+
+      {/* Floating Auth Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+    </div>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}

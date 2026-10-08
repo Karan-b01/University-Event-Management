@@ -1,0 +1,552 @@
+import React, { useState } from 'react';
+import {
+  Check,
+  ChevronRight,
+  ChevronLeft,
+  FileText,
+  Building,
+  DollarSign,
+  ShieldCheck,
+  Upload,
+  AlertTriangle,
+  Info,
+  Calendar,
+  Clock,
+  Users,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react';
+import Card from '../components/common/Card';
+import Input, { Select } from '../components/common/Input';
+import Button from '../components/common/Button';
+import Badge from '../components/common/Badge';
+import { MOCK_VENUES } from '../data/mockData';
+
+export const ProposalWizard = ({ onNavigate }) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    title: 'Autumn Collegiate Robotics Invitational',
+    category: 'Engineering & Robotics',
+    description:
+      'A multi-university autonomous drone and rover navigation competition held across 2 days in the campus engineering arena.',
+    expectedAttendance: '350',
+    targetDate: '2026-11-20',
+    endDate: '2026-11-21',
+    startTime: '08:30',
+    endTime: '21:00',
+    venue: 'Grand Innovation Hall',
+    equipmentNotes: 'Dual 4K projection, high-frequency radio telemetry clearance, 30x AC power strips',
+    allocatedBudget: '12500',
+    expenses: [
+      { item: 'Telemetry Arena Turf & Course Obstacles', vendor: 'AcroSport Equipment', amount: 3500 },
+      { item: 'Autonomous Rover Sensor Packages & Batteries', vendor: 'DroneLab Electronics', amount: 4800 },
+      { item: 'Judges Honorarium & Accommodations', vendor: 'University Guest Services', amount: 2200 },
+    ],
+    isOvernight: false,
+    hasMedicalPlan: true,
+    fireClearanceRequired: true,
+    posterFile: 'robotics_invitational_poster_v2.pdf',
+    quotationFile: 'vendor_quotations_bundle_nov2026.pdf',
+  });
+
+  const steps = [
+    { number: 1, title: 'Event Overview', desc: 'Scope, category & schedule', icon: FileText },
+    { number: 2, title: 'Venue & Logistics', desc: 'Resource locking & capacity', icon: Building },
+    { number: 3, title: 'Budget Breakdown', desc: 'Itemized expense ledger', icon: DollarSign },
+    { number: 4, title: 'Compliance & Safety', desc: 'Pre-screening & STI files', icon: ShieldCheck },
+  ];
+
+  const handleNext = () => {
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      setIsSubmitted(true);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const calculatedRisk =
+    parseInt(formData.expectedAttendance || 0) > 400 || formData.isOvernight
+      ? 'Medium Risk'
+      : 'Low Risk';
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-1">
+          <Badge variant="teal">Module 02: Proposal Engine</Badge>
+          <span className="text-xs text-zinc-400 dark:text-slate-400 font-sans">
+            Progressive Draft Workflow
+          </span>
+        </div>
+        <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
+          Event Proposal Governance Wizard
+        </h1>
+        <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
+          Structured 4-step intake enforcing complete schedules, pessimistic resource locks,
+          and automated compliance validations.
+        </p>
+      </div>
+
+      {/* 4-STEP HORIZONTAL STEPPER */}
+      <div className="mb-8 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-[#090D10]/80 backdrop-blur-md">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {steps.map((s) => {
+            const isCompleted = currentStep > s.number;
+            const isCurrent = currentStep === s.number;
+            const Icon = s.icon;
+
+            return (
+              <div
+                key={s.number}
+                onClick={() => setCurrentStep(s.number)}
+                className={`cursor-pointer p-3 rounded-lg border transition-all duration-200 ${
+                  isCurrent
+                    ? 'border-black bg-zinc-100/80 dark:border-emerald-400 dark:bg-emerald-500/10'
+                    : isCompleted
+                    ? 'border-zinc-300 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.02]'
+                    : 'border-transparent text-zinc-400 dark:text-slate-500'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-sans transition-colors ${
+                      isCompleted
+                        ? 'bg-black text-white dark:bg-emerald-500 dark:text-black'
+                        : isCurrent
+                        ? 'bg-black text-white dark:bg-emerald-400 dark:text-black'
+                        : 'bg-zinc-200 dark:bg-white/10 text-zinc-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.number}
+                  </div>
+                  <span
+                    className={`text-xs font-bold font-sans ${
+                      isCurrent
+                        ? 'text-zinc-950 dark:text-emerald-400'
+                        : isCompleted
+                        ? 'text-zinc-800 dark:text-slate-200'
+                        : 'text-zinc-400 dark:text-slate-500'
+                    }`}
+                  >
+                    {s.title}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-slate-400 font-sans hidden sm:block">
+                  {s.desc}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* FORM BODY CONTAINER */}
+      {!isSubmitted ? (
+        <Card noPadding className="mb-8">
+          <div className="p-6 sm:p-8">
+            {/* STEP 1: EVENT BASICS */}
+            {currentStep === 1 && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
+                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                    Step 1: Event Fundamentals &amp; Scope
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
+                    Define the core scope, target dates, and expected audience capacity.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <Input
+                    label="Event Title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                  />
+
+                  <Select
+                    label="Primary Category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    options={[
+                      'Engineering & Robotics',
+                      'Technology & Research',
+                      'Cultural & Arts',
+                      'Sports & Athletics',
+                      'Academic & Distinguished',
+                      'Student Life & Orientation',
+                    ]}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold tracking-wider uppercase text-zinc-700 dark:text-slate-300 font-sans block mb-1.5">
+                    Executive Event Summary &amp; Academic Objectives
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
+                      bg-white text-zinc-900 border border-zinc-300 placeholder:text-zinc-400
+                      focus:border-black focus:ring-1 focus:ring-black
+                      dark:bg-[#05080A]/80 dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
+                      dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  <Input
+                    label="Expected Attendance"
+                    type="number"
+                    icon={Users}
+                    value={formData.expectedAttendance}
+                    onChange={(e) =>
+                      setFormData({ ...formData, expectedAttendance: e.target.value })
+                    }
+                    helperText="Mass gatherings ≥400 trigger medical stand-by rules"
+                  />
+
+                  <Input
+                    label="Target Date"
+                    type="date"
+                    icon={Calendar}
+                    value={formData.targetDate}
+                    onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+                  />
+
+                  <Input
+                    label="Conclusion Date"
+                    type="date"
+                    icon={Calendar}
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Input
+                    label="Daily Start Time"
+                    type="time"
+                    icon={Clock}
+                    value={formData.startTime}
+                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                  />
+                  <Input
+                    label="Daily End Time"
+                    type="time"
+                    icon={Clock}
+                    value={formData.endTime}
+                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: VENUE & LOGISTICS */}
+            {currentStep === 2 && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
+                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                    Step 2: Resource Allocation &amp; Concurrency Locking
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
+                    Select campus facilities. Resources are locked via database pessimistic
+                    locks upon submission.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <Select
+                    label="Requested Primary Venue"
+                    value={formData.venue}
+                    onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                    options={MOCK_VENUES.map((v) => ({
+                      value: v.name,
+                      label: `${v.name} (Capacity: ${v.capacity})`,
+                    }))}
+                  />
+
+                  <div className="p-3.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                        Pessimistic Locking Status
+                      </p>
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-0.5">
+                        {formData.venue}
+                      </p>
+                    </div>
+                    <Badge variant="approved">Ready to Lock</Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold tracking-wider uppercase text-zinc-700 dark:text-slate-300 font-sans block mb-1.5">
+                    Audio/Visual &amp; Specialized Logistics Requirements
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.equipmentNotes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, equipmentNotes: e.target.value })
+                    }
+                    className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
+                      bg-white text-zinc-900 border border-zinc-300
+                      focus:border-black focus:ring-1 focus:ring-black
+                      dark:bg-[#05080A]/80 dark:text-white dark:border-white/15
+                      dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
+                  />
+                </div>
+
+                {/* Overlap verification callout */}
+                <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="text-xs text-emerald-900 dark:text-emerald-200 font-sans">
+                    <p className="font-bold">Zero Interval Overlap Detected</p>
+                    <p className="mt-0.5">
+                      The Requested interval ({formData.targetDate} {formData.startTime} to{' '}
+                      {formData.endDate} {formData.endTime}) does not intersect with any existing
+                      confirmed reservation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: ITEMIZED BUDGET & FINANCE */}
+            {currentStep === 3 && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
+                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                    Step 3: Itemized Budget &amp; Fiscal Compliance
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
+                    1-to-1 Budget Tracking with cumulative overrun prevention and duplicate
+                    invoice verification.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Input
+                    label="Total Requested Allocation ($)"
+                    type="number"
+                    icon={DollarSign}
+                    value={formData.allocatedBudget}
+                    onChange={(e) =>
+                      setFormData({ ...formData, allocatedBudget: e.target.value })
+                    }
+                    required
+                  />
+
+                  <div className="p-3.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                      Sum of Itemized Expenses
+                    </span>
+                    <p className="text-lg font-bold font-serif text-zinc-900 dark:text-white mt-1">
+                      $
+                      {formData.expenses
+                        .reduce((sum, item) => sum + item.amount, 0)
+                        .toLocaleString()}{' '}
+                      <span className="text-xs font-normal text-zinc-500 dark:text-slate-400 font-sans">
+                        / ${parseInt(formData.allocatedBudget || 0).toLocaleString()} cap
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sub-Expense Hierarchy Table */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans mb-3">
+                    Sub-Expense Itemization (Module 03 Specification)
+                  </h4>
+                  <div className="border border-zinc-200 dark:border-white/10 rounded-lg overflow-hidden">
+                    <table className="w-full text-left text-xs font-sans">
+                      <thead className="bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">
+                        <tr>
+                          <th className="p-3">Expense Item</th>
+                          <th className="p-3">Vendor</th>
+                          <th className="p-3 text-right">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
+                        {formData.expenses.map((exp, idx) => (
+                          <tr key={idx} className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02]">
+                            <td className="p-3 font-semibold text-zinc-900 dark:text-white">
+                              {exp.item}
+                            </td>
+                            <td className="p-3 text-zinc-600 dark:text-slate-300">{exp.vendor}</td>
+                            <td className="p-3 text-right font-bold text-zinc-900 dark:text-white">
+                              ${exp.amount.toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: COMPLIANCE, SAFETY & STI DOCUMENTS */}
+            {currentStep === 4 && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
+                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                    Step 4: Compliance Validation &amp; STI Attachments
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
+                    Automated pre-screening analysis will evaluate risk and route to
+                    appropriate compliance nodes.
+                  </p>
+                </div>
+
+                {/* Automated Pre-Screening Summary Box */}
+                <div className="p-5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50/80 dark:bg-white/[0.02]">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-slate-300 font-sans">
+                      Module 05 Pre-Screening Risk Engine Output
+                    </span>
+                    <Badge variant={calculatedRisk}>{calculatedRisk}</Badge>
+                  </div>
+
+                  <ul className="space-y-2 text-xs font-sans text-zinc-700 dark:text-slate-300">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>
+                        Attendance within venue threshold ({formData.expectedAttendance} / 500 capacity)
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>
+                        Operational schedule complies with institutional noise curfew
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span>
+                        Dynamic routing: Injects Faculty Advisor &rarr; Security Officer review node
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Single Table Inheritance (STI) Document Attachments */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans mb-3">
+                    Polymorphic Document Attachments (STI Models: Poster &amp; Vendor Quotation)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/[0.01] flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                        <div>
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                            Event Poster Artwork
+                          </p>
+                          <p className="text-[11px] text-zinc-500 dark:text-slate-400">
+                            {formData.posterFile}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="teal">Attached</Badge>
+                    </div>
+
+                    <div className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/[0.01] flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <div>
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                            Vendor Quotation Package
+                          </p>
+                          <p className="text-[11px] text-zinc-500 dark:text-slate-400">
+                            {formData.quotationFile}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="teal">Attached</Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* FOOTER ACTIONS */}
+          <div className="px-6 py-4 bg-zinc-50 dark:bg-white/[0.02] border-t border-zinc-200 dark:border-white/10 flex items-center justify-between">
+            <Button
+              variant="secondary"
+              size="md"
+              disabled={currentStep === 1}
+              onClick={handleBack}
+              icon={ChevronLeft}
+            >
+              Back
+            </Button>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => alert('Draft saved successfully to local storage!')}
+              >
+                Save as Draft
+              </Button>
+
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleNext}
+                icon={currentStep === 4 ? Check : ChevronRight}
+                iconPosition="right"
+              >
+                {currentStep === 4 ? 'Submit for Institutional Review' : 'Proceed to Next Step'}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        /* SUBMISSION CONFIRMATION CARD */
+        <Card className="text-center p-8 sm:p-12 animate-fadeIn max-w-2xl mx-auto">
+          <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-6">
+            <CheckCircle2 className="w-10 h-10" />
+          </div>
+
+          <Badge variant="approved" className="mb-3">
+            Proposal #PRP-2026-104 Initiated
+          </Badge>
+
+          <h2 className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+            Proposal Submitted for Institutional Review
+          </h2>
+
+          <p className="mt-3 text-sm text-zinc-600 dark:text-slate-300 font-sans max-w-md mx-auto">
+            Your event dossier has been committed to the compliance pipeline. Pessimistic row
+            locks have been reserved for <strong>{formData.venue}</strong>.
+          </p>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Button variant="primary" size="md" onClick={() => onNavigate('approvals')}>
+              View in Approval Inbox
+            </Button>
+            <Button variant="secondary" size="md" onClick={() => onNavigate('student')}>
+              Return to Student Dashboard
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default ProposalWizard;
