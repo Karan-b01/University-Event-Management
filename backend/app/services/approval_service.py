@@ -143,6 +143,9 @@ class ApprovalService:
         """Retrieve full approval workflow, active nodes, and audit history."""
         workflow = db.query(ApprovalWorkflow).filter(ApprovalWorkflow.proposal_id == proposal_id).first()
         if not workflow:
+            proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).first()
+            if proposal and proposal.user:
+                return ApprovalService.initiate_workflow(db, proposal_id=proposal_id, user=proposal.user)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Approval workflow for proposal '{proposal_id}' not found."

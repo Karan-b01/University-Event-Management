@@ -81,7 +81,7 @@ class ProposalService:
         # Verify access: author or elevated roles (Admin, Faculty Advisor, Finance Officer)
         if user:
             user_role_names = {r.role_name for r in user.roles}
-            elevated_roles = {"Admin", "Faculty Advisor", "Finance Officer"}
+            elevated_roles = {"Admin", "Faculty Advisor", "Finance Officer", "Security Officer"}
             if proposal.user_id != user.id and not user_role_names.intersection(elevated_roles):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,

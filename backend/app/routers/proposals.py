@@ -25,9 +25,9 @@ from app.core.dependencies import get_current_user, require_role
 
 router = APIRouter(
     prefix="/proposals",
-    tags=["Module 2: Event Proposal Management"],
-    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
+    tags=["Module 2: Event Proposal Management"]
 )
+
 
 
 @router.post(
@@ -35,7 +35,8 @@ router = APIRouter(
     response_model=ProposalResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Save initial proposal draft",
-    description="Creates an initial event proposal draft. Allows partial/nullable data so users can save their progress."
+    description="Creates an initial event proposal draft. Allows partial/nullable data so users can save their progress.",
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
 )
 def create_proposal_draft(
     draft_in: ProposalDraftCreate,
@@ -52,7 +53,8 @@ def create_proposal_draft(
     response_model=ProposalResponse,
     status_code=status.HTTP_200_OK,
     summary="Update existing proposal",
-    description="Overwrites/updates the existing proposal data directly without creating a new version row."
+    description="Overwrites/updates the existing proposal data directly without creating a new version row.",
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
 )
 def update_proposal(
     proposal_id: str,
@@ -75,7 +77,8 @@ def update_proposal(
     response_model=DocumentResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Upload proposal document",
-    description="Uploads a supporting document (Poster or VendorQuotation) and stores it using Single Table Inheritance."
+    description="Uploads a supporting document (Poster or VendorQuotation) and stores it using Single Table Inheritance.",
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
 )
 def upload_proposal_document(
     proposal_id: str,
@@ -100,7 +103,8 @@ def upload_proposal_document(
     response_model=ProposalResponse,
     status_code=status.HTTP_200_OK,
     summary="Submit proposal for compliance review",
-    description="Validates completeness (EventDetails, Schedule, and at least one Document required) and transitions status to 'Submitted'."
+    description="Validates completeness (EventDetails, Schedule, and at least one Document required) and transitions status to 'Submitted'.",
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
 )
 def submit_proposal(
     proposal_id: str,
@@ -165,7 +169,8 @@ def list_my_proposals(
 ):
     """List all proposals created by the current user (or all if admin)."""
     user_role_names = {r.role_name for r in current_user.roles}
-    if "Admin" in user_role_names:
+    elevated_roles = {"Admin", "Faculty Advisor", "Finance Officer", "Security Officer"}
+    if user_role_names.intersection(elevated_roles):
         return db.query(EventProposal).all()
     return db.query(EventProposal).filter(EventProposal.user_id == current_user.id).all()
 
