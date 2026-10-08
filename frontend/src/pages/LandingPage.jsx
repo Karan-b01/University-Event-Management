@@ -10,105 +10,103 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
-  ExternalLink,
   Sparkles,
-  Award,
+  ChevronDown,
   Clock,
   Play,
   Users,
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
-import Card from '../components/common/Card';
 
 export const LandingPage = ({ onNavigate, onOpenAuth }) => {
   const modules = [
     {
       id: 'student',
-      number: 'Module 01 & 02',
-      title: 'Student Proposal & Document Engine',
-      subtitle: 'Progressive Drafts & Polymorphic STI Documents',
-      desc: 'Enables organizing committees to draft complex event dossiers with flexible JSON rosters, schedule milestones, and verified disk storage.',
-      badge: 'Student Suite',
+      number: 'Module 01',
+      title: 'Student Organizer Workspace',
+      subtitle: 'Proposal Drafting & Team Coordination',
+      desc: 'Easily draft event plans, organize committee rosters, and keep all your schedules and event details organized in one collaborative space.',
+      badge: 'Student Clubs',
       badgeVariant: 'default',
       icon: FileText,
       target: 'student',
       features: [
-        'Progressive Draft persistence with partial validation',
-        'Single Table Inheritance (Poster & Vendor Quotations)',
-        'Full JSON UML export simulation archive',
+        'Save progress anytime with draft autosave',
+        'Organize committee rosters and responsibilities',
+        'Export complete event briefs and summaries in one click',
       ],
     },
     {
       id: 'wizard',
       number: 'Module 02',
-      title: 'Multi-Stage Proposal Wizard',
-      subtitle: '4-Step Guided Governance Submission',
-      desc: 'Step-by-step gatekeeper enforcing complete rosters, mathematical dates, itemized finances, and automated compliance clearances.',
-      badge: 'Interactive Stepper',
+      title: 'Guided Proposal Wizard',
+      subtitle: 'Step-by-Step Event Submission',
+      desc: 'A friendly 4-step walkthrough that helps you choose dates, match venue capacity, estimate expenses, and attach event flyers and vendor quotes.',
+      badge: 'Easy Intake',
       badgeVariant: 'teal',
       icon: Layers,
       target: 'wizard',
       features: [
-        'Automated pre-screening validation check',
-        'Capacity vs attendance ratio calculations',
-        'Emergency Action Plan requirement injection',
+        'Instant attendee capacity and venue recommendations',
+        'Audio/visual and equipment setup checklists',
+        'Automated safety pre-checks before final submission',
       ],
     },
     {
       id: 'approvals',
       number: 'Module 05',
-      title: 'Approval Inbox & Compliance Engine',
-      subtitle: 'Dynamic State-Machine Multi-Tier Routing',
-      desc: 'Automated pre-screening inspects mass attendance (>400), overnight schedules, and high-velocity risks, dynamically routing through security and faculty gates.',
-      badge: 'Compliance & Audit',
+      title: 'Fast-Track Approvals & Safety Review',
+      subtitle: 'Streamlined Multi-Tier Clearances',
+      desc: 'Eliminate chasing paper forms across campus. Faculty advisors, campus security, and dean offices review, leave notes, and sign off digitally.',
+      badge: 'Faculty & Deans',
       badgeVariant: 'security flag',
       icon: ShieldCheck,
       target: 'approvals',
       features: [
-        'Automated risk flags with prescriptive mitigations',
-        'Step-locked role-gated node progression',
-        'Immutable chronological audit history trail',
+        'Automated crowd size and late-night safety reviews',
+        'Step-by-step role approvals: Advisor, Security, and Dean',
+        'Real-time activity logs and transparent status updates',
       ],
     },
     {
       id: 'finance',
       number: 'Module 03',
-      title: 'Fiscal Desk & Duplicate Invoice Guard',
-      subtitle: '1-to-1 Budget Tracking & Cumulative Overrun Lock',
-      desc: 'Monitors allocations vs real-time commitments. Automated detection flags identical vendor invoice triples, preventing duplicate disbursements.',
-      badge: 'Fiscal Integrity',
+      title: 'Club Budgets & Expense Desk',
+      subtitle: 'Transparent Fiscal Management',
+      desc: 'Monitor approved allocations, manage vendor invoices, and prevent duplicate bills with real-time disbursement tracking.',
+      badge: 'Finance & Bursar',
       badgeVariant: 'warning',
       icon: DollarSign,
       target: 'finance',
       features: [
-        'Automated (vendor, amount, date) duplicate receipt rejection',
-        'Cumulative commitments overrun prevention',
-        'Polymorphic payment logging (Bank, UPI, Cheque)',
+        'Automated check to prevent duplicate invoice submissions',
+        'Live balance tracking against approved club budgets',
+        'Payment tracking for bank wires, UPI, and cheques',
       ],
     },
     {
       id: 'calendar',
       number: 'Module 04',
-      title: 'Resource Matrix & Concurrency Locking',
-      subtitle: 'Pessimistic Row-Level Locking & Overlap Detection',
-      desc: 'Campus asset booking powered by database row-level locking (.with_for_update()) preventing double-bookings with interval intersection rules.',
-      badge: 'Concurrency Engine',
+      title: 'Instant Venue & Resource Booking',
+      subtitle: 'Conflict-Free Campus Space Reservations',
+      desc: 'Browse auditoriums, lecture halls, and outdoor grounds with live weekly schedules. Reserve spaces with guaranteed zero double-bookings.',
+      badge: 'Campus Venues',
       badgeVariant: 'approved',
       icon: Calendar,
       target: 'calendar',
       features: [
-        'Pessimistic locking eliminates race conditions',
-        'Mathematical interval overlap detection (Conflict 409)',
-        'Single Table catalog: Venues, Equipment, Transports',
+        'Interactive weekly availability calendar for campus spaces',
+        'Guaranteed conflict-free reservations in real time',
+        'One-click booking for halls, stages, and equipment',
       ],
     },
   ];
 
   return (
-    <div className="min-h-screen">
-      {/* HERO SECTION WITH VIDEO BACKGROUND PLACEHOLDER */}
-      <section className="relative overflow-hidden py-20 lg:py-28 border-b border-zinc-200 dark:border-white/10">
+    <div className="w-full min-h-screen">
+      {/* FULL-VIEWPORT HERO SECTION (Centered Vertically and Horizontally) */}
+      <section className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden border-b border-zinc-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-12">
         {/* Ambient Video Background Simulation */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
           {/* Subtle grid pattern */}
@@ -125,39 +123,42 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-100/80 via-white to-zinc-50 dark:from-[#05080A] dark:via-[#090D10]/95 dark:to-[#05080A]" />
 
           {/* Glowing emerald aura for dark mode */}
-          <div className="hidden dark:block absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
-          <div className="hidden dark:block absolute top-1/3 left-1/3 w-[400px] h-[300px] bg-teal-600/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="hidden dark:block absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[400px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
+          <div className="hidden dark:block absolute top-1/2 left-1/3 w-[450px] h-[350px] bg-teal-600/10 blur-[100px] rounded-full pointer-events-none" />
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          {/* Video / Institutional Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-zinc-300 dark:border-emerald-500/30 bg-zinc-100/90 dark:bg-[#090D10]/80 backdrop-blur-md mb-8 shadow-sm">
+        {/* Vertically and Horizontally Centered Content */}
+        <div className="max-w-5xl mx-auto text-center relative z-10 flex flex-col items-center justify-center">
+          {/* Platform Status Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-zinc-300 dark:border-emerald-500/30 bg-zinc-100/90 dark:bg-[#090D10]/80 backdrop-blur-md mb-6 sm:mb-8 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[11px] font-sans font-bold uppercase tracking-widest text-zinc-800 dark:text-emerald-400">
-              Institutional Event & Compliance Infrastructure
+              University Event &amp; Safety Platform
             </span>
             <span className="text-zinc-400 dark:text-slate-600">|</span>
             <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-slate-400">
               <Play className="w-3 h-3 fill-current text-zinc-400 dark:text-emerald-400" />
-              <span>Veritas Live</span>
+              <span>Veritas Portal</span>
             </div>
           </div>
 
-          {/* Centered Hero Text (Noto Serif Display) */}
+          {/* Centered Hero Headline (Noto Serif Display) */}
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-zinc-950 dark:text-white max-w-4xl mx-auto leading-[1.15]">
-            Academic Event Operations &amp;{' '}
+            University Event Planning &amp;{' '}
             <span className="italic font-normal underline decoration-1 underline-offset-8 decoration-zinc-300 dark:decoration-emerald-500/50">
-              Automated Compliance
+              Automated Approvals
             </span>
           </h1>
 
-          <p className="mt-6 font-sans text-base sm:text-lg lg:text-xl text-zinc-600 dark:text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
-            Eliminating fragmented paper trails with mathematical resource concurrency,
-            automated safety risk pre-screening, and duplicate-proof fiscal controls.
+          {/* Product-Centric Subtitle */}
+          <p className="mt-5 sm:mt-6 font-sans text-base sm:text-lg lg:text-xl text-zinc-600 dark:text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
+            The modern digital hub for student clubs, faculty advisors, and campus
+            administrators. Reserve campus venues, submit event proposals, manage budgets,
+            and secure safety clearances in days—not weeks.
           </p>
 
-          {/* Action CTAs */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          {/* Action Call-to-Actions */}
+          <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
             <Button
               variant="primary"
               size="lg"
@@ -166,7 +167,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               iconPosition="right"
               className="text-sm font-bold tracking-wide"
             >
-              Draft Event Proposal
+              Create Event Proposal
             </Button>
             <Button
               variant="secondary"
@@ -175,7 +176,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               icon={ShieldCheck}
               className="text-sm font-medium"
             >
-              Approval Inbox
+              Review Approvals
             </Button>
             <Button
               variant="ghost"
@@ -188,56 +189,68 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             </Button>
           </div>
 
-          {/* Institutional Integrity Metrics Bar */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-[#090D10]/60 backdrop-blur-md max-w-4xl mx-auto shadow-sm">
-            <div className="p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
-              <p className="font-serif text-2xl lg:text-3xl font-bold text-zinc-950 dark:text-white">
-                99.98%
-              </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
-                Lock Concurrency
-              </p>
-            </div>
-            <div className="p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
-              <p className="font-serif text-2xl lg:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                0 Blocked
-              </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
-                Budget Overruns
-              </p>
-            </div>
-            <div className="p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
-              <p className="font-serif text-2xl lg:text-3xl font-bold text-zinc-950 dark:text-white">
-                5-Tier
-              </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
-                Dynamic Routing
-              </p>
-            </div>
-            <div className="p-3 text-center">
-              <p className="font-serif text-2xl lg:text-3xl font-bold text-zinc-950 dark:text-white">
+          {/* Product-Focused Reliability Metrics Bar */}
+          <div className="mt-12 sm:mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-[#090D10]/60 backdrop-blur-md w-full max-w-3xl shadow-sm">
+            <div className="p-2 sm:p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">
                 100%
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
-                Immutable Audit
+                Paperless Forms
+              </p>
+            </div>
+            <div className="p-2 sm:p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                0 Collisions
+              </p>
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
+                Guaranteed Venues
+              </p>
+            </div>
+            <div className="p-2 sm:p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">
+                24–48h
+              </p>
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
+                Average Review
+              </p>
+            </div>
+            <div className="p-2 sm:p-3 text-center">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">
+                Real-Time
+              </p>
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
+                Budget Tracking
               </p>
             </div>
           </div>
+
+          {/* Smooth Scroll Down Indicator */}
+          <button
+            onClick={() => {
+              const el = document.getElementById('modules-grid');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="mt-8 sm:mt-10 inline-flex flex-col items-center text-[11px] font-semibold text-zinc-400 dark:text-slate-500 hover:text-zinc-700 dark:hover:text-slate-300 transition-colors cursor-pointer group"
+          >
+            <span className="uppercase tracking-widest font-sans">Explore Core Tools</span>
+            <ChevronDown className="w-4 h-4 mt-1 transition-transform group-hover:translate-y-0.5 animate-bounce" />
+          </button>
         </div>
       </section>
 
-      {/* MODULE GRID (5 OOAD ARCHITECTURAL DOMAINS) */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* MODULE GRID SECTION (PRODUCT-CENTRIC VALUE PROPOSITIONS) */}
+      <section id="modules-grid" className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <Badge variant="teal" className="mb-3">
-            OOAD Domain Architecture
+            Campus Operations Platform
           </Badge>
           <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-            Five Integrated Operational Modules
+            Everything You Need to Run Campus Events
           </h2>
           <p className="mt-3 font-sans text-sm sm:text-base text-zinc-600 dark:text-slate-400">
-            Each subsystem is modeled with clean boundaries, transactional integrity, and
-            strict academic compliance standards.
+            Tailored tools designed for student organizers, faculty advisors, finance officers,
+            and campus security teams.
           </p>
         </div>
 
@@ -295,7 +308,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-white/5 flex items-center justify-between text-xs font-bold text-zinc-900 dark:text-emerald-400 font-sans group-hover:translate-x-1 transition-transform">
-                  <span>Open Interface</span>
+                  <span>Open Workspace</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
@@ -322,8 +335,8 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 Live Prototype Navigation
               </h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-slate-300 font-sans">
-                Explore all 7 core operational interfaces with complete mock JSON dataset,
-                dark/light mode toggles, and zero backend friction.
+                Experience all 7 core operational interfaces with live FastAPI integration,
+                instant role switching, and dual-theme display.
               </p>
 
               <div className="mt-4 flex flex-col gap-2">
@@ -342,7 +355,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                   onClick={() => onNavigate('finance')}
                   className="w-full justify-between"
                 >
-                  <span>Finance & Disbursements</span>
+                  <span>Finance &amp; Disbursements</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
                 <Button
@@ -351,7 +364,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                   onClick={() => onNavigate('calendar')}
                   className="w-full justify-between"
                 >
-                  <span>Resource Concurrency Grid</span>
+                  <span>Resource Booking Grid</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -370,8 +383,8 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <span>&copy; {new Date().getFullYear()} University Governance Office</span>
           </div>
           <div className="flex items-center gap-6">
-            <span>FastAPI Backend Gateway</span>
-            <span>Pessimistic Concurrency</span>
+            <span>FastAPI Gateway</span>
+            <span>Role-Based Permissions</span>
             <span>Dual Theme Support</span>
           </div>
         </div>
