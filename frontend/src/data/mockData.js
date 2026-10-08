@@ -274,11 +274,15 @@ export const MOCK_DISBURSEMENTS = [
 ];
 
 export const MOCK_VENUES = [
-  { id: 'v1', name: 'Grand Innovation Hall', capacity: 500, building: 'Science & Engineering Complex', type: 'Auditorium' },
-  { id: 'v2', name: 'Historic Memorial Auditorium', capacity: 750, building: 'Arts & Humanities Wing', type: 'Concert Hall' },
-  { id: 'v3', name: 'Executive Council Boardroom', capacity: 45, building: 'Administration Tower', type: 'Conference' },
-  { id: 'v4', name: 'Perimeter Proving Grounds', capacity: 300, building: 'North Campus Athletics & Testing', type: 'Outdoor' },
+  { id: 1, name: 'Anna Auditorium', capacity: 1800, building: 'Main Campus', type: 'Auditorium' },
+  { id: 2, name: 'Bhagat Singh Gallery', capacity: 500, building: 'Silver Jubilee Tower', type: 'Gallery' },
+  { id: 3, name: 'TTVOC Gallery I', capacity: 800, building: 'Technical Tower (TT)', type: 'Gallery' },
+  { id: 4, name: 'TTVOC Gallery II', capacity: 498, building: 'Technical Tower (TT)', type: 'Gallery' },
+  { id: 5, name: 'TT Shakespeare Gallery', capacity: 378, building: 'Technical Tower (TT)', type: 'Gallery' },
+  { id: 6, name: 'Channa Reddy Auditorium', capacity: 600, building: 'MGR Block', type: 'Auditorium' },
+  { id: 7, name: 'CS HALL', capacity: 800, building: 'Main Campus', type: 'Hall' },
 ];
+
 
 export const MOCK_CALENDAR_SLOTS = [
   // Monday

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Check,
   ChevronRight,
@@ -22,8 +22,18 @@ import Card from '../components/common/Card';
 import Input, { Select } from '../components/common/Input';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
-import { MOCK_VENUES } from '../data/mockData';
-import { proposalsApi } from '../api';
+import { proposalsApi, resourcesApi } from '../api';
+
+// Seeded PostgreSQL master venues catalog used exclusively across the system
+const SEEDED_FALLBACK_VENUES = [
+  { id: 1, name: 'Anna Auditorium', capacity: 1800, location: 'Main Campus' },
+  { id: 2, name: 'Bhagat Singh Gallery', capacity: 500, location: 'Silver Jubilee Tower' },
+  { id: 3, name: 'TTVOC Gallery I', capacity: 800, location: 'Technical Tower (TT)' },
+  { id: 4, name: 'TTVOC Gallery II', capacity: 498, location: 'Technical Tower (TT)' },
+  { id: 5, name: 'TT Shakespeare Gallery', capacity: 378, location: 'Technical Tower (TT)' },
+  { id: 6, name: 'Channa Reddy Auditorium', capacity: 600, location: 'MGR Block' },
+  { id: 7, name: 'CS HALL', capacity: 800, location: 'Main Campus' },
+];
 
 export const ProposalWizard = ({ onNavigate }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -31,6 +41,10 @@ export const ProposalWizard = ({ onNavigate }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submittedProposalId, setSubmittedProposalId] = useState(null);
   const [apiFeedback, setApiFeedback] = useState(null);
+
+  // Dynamic Venues State fetched from GET /api/v1/resources/?type=Venue
+  const [venues, setVenues] = useState(SEEDED_FALLBACK_VENUES);
+  const [loadingVenues, setLoadingVenues] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -43,7 +57,7 @@ export const ProposalWizard = ({ onNavigate }) => {
     endDate: '2026-11-21',
     startTime: '08:30',
     endTime: '21:00',
-    venue: 'Grand Innovation Hall',
+    venue: 'Anna Auditorium',
     equipmentNotes: 'Dual 4K projection, high-frequency radio telemetry clearance, 30x AC power strips',
     allocatedBudget: '12500',
     expenses: [
@@ -57,6 +71,36 @@ export const ProposalWizard = ({ onNavigate }) => {
     posterFile: 'robotics_invitational_poster_v2.pdf',
     quotationFile: 'vendor_quotations_bundle_nov2026.pdf',
   });
+
+  // Fetch live venues from GET /api/v1/resources/?type=Venue
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveVenues = async () => {
+      setLoadingVenues(true);
+      try {
+        const liveVenues = await resourcesApi.list('Venue');
+        if (isMounted && Array.isArray(liveVenues) && liveVenues.length > 0) {
+          setVenues(liveVenues);
+          setFormData((prev) => {
+            const exists = liveVenues.some((v) => v.name === prev.venue);
+            return exists ? prev : { ...prev, venue: liveVenues[0].name };
+          });
+        }
+      } catch (err) {
+        console.warn(
+          '[ProposalWizard] GET /api/v1/resources/?type=Venue offline; defaulting to seeded PostgreSQL catalog:',
+          err
+        );
+      } finally {
+        if (isMounted) setLoadingVenues(false);
+      }
+    };
+
+    fetchLiveVenues();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const steps = [
     { number: 1, title: 'Event Overview', desc: 'Scope, category & schedule', icon: FileText },
@@ -379,9 +423,9 @@ export const ProposalWizard = ({ onNavigate }) => {
                     label="Requested Primary Venue"
                     value={formData.venue}
                     onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                    options={MOCK_VENUES.map((v) => ({
+                    options={venues.map((v) => ({
                       value: v.name,
-                      label: `${v.name} (Capacity: ${v.capacity})`,
+                      label: `${v.name} (Capacity: ${v.capacity || v.max_capacity || 'N/A'}${v.location ? ` • ${v.location}` : ''})`,
                     }))}
                   />
 
@@ -531,7 +575,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>
-                        Attendance within venue threshold ({formData.expectedAttendance} / 500 capacity)
+                        Attendance within venue threshold ({formData.expectedAttendance} / {venues.find((v) => v.name === formData.venue)?.capacity || 1800} capacity)
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
