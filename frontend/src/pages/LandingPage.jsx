@@ -107,51 +107,46 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
     <div className="w-full min-h-screen">
       {/* FULL-VIEWPORT HERO SECTION (Centered Vertically and Horizontally) */}
       <section className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden border-b border-zinc-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-12">
-        {/* Ambient Video Background Simulation */}
-        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          {/* Subtle grid pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
-              backgroundSize: '24px 24px',
-            }}
-          />
+        {/* HTML5 Live Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover -z-20"
+        >
+          <source src="/video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
 
-          {/* Video Placeholder Surface with deep lighting */}
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-100/80 via-white to-zinc-50 dark:from-[#05080A] dark:via-[#090D10]/95 dark:to-[#05080A]" />
-
-          {/* Glowing emerald aura for dark mode */}
-          <div className="hidden dark:block absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[400px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
-          <div className="hidden dark:block absolute top-1/2 left-1/3 w-[450px] h-[350px] bg-teal-600/10 blur-[100px] rounded-full pointer-events-none" />
-        </div>
+        {/* Dark Translucent Overlay */}
+        <div className="absolute inset-0 bg-black/60 -z-10" />
 
         {/* Vertically and Horizontally Centered Content */}
         <div className="max-w-5xl mx-auto text-center relative z-10 flex flex-col items-center justify-center">
           {/* Platform Status Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-zinc-300 dark:border-emerald-500/30 bg-zinc-100/90 dark:bg-[#090D10]/80 backdrop-blur-md mb-6 sm:mb-8 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-sans font-bold uppercase tracking-widest text-zinc-800 dark:text-emerald-400">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-black/50 backdrop-blur-md mb-6 sm:mb-8 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-sans font-bold uppercase tracking-widest text-emerald-300">
               University Event &amp; Safety Platform
             </span>
-            <span className="text-zinc-400 dark:text-slate-600">|</span>
-            <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-slate-400">
-              <Play className="w-3 h-3 fill-current text-zinc-400 dark:text-emerald-400" />
+            <span className="text-white/40">|</span>
+            <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-200">
+              <Play className="w-3 h-3 fill-current text-emerald-400" />
               <span>Veritas Portal</span>
             </div>
           </div>
 
           {/* Centered Hero Headline (Noto Serif Display) */}
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-zinc-950 dark:text-white max-w-4xl mx-auto leading-[1.15]">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-white max-w-4xl mx-auto leading-[1.15] drop-shadow-md">
             University Event Planning &amp;{' '}
-            <span className="italic font-normal underline decoration-1 underline-offset-8 decoration-zinc-300 dark:decoration-emerald-500/50">
+            <span className="italic font-normal underline decoration-1 underline-offset-8 decoration-emerald-400/70 text-emerald-300">
               Automated Approvals
             </span>
           </h1>
 
           {/* Product-Centric Subtitle */}
-          <p className="mt-5 sm:mt-6 font-sans text-base sm:text-lg lg:text-xl text-zinc-600 dark:text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
+          <p className="mt-5 sm:mt-6 font-sans text-base sm:text-lg lg:text-xl text-zinc-100 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow-sm">
             The modern digital hub for student clubs, faculty advisors, and campus
             administrators. Reserve campus venues, submit event proposals, manage budgets,
             and secure safety clearances in days—not weeks.
@@ -174,7 +169,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               size="lg"
               onClick={() => onNavigate('approvals')}
               icon={ShieldCheck}
-              className="text-sm font-medium"
+              className="text-sm font-medium bg-black/40 border-white/30 text-white hover:bg-black/60 hover:text-emerald-300"
             >
               Review Approvals
             </Button>
@@ -183,43 +178,43 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               size="lg"
               onClick={onOpenAuth}
               icon={Users}
-              className="text-sm"
+              className="text-sm text-zinc-200 hover:text-white hover:bg-white/10"
             >
               Sign In to Portal
             </Button>
           </div>
 
           {/* Product-Focused Reliability Metrics Bar */}
-          <div className="mt-12 sm:mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-[#090D10]/60 backdrop-blur-md w-full max-w-3xl shadow-sm">
-            <div className="p-2 sm:p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
-              <p className="font-serif text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">
+          <div className="mt-12 sm:mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 rounded-xl border border-white/20 bg-black/60 backdrop-blur-md w-full max-w-3xl shadow-xl">
+            <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
                 100%
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
                 Paperless Forms
               </p>
             </div>
-            <div className="p-2 sm:p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
-              <p className="font-serif text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+            <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-emerald-400">
                 0 Collisions
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
                 Guaranteed Venues
               </p>
             </div>
-            <div className="p-2 sm:p-3 text-center border-r border-zinc-100 dark:border-white/5 last:border-r-0">
-              <p className="font-serif text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">
+            <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
                 24–48h
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
                 Average Review
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center">
-              <p className="font-serif text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
                 Real-Time
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
                 Budget Tracking
               </p>
             </div>
@@ -231,10 +226,10 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               const el = document.getElementById('modules-grid');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="mt-8 sm:mt-10 inline-flex flex-col items-center text-[11px] font-semibold text-zinc-400 dark:text-slate-500 hover:text-zinc-700 dark:hover:text-slate-300 transition-colors cursor-pointer group"
+            className="mt-8 sm:mt-10 inline-flex flex-col items-center text-[11px] font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer group"
           >
-            <span className="uppercase tracking-widest font-sans">Explore Core Tools</span>
-            <ChevronDown className="w-4 h-4 mt-1 transition-transform group-hover:translate-y-0.5 animate-bounce" />
+            <span className="mb-1 tracking-wider uppercase">Explore Features</span>
+            <ChevronDown className="w-4 h-4 animate-bounce text-emerald-400" />
           </button>
         </div>
       </section>
