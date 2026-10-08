@@ -10,14 +10,54 @@ export const Navbar = ({
   currentUser,
   onLogout,
 }) => {
-  const navItems = [
-    { id: 'landing', label: 'Home' },
-    { id: 'student', label: 'Dashboard' },
-    { id: 'wizard', label: 'Submit Proposal' },
-    { id: 'approvals', label: 'Approval Inbox' },
-    { id: 'finance', label: 'Finance Desk' },
-    { id: 'calendar', label: 'Venue Calendar' },
-  ];
+  // Role-based link resolution
+  const getNavItems = () => {
+    if (!currentUser || !currentUser.role) return [];
+
+    const role = currentUser.role;
+
+    if (role === 'Student Organizer' || role === 'Student') {
+      return [
+        { id: 'student', label: 'Dashboard' },
+        { id: 'wizard', label: 'Submit Proposal' },
+        { id: 'calendar', label: 'Venue Calendar' },
+      ];
+    }
+
+    if (role === 'Faculty Advisor' || role === 'Security Officer') {
+      return [
+        { id: 'student', label: 'Dashboard' },
+        { id: 'approvals', label: 'Approval Inbox' },
+        { id: 'calendar', label: 'Venue Calendar' },
+      ];
+    }
+
+    if (role === 'Finance Officer') {
+      return [
+        { id: 'student', label: 'Dashboard' },
+        { id: 'finance', label: 'Finance Desk' },
+        { id: 'approvals', label: 'Approval Inbox' },
+      ];
+    }
+
+    if (role === 'Admin') {
+      return [
+        { id: 'student', label: 'Dashboard' },
+        { id: 'wizard', label: 'Submit Proposal' },
+        { id: 'approvals', label: 'Approval Inbox' },
+        { id: 'finance', label: 'Finance Desk' },
+        { id: 'calendar', label: 'Venue Calendar' },
+      ];
+    }
+
+    // Default fallback for any other authenticated role
+    return [
+      { id: 'student', label: 'Dashboard' },
+      { id: 'calendar', label: 'Venue Calendar' },
+    ];
+  };
+
+  const navItems = getNavItems();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b transition-colors duration-300
@@ -49,25 +89,27 @@ export const Navbar = ({
           </div>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {navItems.map((item) => {
-            const isActive = activePage === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActivePage(item.id)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded font-sans transition-all duration-200 ${
-                  isActive
-                    ? 'bg-zinc-900 text-white dark:bg-emerald-500/15 dark:text-emerald-400 dark:border dark:border-emerald-500/30'
-                    : 'text-zinc-600 hover:text-black hover:bg-zinc-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5'
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Navigation Links - Only rendered when authenticated */}
+        {currentUser && navItems.length > 0 && (
+          <nav className="hidden lg:flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive = activePage === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActivePage(item.id)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded font-sans transition-all duration-200 ${
+                    isActive
+                      ? 'bg-zinc-900 text-white dark:bg-emerald-500/15 dark:text-emerald-400 dark:border dark:border-emerald-500/30'
+                      : 'text-zinc-600 hover:text-black hover:bg-zinc-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        )}
 
         {/* Right side controls: ThemeToggle + Auth */}
         <div className="flex items-center gap-3">
@@ -98,33 +140,35 @@ export const Navbar = ({
               size="sm"
               icon={LogIn}
               onClick={onOpenAuth}
-              className="text-xs"
+              className="text-xs font-semibold"
             >
-              Portal Login
+              Sign In
             </Button>
           )}
         </div>
       </div>
 
-      {/* Mobile nav pills bar */}
-      <div className="lg:hidden flex items-center gap-1 px-4 py-2 overflow-x-auto border-t border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-[#090D10]">
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActivePage(item.id)}
-              className={`px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap rounded font-sans transition-all ${
-                isActive
-                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black font-bold'
-                  : 'text-zinc-600 dark:text-slate-400'
-              }`}
-            >
-              {item.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Mobile nav pills bar - Only rendered when authenticated */}
+      {currentUser && navItems.length > 0 && (
+        <div className="lg:hidden flex items-center gap-1 px-4 py-2 overflow-x-auto border-t border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-[#090D10]">
+          {navItems.map((item) => {
+            const isActive = activePage === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActivePage(item.id)}
+                className={`px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap rounded font-sans transition-all ${
+                  isActive
+                    ? 'bg-black text-white dark:bg-emerald-500 dark:text-black font-bold'
+                    : 'text-zinc-600 dark:text-slate-400'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 };

@@ -10,14 +10,15 @@ export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('unievent_user');
-    if (saved) {
+    const savedToken = localStorage.getItem('token') || localStorage.getItem('unievent_token');
+    if (saved && savedToken) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return MOCK_USER;
+        return null;
       }
     }
-    return MOCK_USER;
+    return null;
   });
 
   const login = (tokenData, fallbackUser = null) => {
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token || !!user, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

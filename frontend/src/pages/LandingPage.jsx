@@ -18,8 +18,10 @@ import {
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import { useAuth } from '../context/AuthContext';
 
 export const LandingPage = ({ onNavigate, onOpenAuth }) => {
+  const { user: currentUser } = useAuth();
   const modules = [
     {
       id: 'student',
@@ -158,7 +160,14 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <Button
               variant="primary"
               size="lg"
-              onClick={() => onNavigate('wizard')}
+              onClick={() => {
+                if (!currentUser) return onOpenAuth();
+                if (currentUser.role === 'Student Organizer' || currentUser.role === 'Admin') {
+                  onNavigate('wizard');
+                } else {
+                  onNavigate('student');
+                }
+              }}
               icon={ArrowRight}
               iconPosition="right"
               className="text-sm font-bold tracking-wide"
@@ -168,21 +177,40 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <Button
               variant="secondary"
               size="lg"
-              onClick={() => onNavigate('approvals')}
+              onClick={() => {
+                if (!currentUser) return onOpenAuth();
+                if (currentUser.role === 'Student Organizer') {
+                  onNavigate('student');
+                } else {
+                  onNavigate('approvals');
+                }
+              }}
               icon={ShieldCheck}
               className="text-sm font-medium bg-black/40 border-white/30 text-white hover:bg-black/60 hover:text-emerald-300"
             >
-              Review Approvals
+              {currentUser && currentUser.role === 'Student Organizer' ? 'My Dashboard' : 'Review Approvals'}
             </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={onOpenAuth}
-              icon={Users}
-              className="text-sm text-zinc-200 hover:text-white hover:bg-white/10"
-            >
-              Sign In to Portal
-            </Button>
+            {currentUser ? (
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={() => onNavigate('student')}
+                icon={Users}
+                className="text-sm text-zinc-200 hover:text-white hover:bg-white/10"
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={onOpenAuth}
+                icon={Users}
+                className="text-sm text-zinc-200 hover:text-white hover:bg-white/10"
+              >
+                Sign In to Portal
+              </Button>
+            )}
           </div>
 
           {/* Product-Focused Reliability Metrics Bar */}
@@ -256,7 +284,13 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             return (
               <div
                 key={mod.id}
-                onClick={() => onNavigate(mod.target)}
+                onClick={() => {
+                  if (!currentUser) {
+                    onOpenAuth();
+                  } else {
+                    onNavigate(mod.target);
+                  }
+                }}
                 className="group cursor-pointer rounded-xl p-6 transition-all duration-300 relative overflow-hidden flex flex-col justify-between
                   bg-white border border-zinc-200 hover:border-black hover:shadow-lg
                   dark:bg-[#090D10]/80 dark:border-white/10 dark:hover:border-emerald-500/50 dark:hover:shadow-[0_10px_30px_-5px_rgba(16,185,129,0.15)]"
@@ -339,7 +373,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => onNavigate('student')}
+                  onClick={() => (currentUser ? onNavigate('student') : onOpenAuth())}
                   className="w-full justify-between"
                 >
                   <span>Student Dashboard</span>
@@ -348,7 +382,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => onNavigate('finance')}
+                  onClick={() => (currentUser ? onNavigate('finance') : onOpenAuth())}
                   className="w-full justify-between"
                 >
                   <span>Finance &amp; Disbursements</span>
@@ -357,7 +391,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => onNavigate('calendar')}
+                  onClick={() => (currentUser ? onNavigate('calendar') : onOpenAuth())}
                   className="w-full justify-between"
                 >
                   <span>Resource Booking Grid</span>

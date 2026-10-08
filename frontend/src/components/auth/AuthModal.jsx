@@ -9,8 +9,8 @@ import { authApi } from '../../api';
 
 export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const { login: updateAuthContext } = useAuth();
-  const [email, setEmail] = useState('alex.morgan@university.edu');
-  const [password, setPassword] = useState('securepassword123');
+  const [email, setEmail] = useState('prakhar.sethi@vit.edu');
+  const [password, setPassword] = useState('password123');
   const [selectedRole, setSelectedRole] = useState('Student Organizer');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -23,20 +23,20 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
     const fallbackUser = {
       name:
         selectedRole === 'Student Organizer'
-          ? 'Alexandre Morgan'
+          ? 'Prakhar Sethi'
           : selectedRole === 'Faculty Advisor'
-          ? 'Dr. Evelyn Vance'
+          ? 'Dr. Sarah Jenkins'
           : selectedRole === 'Finance Officer'
-          ? 'Helena Troy, Bursar'
+          ? 'CA David Raman'
           : selectedRole === 'Security Officer'
-          ? 'Capt. Marcus Kane'
-          : 'Dean Katherine Vance',
+          ? 'Col. Rajesh Sharma'
+          : 'System Administrator',
       email: email,
       role: selectedRole,
       department:
         selectedRole === 'Student Organizer'
-          ? 'Computer Science & Engineering Society'
-          : 'Institutional Administration',
+          ? 'Student Technical Association'
+          : 'Campus Administration',
     };
 
     try {
@@ -87,6 +87,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const handleQuickPreset = (role, demoEmail) => {
     setSelectedRole(role);
     setEmail(demoEmail);
+    setPassword('password123');
     setErrorMessage(null);
   };
 
@@ -176,7 +177,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
-              onClick={() => handleQuickPreset('Student Organizer', 'alex.morgan@university.edu')}
+              onClick={() => handleQuickPreset('Student Organizer', 'prakhar.sethi@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Student Organizer'
                   ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
@@ -187,7 +188,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             </button>
             <button
               type="button"
-              onClick={() => handleQuickPreset('Faculty Advisor', 'evelyn.vance@university.edu')}
+              onClick={() => handleQuickPreset('Faculty Advisor', 'advisor@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Faculty Advisor'
                   ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
@@ -198,18 +199,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             </button>
             <button
               type="button"
-              onClick={() => handleQuickPreset('Finance Officer', 'helena.troy@university.edu')}
-              className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
-                selectedRole === 'Finance Officer'
-                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
-                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
-              }`}
-            >
-              Finance Bursar
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickPreset('Security Officer', 'marcus.kane@university.edu')}
+              onClick={() => handleQuickPreset('Security Officer', 'security@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Security Officer'
                   ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
@@ -217,6 +207,28 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               }`}
             >
               Security
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickPreset('Finance Officer', 'finance@vit.edu')}
+              className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
+                selectedRole === 'Finance Officer'
+                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
+                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
+              }`}
+            >
+              Finance
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickPreset('Admin', 'admin@vit.edu')}
+              className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
+                selectedRole === 'Admin'
+                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
+                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
+              }`}
+            >
+              Admin
             </button>
           </div>
         </div>
