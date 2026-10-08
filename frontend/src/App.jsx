@@ -26,7 +26,11 @@ export function AppContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-black dark:bg-[#05080A] dark:text-white transition-colors duration-300">
+    <div
+      className={`min-h-screen flex flex-col ${
+        activePage === 'landing' ? '' : 'bg-white dark:bg-[#05080A]'
+      } text-black dark:text-white transition-colors duration-300`}
+    >
       {/* Sticky Top Navigation */}
       <Navbar
         activePage={activePage}

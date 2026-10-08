@@ -114,17 +114,17 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover -z-20"
+          className="absolute inset-0 w-full h-full object-cover z-0"
         >
           <source src="/video.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
         {/* Dark Translucent Overlay */}
-        <div className="absolute inset-0 bg-black/60 -z-10" />
+        <div className="absolute inset-0 bg-black/60 z-10" />
 
         {/* Vertically and Horizontally Centered Content */}
-        <div className="max-w-5xl mx-auto text-center relative z-10 flex flex-col items-center justify-center">
+        <div className="max-w-5xl mx-auto text-center relative z-20 flex flex-col items-center justify-center">
           {/* Platform Status Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-black/50 backdrop-blur-md mb-6 sm:mb-8 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
