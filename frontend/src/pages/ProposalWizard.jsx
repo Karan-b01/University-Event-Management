@@ -22,6 +22,7 @@ import Card from '../components/common/Card';
 import Input, { Select } from '../components/common/Input';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import { useAuth } from '../context/AuthContext';
 import { proposalsApi, resourcesApi } from '../api';
 
 // Seeded PostgreSQL master venues catalog used exclusively across the system
@@ -36,6 +37,7 @@ const SEEDED_FALLBACK_VENUES = [
 ];
 
 export const ProposalWizard = ({ onNavigate }) => {
+  const { user: currentUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -137,7 +139,12 @@ export const ProposalWizard = ({ onNavigate }) => {
       },
       team_data: {
         team_name: formData.category,
-        members: [{ name: 'Alexandre Morgan', role: 'Lead Organizer' }],
+        members: [
+          {
+            name: currentUser?.name || currentUser?.email || 'Lead Organizer',
+            role: 'Lead Organizer',
+          },
+        ],
       },
     };
   };

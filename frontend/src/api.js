@@ -66,12 +66,62 @@ export const proposalsApi = {
     const response = await api.post('/proposals/draft', draftData);
     return response.data;
   },
+  update: async (proposalId, updateData) => {
+    const response = await api.put(`/proposals/${proposalId}`, updateData);
+    return response.data;
+  },
   submit: async (proposalId) => {
     const response = await api.post(`/proposals/${proposalId}/submit`);
     return response.data;
   },
   getById: async (proposalId) => {
     const response = await api.get(`/proposals/${proposalId}`);
+    return response.data;
+  },
+};
+
+export const approvalsApi = {
+  initiate: async (proposalId) => {
+    const response = await api.post(`/approvals/initiate/${proposalId}`);
+    return response.data;
+  },
+  getWorkflow: async (proposalId) => {
+    const response = await api.get(`/approvals/${proposalId}`);
+    return response.data;
+  },
+  reviewNode: async (nodeId, decision, remarks = '') => {
+    const response = await api.post(`/approvals/nodes/${nodeId}/review`, {
+      decision,
+      remarks,
+    });
+    return response.data;
+  },
+};
+
+export const financeApi = {
+  getBudget: async (proposalId) => {
+    const response = await api.get(`/finance/budgets/${proposalId}`);
+    return response.data;
+  },
+  listBudgets: async () => {
+    const response = await api.get('/finance/budgets');
+    return response.data;
+  },
+  listExpenses: async (budgetId = null) => {
+    const params = budgetId ? { budget_id: budgetId } : {};
+    const response = await api.get('/finance/expenses', { params });
+    return response.data;
+  },
+  submitExpense: async (expenseData) => {
+    const response = await api.post('/finance/expenses', expenseData);
+    return response.data;
+  },
+  payExpense: async (expenseId, paymentReq) => {
+    const response = await api.post(`/finance/expenses/${expenseId}/pay`, paymentReq);
+    return response.data;
+  },
+  listVendors: async () => {
+    const response = await api.get('/finance/vendors');
     return response.data;
   },
 };
@@ -84,6 +134,14 @@ export const resourcesApi = {
   },
   book: async (bookingData) => {
     const response = await api.post('/resources/book', bookingData);
+    return response.data;
+  },
+  cancelBooking: async (bookingId) => {
+    const response = await api.post(`/resources/bookings/${bookingId}/cancel`);
+    return response.data;
+  },
+  reportDamage: async (resourceId, damageData) => {
+    const response = await api.post(`/resources/${resourceId}/damage`, damageData);
     return response.data;
   },
 };

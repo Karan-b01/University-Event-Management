@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MOCK_USER } from '../data/mockData';
 
 const AuthContext = createContext();
 
@@ -27,21 +26,37 @@ export const AuthProvider = ({ children }) => {
 
     if (typeof tokenData === 'string') {
       accessToken = tokenData;
-      userData = fallbackUser || MOCK_USER;
+      userData = fallbackUser || {
+        id: 'usr_active',
+        name: 'Active User',
+        email: 'user@vit.edu',
+        role: 'Student Organizer',
+        department: 'Student Organization Directorate',
+      };
     } else if (tokenData && tokenData.access_token) {
       accessToken = tokenData.access_token;
       userData = {
-        id: tokenData.user?.id || 'usr_0918',
-        name: tokenData.user?.name || fallbackUser?.name || 'Alexandre Morgan',
-        email: tokenData.user?.email || fallbackUser?.email || 'alex.morgan@university.edu',
+        id: tokenData.user?.id || fallbackUser?.id || 'usr_active',
+        name: tokenData.user?.name || fallbackUser?.name || tokenData.user?.email || 'Active User',
+        email: tokenData.user?.email || fallbackUser?.email || '',
         role:
           tokenData.user?.roles?.[0]?.role_name ||
           fallbackUser?.role ||
           'Student Organizer',
-        department: fallbackUser?.department || 'Computer Science & Engineering Society',
+        department:
+          fallbackUser?.department ||
+          (tokenData.user?.roles?.[0]?.role_name === 'Faculty Advisor'
+            ? 'Academic Review Directorate'
+            : tokenData.user?.roles?.[0]?.role_name === 'Finance Officer'
+            ? 'University Finance Office'
+            : tokenData.user?.roles?.[0]?.role_name === 'Security Officer'
+            ? 'Campus Security Directorate'
+            : tokenData.user?.roles?.[0]?.role_name === 'Admin'
+            ? 'Central Administration'
+            : 'Student Technical Association'),
       };
-    } else {
-      userData = fallbackUser || MOCK_USER;
+    } else if (fallbackUser) {
+      userData = fallbackUser;
     }
 
     if (accessToken) {

@@ -119,10 +119,13 @@ export const Navbar = ({
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-xs font-semibold text-zinc-900 dark:text-white font-sans">
-                  {currentUser.name}
+                  {currentUser.name || currentUser.email}
                 </span>
-                <span className="text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold">
-                  {currentUser.role}
+                <span className="text-[10px] text-zinc-500 dark:text-slate-400 font-sans">
+                  {currentUser.email ? `${currentUser.email} • ` : ''}
+                  <strong className="text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    {currentUser.role}
+                  </strong>
                 </span>
               </div>
               <Button

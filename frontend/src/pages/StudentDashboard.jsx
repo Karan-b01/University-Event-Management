@@ -14,79 +14,120 @@ import {
   Clock,
   Wifi,
   WifiOff,
+  Inbox,
+  Filter,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { MOCK_PROPOSALS, MOCK_STATS, MOCK_USER } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 import { proposalsApi } from '../api';
 
 export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
-  const [proposals, setProposals] = useState(MOCK_PROPOSALS);
+  const { user: currentUser } = useAuth();
+  const [proposals, setProposals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
+
+  // Dynamic role title and subtitle
+  const roleName = currentUser?.role || 'Student Organizer';
+  const dashboardTitle =
+    roleName === 'Student Organizer'
+      ? 'Student Organizer Operations'
+      : `${roleName} Operations`;
 
   const fetchLiveProposals = async () => {
     setLoading(true);
     try {
       const data = await proposalsApi.list();
-      if (Array.isArray(data) && data.length > 0) {
-        // Map backend API data to UI structure
-        const mapped = data.map((item) => ({
-          id: item.id,
-          title: item.title,
-          category: item.details?.objective || 'Academic Event',
-          organizer: MOCK_USER.name,
-          department: MOCK_USER.department,
-          targetDate: item.schedule?.start_date
-            ? new Date(item.schedule.start_date).toISOString().split('T')[0]
-            : '2026-11-20',
-          endDate: item.schedule?.end_date
-            ? new Date(item.schedule.end_date).toISOString().split('T')[0]
-            : '2026-11-21',
-          time: '09:00 AM - 08:00 PM',
-          venue: item.schedule?.venue_preference || 'Grand Innovation Hall',
-          expectedParticipants: item.details?.expected_participants || 350,
-          venueCapacity: 500,
-          allocatedBudget: 12500,
-          currentSpent: 0,
-          status: item.status || 'Draft',
-          riskLevel:
-            (item.details?.expected_participants || 0) >= 400
-              ? 'High Risk'
-              : 'Low Risk',
-          riskFlags: [
-            'Participant volume within campus threshold',
-            'Pre-screening compliance verification pending',
-          ],
-          currentNode:
-            item.status === 'Submitted'
-              ? 'Faculty Advisor Review'
-              : 'Draft In Progress',
-          submittedAt: item.created_at || 'Just now',
-          description: item.details?.description || 'No description provided.',
-          auditTimeline: [
-            {
-              step: 'Proposal Draft Created in FastAPI',
-              actor: MOCK_USER.name,
-              time: item.created_at || 'Recent',
-              status: 'completed',
-            },
-          ],
-          expenses: [],
-        }));
+      if (Array.isArray(data)) {
+        const mapped = data.map((item) => {
+          const startIso = item.schedule?.start_date;
+          const targetDate = startIso
+            ? new Date(startIso).toISOString().split('T')[0]
+            : 'TBD';
+          const time = startIso
+            ? new Date(startIso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '09:00 AM - 05:00 PM';
+          const participants = item.event_details?.expected_participants || 100;
+          const venue = item.schedule?.venue_preference || 'Anna Auditorium';
+          const venueCap = venue.toLowerCase().includes('auditorium')
+            ? 1800
+            : venue.toLowerCase().includes('stadium')
+            ? 2000
+            : 800;
+          const isHigh = participants >= 500;
+          const riskLevel = isHigh ? 'High Risk' : participants >= 250 ? 'Medium Risk' : 'Low Risk';
 
-        setProposals(mapped);
+          return {
+            id: item.id,
+            title: item.title,
+            category: item.event_details?.objective || item.team_data?.category || 'Campus Event',
+            organizer:
+              item.team_data?.members?.[0]?.name ||
+              currentUser?.name ||
+              currentUser?.email ||
+              'Lead Organizer',
+            department:
+              item.team_data?.team_name ||
+              currentUser?.department ||
+              'Student Technical Association',
+            targetDate,
+            time,
+            venue,
+            expectedParticipants: participants,
+            venueCapacity: venueCap,
+            allocatedBudget: item.budget?.allocated_amount || 12000,
+            currentSpent: item.budget?.current_spent || 0,
+            status: item.status || 'Draft',
+            riskLevel,
+            riskFlags: isHigh
+              ? ['Large participant volume threshold exceeded', 'Security & Medical clearances required']
+              : ['Standard campus risk parameters verified', 'Capacity within venue threshold'],
+            currentNode:
+              item.status === 'Approved'
+                ? 'Final Sanctioned'
+                : item.status === 'Submitted'
+                ? 'Faculty Advisor Review'
+                : item.status === 'Pending' || item.status === 'Pending Approval'
+                ? 'Multi-Tier Review'
+                : 'Draft In Progress',
+            submittedAt: item.created_at
+              ? new Date(item.created_at).toLocaleDateString()
+              : 'Recent',
+            description: item.event_details?.description || 'No description provided.',
+            auditTimeline: [
+              {
+                step: 'Proposal Draft Created in Database',
+                actor: currentUser?.name || currentUser?.email || 'Organizer',
+                time: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent',
+                status: 'completed',
+              },
+            ],
+            expenses: [],
+          };
+        });
+
+        // Filter for role:
+        // If Student Organizer: show their proposals
+        // If Faculty Advisor: show proposals waiting for review or all
+        if (roleName === 'Faculty Advisor') {
+          // Both submitted proposals waiting for review and all
+          setProposals(mapped);
+        } else {
+          setProposals(mapped);
+        }
         setIsLiveConnected(true);
       } else {
-        // If live DB has 0 proposals yet, keep mock list for rich display and mark connected
+        setProposals([]);
         setIsLiveConnected(true);
       }
     } catch (err) {
-      console.warn('[StudentDashboard] GET /proposals/ offline or unauthenticated, using mock data:', err);
+      console.warn('[StudentDashboard] GET /proposals/ API error:', err);
+      setProposals([]);
       setIsLiveConnected(false);
     } finally {
       setLoading(false);
@@ -95,7 +136,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
 
   useEffect(() => {
     fetchLiveProposals();
-  }, []);
+  }, [currentUser]);
 
   const filteredProposals = proposals.filter((p) => {
     const matchesSearch =
@@ -103,9 +144,34 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       p.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === 'All' ? true : p.status.toLowerCase() === statusFilter.toLowerCase();
+      statusFilter === 'All'
+        ? true
+        : statusFilter === 'Pending Review'
+        ? ['Submitted', 'Pending', 'Pending Approval', 'In Progress'].includes(p.status)
+        : p.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
+
+  // Calculate dynamic metrics
+  const activeProposalsCount = proposals.length;
+  const inReviewCount = proposals.filter((p) =>
+    ['Pending', 'Submitted', 'Pending Approval', 'In Progress'].includes(p.status)
+  ).length;
+  const totalAllocatedBudget = proposals.reduce(
+    (acc, p) => acc + (p.allocatedBudget || 0),
+    0
+  );
+  const reservedVenuesCount = new Set(
+    proposals.map((p) => p.venue).filter(Boolean)
+  ).size;
+  const complianceRate =
+    proposals.length > 0
+      ? Math.round(
+          (proposals.filter((p) => p.riskLevel !== 'High Risk').length /
+            proposals.length) *
+            100
+        ) + '%'
+      : '100%';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
@@ -121,19 +187,26 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
                   <span>FastAPI Connected (GET /api/v1/proposals/)</span>
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-zinc-500 dark:text-slate-400">
+                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
                   <WifiOff className="w-3.5 h-3.5" />
-                  <span>Local Mock Mode</span>
+                  <span>Backend Synchronizing</span>
                 </span>
               )}
             </div>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
-            Student Organizer Operations
+            {dashboardTitle}
           </h1>
           <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
-            Welcome back, <span className="font-semibold">{MOCK_USER.name}</span> &bull;{' '}
-            {MOCK_USER.department}
+            Welcome back,{' '}
+            <span className="font-semibold text-zinc-900 dark:text-white">
+              {currentUser?.name || currentUser?.email || 'User'}
+            </span>{' '}
+            &bull; {currentUser?.email} (
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+              {currentUser?.role || 'Student Organizer'}
+            </span>
+            )
           </p>
         </div>
 
@@ -147,6 +220,16 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           >
             {loading ? 'Refreshing...' : 'Sync Backend'}
           </Button>
+          {(roleName === 'Faculty Advisor' || roleName === 'Admin') && (
+            <Button
+              variant="secondary"
+              size="md"
+              icon={Inbox}
+              onClick={() => onNavigate('approvals')}
+            >
+              Approval Inbox
+            </Button>
+          )}
           <Button
             variant="secondary"
             size="md"
@@ -155,14 +238,16 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           >
             Venue Availability
           </Button>
-          <Button
-            variant="primary"
-            size="md"
-            icon={PlusCircle}
-            onClick={() => onNavigate('wizard')}
-          >
-            New Proposal
-          </Button>
+          {(roleName === 'Student Organizer' || roleName === 'Admin') && (
+            <Button
+              variant="primary"
+              size="md"
+              icon={PlusCircle}
+              onClick={() => onNavigate('wizard')}
+            >
+              New Proposal
+            </Button>
+          )}
         </div>
       </div>
 
@@ -179,14 +264,14 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
-              {proposals.length}
+              {activeProposalsCount}
             </span>
             <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 font-sans">
-              {proposals.filter((p) => p.status === 'Pending').length} in review
+              {inReviewCount} in review
             </span>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
-            Real-time synchronization active
+            Live database records
           </p>
         </Card>
 
@@ -201,14 +286,14 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
-              {MOCK_STATS.student.allocatedBudget}
+              ${totalAllocatedBudget.toLocaleString()}
             </span>
             <span className="text-xs font-semibold text-zinc-500 dark:text-slate-400 font-sans">
               total
             </span>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
-            Committed spent: {MOCK_STATS.student.committedSpent} (43%)
+            Committed institutional sanction
           </p>
         </Card>
 
@@ -223,21 +308,21 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
-              {MOCK_STATS.student.reservedVenues}
+              {reservedVenuesCount}
             </span>
             <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-sans">
-              Pessimistic locked
+              Scheduled
             </span>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
-            Grand Innovation Hall + Quadrangle
+            Campus halls &amp; auditoriums
           </p>
         </Card>
 
         <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
-              Compliance Score
+              Compliance Rate
             </span>
             <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
@@ -245,14 +330,14 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="font-serif text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-              {MOCK_STATS.student.complianceScore}
+              {complianceRate}
             </span>
             <span className="text-xs font-semibold text-zinc-500 dark:text-slate-400 font-sans">
               Passing
             </span>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
-            Module 5 pre-screen validation rate
+            Pre-screening validation rate
           </p>
         </Card>
       </div>
@@ -273,7 +358,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
               />
             </div>
             <div className="flex items-center gap-1 border border-zinc-200 dark:border-white/10 p-0.5 rounded text-xs">
-              {['All', 'Pending', 'Approved', 'Draft'].map((status) => (
+              {['All', 'Pending Review', 'Approved', 'Draft'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
@@ -306,66 +391,87 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200/60 dark:divide-white/5 font-sans text-xs">
-              {filteredProposals.map((proposal) => (
-                <tr
-                  key={proposal.id}
-                  className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.03] transition-colors group"
-                >
-                  <td className="py-4 px-5 font-mono font-bold text-zinc-900 dark:text-white">
-                    {proposal.id}
-                  </td>
-                  <td className="py-4 px-5">
-                    <p className="font-serif font-bold text-sm text-zinc-950 dark:text-white group-hover:text-black dark:group-hover:text-emerald-300 transition-colors">
-                      {proposal.title}
-                    </p>
-                    <p className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
-                      {proposal.category} &bull; {proposal.venue}
-                    </p>
-                  </td>
-                  <td className="py-4 px-5 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5 text-zinc-700 dark:text-slate-300">
-                      <Calendar className="w-3.5 h-3.5 text-zinc-400 dark:text-slate-500" />
-                      <span>{proposal.targetDate}</span>
-                    </div>
-                    <span className="text-[10px] text-zinc-400 dark:text-slate-400 block mt-0.5">
-                      {proposal.time}
-                    </span>
-                  </td>
-                  <td className="py-4 px-5 whitespace-nowrap">
-                    <div className="flex items-center gap-1 text-zinc-800 dark:text-slate-200 font-semibold">
-                      <Users className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>{proposal.expectedParticipants}</span>
-                      <span className="text-zinc-400 font-normal">/ {proposal.venueCapacity}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-5 whitespace-nowrap font-semibold text-zinc-900 dark:text-white">
-                    ${proposal.allocatedBudget.toLocaleString()}
-                  </td>
-                  <td className="py-4 px-5 whitespace-nowrap">
-                    <Badge variant={proposal.status} dot>
-                      {proposal.status}
-                    </Badge>
-                  </td>
-                  <td className="py-4 px-5 whitespace-nowrap">
-                    <Badge variant={proposal.riskLevel}>
-                      {proposal.riskLevel}
-                    </Badge>
-                  </td>
-                  <td className="py-4 px-5 text-right whitespace-nowrap">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        if (onSelectProposal) onSelectProposal(proposal);
-                        onNavigate('approvals');
-                      }}
-                      className="text-[11px]"
-                    >
-                      Review Folio
-                    </Button>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-zinc-500 dark:text-slate-400">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-500" />
+                    <p className="text-xs font-medium">Fetching proposals from FastAPI...</p>
                   </td>
                 </tr>
-              ))}
+              ) : filteredProposals.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-zinc-500 dark:text-slate-400">
+                    <FileText className="w-8 h-8 mx-auto mb-2 text-zinc-400 dark:text-slate-500 opacity-60" />
+                    <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">
+                      No records found
+                    </p>
+                    <p className="text-xs text-zinc-400 dark:text-slate-500 mt-0.5">
+                      No event proposals matching your current role view or search filter.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                filteredProposals.map((proposal) => (
+                  <tr
+                    key={proposal.id}
+                    className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.03] transition-colors group"
+                  >
+                    <td className="py-4 px-5 font-mono font-bold text-zinc-900 dark:text-white">
+                      {proposal.id.length > 8 ? `${proposal.id.slice(0, 8)}...` : proposal.id}
+                    </td>
+                    <td className="py-4 px-5">
+                      <p className="font-serif font-bold text-sm text-zinc-950 dark:text-white group-hover:text-black dark:group-hover:text-emerald-300 transition-colors">
+                        {proposal.title}
+                      </p>
+                      <p className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
+                        {proposal.category} &bull; {proposal.venue}
+                      </p>
+                    </td>
+                    <td className="py-4 px-5 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 text-zinc-700 dark:text-slate-300">
+                        <Calendar className="w-3.5 h-3.5 text-zinc-400 dark:text-slate-500" />
+                        <span>{proposal.targetDate}</span>
+                      </div>
+                      <span className="text-[10px] text-zinc-400 dark:text-slate-400 block mt-0.5">
+                        {proposal.time}
+                      </span>
+                    </td>
+                    <td className="py-4 px-5 whitespace-nowrap">
+                      <div className="flex items-center gap-1 text-zinc-800 dark:text-slate-200 font-semibold">
+                        <Users className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>{proposal.expectedParticipants}</span>
+                        <span className="text-zinc-400 font-normal">/ {proposal.venueCapacity}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 whitespace-nowrap font-semibold text-zinc-900 dark:text-white">
+                      ${proposal.allocatedBudget.toLocaleString()}
+                    </td>
+                    <td className="py-4 px-5 whitespace-nowrap">
+                      <Badge variant={proposal.status} dot>
+                        {proposal.status}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-5 whitespace-nowrap">
+                      <Badge variant={proposal.riskLevel}>
+                        {proposal.riskLevel}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-5 text-right whitespace-nowrap">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          if (onSelectProposal) onSelectProposal(proposal);
+                          onNavigate('approvals');
+                        }}
+                        className="text-[11px]"
+                      >
+                        Review Folio
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

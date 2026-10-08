@@ -3,9 +3,17 @@ import { Mail, Lock, KeyRound, AlertCircle, Loader2 } from 'lucide-react';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
 import Button from '../common/Button';
-import { MOCK_ROLES } from '../../data/mockData';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api';
+
+const SYSTEM_ROLES = [
+  'Student Organizer',
+  'Faculty Advisor',
+  'Security Officer',
+  'Finance Officer',
+  'Admin',
+  'Student',
+];
 
 export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const { login: updateAuthContext } = useAuth();
@@ -21,22 +29,19 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
     setErrorMessage(null);
 
     const fallbackUser = {
-      name:
-        selectedRole === 'Student Organizer'
-          ? 'Prakhar Sethi'
-          : selectedRole === 'Faculty Advisor'
-          ? 'Dr. Sarah Jenkins'
-          : selectedRole === 'Finance Officer'
-          ? 'CA David Raman'
-          : selectedRole === 'Security Officer'
-          ? 'Col. Rajesh Sharma'
-          : 'System Administrator',
+      name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
       email: email,
       role: selectedRole,
       department:
         selectedRole === 'Student Organizer'
           ? 'Student Technical Association'
-          : 'Campus Administration',
+          : selectedRole === 'Faculty Advisor'
+          ? 'Academic Review Directorate'
+          : selectedRole === 'Finance Officer'
+          ? 'University Finance Office'
+          : selectedRole === 'Security Officer'
+          ? 'Campus Security Directorate'
+          : 'Central Administration',
     };
 
     try {
@@ -153,7 +158,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 dark:bg-[#090D10] dark:text-white dark:border-white/15
                 dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
             >
-              {MOCK_ROLES.map((role) => (
+              {SYSTEM_ROLES.map((role) => (
                 <option
                   key={role}
                   value={role}
