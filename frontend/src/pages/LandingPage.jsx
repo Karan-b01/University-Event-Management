@@ -108,7 +108,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* FULL-VIEWPORT HERO SECTION (Centered Vertically and Horizontally) */}
-      <section className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden border-b border-zinc-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-12">
+      <section className="relative w-full min-h-screen flex flex-col justify-center items-center overflow-hidden border-b border-zinc-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-16 pt-24 sm:pt-28">
         {/* HTML5 Live Video Background */}
         <video
           src="/video.mp4"
@@ -136,7 +136,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <span className="text-white/40">|</span>
             <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-200">
               <Play className="w-3 h-3 fill-current text-emerald-400" />
-              <span>Veritas Portal</span>
+              <span>Portal</span>
             </div>
           </div>
 
@@ -408,7 +408,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-serif font-bold text-zinc-900 dark:text-white text-sm">
-              UniEvent Veritas
+              UniEvent
             </span>
             <span>&copy; {new Date().getFullYear()} University Governance Office</span>
           </div>

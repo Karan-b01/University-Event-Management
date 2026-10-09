@@ -172,7 +172,7 @@ export function AppContent() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col ${
+      className={`min-h-screen flex flex-col relative ${
         activePage === 'landing' ? '' : 'bg-white dark:bg-[#05080A]'
       } text-black dark:text-white transition-colors duration-300`}
     >
