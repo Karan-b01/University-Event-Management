@@ -1,5 +1,5 @@
 import React from 'react';
-import { Landmark, ShieldCheck, User, LogIn, ChevronDown } from 'lucide-react';
+import { ShieldCheck, User, LogIn, ChevronDown } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 import Button from '../common/Button';
 
@@ -71,43 +71,18 @@ export const Navbar = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
         <div
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center cursor-pointer select-none group"
           onClick={() => setActivePage('landing')}
         >
-          <div
-            className={`w-10 h-10 rounded flex items-center justify-center transition-all duration-300 ${
+          <span
+            className={`font-serif font-bold text-xl sm:text-2xl tracking-tight transition-colors duration-200 ${
               isTransparent
-                ? 'bg-white/10 border border-white/25 text-white backdrop-blur-md group-hover:bg-white/20 group-hover:border-white/40 shadow-sm'
-                : 'bg-black text-white group-hover:bg-zinc-800 dark:bg-emerald-500/10 dark:border dark:border-emerald-500/40 dark:text-emerald-400 dark:group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                ? 'text-white drop-shadow-md group-hover:text-zinc-200'
+                : 'text-zinc-950 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
             }`}
           >
-            <Landmark className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span
-                className={`font-serif font-bold text-lg tracking-tight ${
-                  isTransparent ? 'text-white drop-shadow-sm' : 'text-zinc-950 dark:text-white'
-                }`}
-              >
-                UniEvent
-              </span>
-              <span
-                className={`font-serif italic font-normal text-sm ${
-                  isTransparent ? 'text-emerald-400' : 'text-zinc-500 dark:text-emerald-400/80'
-                }`}
-              >
-                Veritas
-              </span>
-            </div>
-            <p
-              className={`text-[10px] tracking-widest uppercase font-semibold font-sans hidden sm:block ${
-                isTransparent ? 'text-zinc-300 drop-shadow-sm' : 'text-zinc-400 dark:text-slate-400'
-              }`}
-            >
-              Compliance & Event Management
-            </p>
-          </div>
+            UniEvent
+          </span>
         </div>
 
         {/* Navigation Links - Only rendered when authenticated */}

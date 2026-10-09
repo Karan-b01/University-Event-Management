@@ -315,14 +315,9 @@ def seed_equipment(db):
     print(f"   [OK] Equipment assets seeded (Total added in this run: {created_count})")
 
 
-def seed_prototype_proposals(db, organizer_user):
-    """
-    Seed initial digital proposals mapped to clubs, categories, venues, and budgets.
-    Enables instant end-to-end prototyping on the frontend without manual creation.
-    """
-    print("[5/5] Seeding Master Proposals & Workflows across Clubs & Categories...")
-
-    # Seed master vendors
+def seed_vendors(db):
+    """Seed approved campus vendors for budget allocations."""
+    print("[5/5] Seeding Approved Campus Vendors...")
     vendors = [
         Vendor(name="AcroSport Staging & Sound", email="orders@acrosport.com", bank_details="HDFC0001234 - AC 9876543210"),
         Vendor(name="DroneLab Electronic Sensors", email="info@dronelab.io", bank_details="ICIC0005678 - UPI dronelab@okicici"),
@@ -331,147 +326,99 @@ def seed_prototype_proposals(db, organizer_user):
     for v in vendors:
         if not db.query(Vendor).filter(Vendor.name == v.name).first():
             db.add(v)
-    db.flush()
-
-    # Proposals across Categories and Clubs
-    proposals_data = [
-        {
-            "title": "International Academic Hackathon & AI Symposium",
-            "club": "Systema",
-            "category": "Hackathon",
-            "venue": "Anna Auditorium",
-            "expected_participants": 450,
-            "status": "Submitted",
-            "allocated_budget": 15000.0,
-            "current_spent": 3200.0,
-            "days_offset": 14,
-        },
-        {
-            "title": "Google Cloud & Distributed Systems Workshop",
-            "club": "GDG Tech",
-            "category": "Technical Workshop",
-            "venue": "TTVOC Gallery I",
-            "expected_participants": 320,
-            "status": "Submitted",
-            "allocated_budget": 8500.0,
-            "current_spent": 1200.0,
-            "days_offset": 21,
-        },
-        {
-            "title": "Women in Technology Leadership Keynote",
-            "club": "IEEE Women in Engineering",
-            "category": "Guest Lecture",
-            "venue": "Bhagat Singh Gallery",
-            "expected_participants": 280,
-            "status": "Approved",
-            "allocated_budget": 6000.0,
-            "current_spent": 5500.0,
-            "days_offset": 7,
-        },
-        {
-            "title": "Riviera Cultural Showcase & Arts Festival",
-            "club": "Cultural Board",
-            "category": "Cultural Festival",
-            "venue": "CS HALL",
-            "expected_participants": 750,
-            "status": "Draft",
-            "allocated_budget": 25000.0,
-            "current_spent": 0.0,
-            "days_offset": 30,
-        },
-        {
-            "title": "Computer Society Global Alumni Conclave",
-            "club": "Computer Society of India",
-            "category": "Alumni Meet",
-            "venue": "TT Shakespeare Gallery",
-            "expected_participants": 220,
-            "status": "Submitted",
-            "allocated_budget": 10000.0,
-            "current_spent": 2000.0,
-            "days_offset": 18,
-        },
-        {
-            "title": "Inter-Collegiate Football & Track Tournament",
-            "club": "Systema",
-            "category": "Sports Tournament",
-            "venue": "Outdoor Stadium - 01",
-            "expected_participants": 1200,
-            "status": "Draft",
-            "allocated_budget": 18000.0,
-            "current_spent": 0.0,
-            "days_offset": 45,
-        },
-        {
-            "title": "Red Cross Campus Blood Donation Drive",
-            "club": "Cultural Board",
-            "category": "Blood donation camp",
-            "venue": "Channa Reddy Auditorium",
-            "expected_participants": 400,
-            "status": "Approved",
-            "allocated_budget": 4500.0,
-            "current_spent": 3800.0,
-            "days_offset": 10,
-        },
-    ]
-
-    now = datetime.now(timezone.utc)
-
-    for pdata in proposals_data:
-        existing = db.query(EventProposal).filter(EventProposal.title == pdata["title"]).first()
-        if existing:
-            continue
-
-        proposal = EventProposal(
-            user_id=organizer_user.id,
-            title=pdata["title"],
-            status=pdata["status"],
-            team_data={
-                "team_name": pdata["club"],
-                "category": pdata["category"],
-                "members": [
-                    {"name": organizer_user.name, "role": "Lead Organizer"},
-                    {"name": "Ananya Sharma", "role": "Logistics Lead"},
-                    {"name": "Rahul Verma", "role": "Finance Secretary"},
-                ],
-            },
-        )
-        db.add(proposal)
-        db.flush()
-
-        # Add Details
-        start_date = now + timedelta(days=pdata["days_offset"])
-        end_date = start_date + timedelta(hours=10)
-
-        details = EventDetails(
-            proposal_id=proposal.id,
-            description=f"Official university campus event organized by {pdata['club']} under the {pdata['category']} program.",
-            objective=pdata["category"],
-            expected_participants=pdata["expected_participants"],
-        )
-        db.add(details)
-
-        # Add Schedule
-        schedule = Schedule(
-            proposal_id=proposal.id,
-            start_date=start_date,
-            end_date=end_date,
-            venue_preference=pdata["venue"],
-        )
-        db.add(schedule)
-
-        # Add Budget
-        budget = Budget(
-            proposal_id=proposal.id,
-            allocated_amount=pdata["allocated_budget"],
-            current_spent=pdata["current_spent"],
-            status="Approved" if pdata["status"] == "Approved" else "Pending",
-        )
-        db.add(budget)
-
-        print(f"   + Proposal: [{pdata['club']}] {pdata['title']} ({pdata['category']})")
-
     db.commit()
-    print("   [OK] Prototype proposals seeded.")
+    print("   [OK] Approved campus vendors seeded.")
+
+
+# ==============================================================================
+# DISABLED: FAKE PROPOSALS SEEDING SECTION
+# The proposals table is kept 100% clean for real user submissions.
+# ==============================================================================
+# def seed_prototype_proposals(db, organizer_user):
+#     """
+#     [DISABLED] Seed initial digital proposals mapped to clubs, categories, venues, and budgets.
+#     Removed to provide a clean slate for the user database.
+#     """
+#     proposals_data = [
+#         {
+#             "title": "International Academic Hackathon & AI Symposium",
+#             "club": "Systema",
+#             "category": "Hackathon",
+#             "venue": "Anna Auditorium",
+#             "expected_participants": 450,
+#             "status": "Submitted",
+#             "allocated_budget": 15000.0,
+#             "current_spent": 3200.0,
+#             "days_offset": 14,
+#         },
+#         {
+#             "title": "Google Cloud & Distributed Systems Workshop",
+#             "club": "GDG Tech",
+#             "category": "Technical Workshop",
+#             "venue": "TTVOC Gallery I",
+#             "expected_participants": 320,
+#             "status": "Submitted",
+#             "allocated_budget": 8500.0,
+#             "current_spent": 1200.0,
+#             "days_offset": 21,
+#         },
+#         {
+#             "title": "Women in Technology Leadership Keynote",
+#             "club": "IEEE Women in Engineering",
+#             "category": "Guest Lecture",
+#             "venue": "Bhagat Singh Gallery",
+#             "expected_participants": 280,
+#             "status": "Approved",
+#             "allocated_budget": 6000.0,
+#             "current_spent": 5500.0,
+#             "days_offset": 7,
+#         },
+#         {
+#             "title": "Riviera Cultural Showcase & Arts Festival",
+#             "club": "Cultural Board",
+#             "category": "Cultural Festival",
+#             "venue": "CS HALL",
+#             "expected_participants": 750,
+#             "status": "Draft",
+#             "allocated_budget": 25000.0,
+#             "current_spent": 0.0,
+#             "days_offset": 30,
+#         },
+#         {
+#             "title": "Computer Society Global Alumni Conclave",
+#             "club": "Computer Society of India",
+#             "category": "Alumni Meet",
+#             "venue": "TT Shakespeare Gallery",
+#             "expected_participants": 220,
+#             "status": "Submitted",
+#             "allocated_budget": 10000.0,
+#             "current_spent": 2000.0,
+#             "days_offset": 18,
+#         },
+#         {
+#             "title": "Inter-Collegiate Football & Track Tournament",
+#             "club": "Systema",
+#             "category": "Sports Tournament",
+#             "venue": "Outdoor Stadium - 01",
+#             "expected_participants": 1200,
+#             "status": "Draft",
+#             "allocated_budget": 18000.0,
+#             "current_spent": 0.0,
+#             "days_offset": 45,
+#         },
+#         {
+#             "title": "Red Cross Campus Blood Donation Drive",
+#             "club": "Cultural Board",
+#             "category": "Blood donation camp",
+#             "venue": "Channa Reddy Auditorium",
+#             "expected_participants": 400,
+#             "status": "Approved",
+#             "allocated_budget": 4500.0,
+#             "current_spent": 3800.0,
+#             "days_offset": 10,
+#         },
+#     ]
+#     ...
 
 
 def main():
@@ -501,10 +448,10 @@ def main():
         user_map = seed_users(db, role_map)
         seed_venues(db)
         seed_equipment(db)
+        seed_vendors(db)
 
-        organizer_user = user_map.get("prakhar.sethi@vit.edu")
-        if organizer_user:
-            seed_prototype_proposals(db, organizer_user)
+        # Fake proposal seeding is disabled so proposals table remains 100% empty
+        print("   [Notice] Fake event proposal seeding disabled. Proposals table remains 100% empty.")
 
         print("=" * 70)
         print("[SUCCESS] SEEDING COMPLETED SUCCESSFULLY!")

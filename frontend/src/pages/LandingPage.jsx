@@ -136,7 +136,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <span className="text-white/40">|</span>
             <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-200">
               <Play className="w-3 h-3 fill-current text-emerald-400" />
-              <span>Veritas Portal</span>
+              <span>Portal</span>
             </div>
           </div>
 
@@ -408,7 +408,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-serif font-bold text-zinc-900 dark:text-white text-sm">
-              UniEvent Veritas
+              UniEvent
             </span>
             <span>&copy; {new Date().getFullYear()} University Governance Office</span>
           </div>
