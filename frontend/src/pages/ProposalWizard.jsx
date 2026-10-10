@@ -246,7 +246,12 @@ export const ProposalWizard = ({ onNavigate }) => {
       setIsSubmitted(true);
     } catch (err) {
       console.warn('[ProposalWizard] Live submission encountered error:', err);
-      const detail = getSubmissionErrorMessage(err);
+      const isVenueConflict = err.response?.status === 409 &&
+        String(err.response?.data?.detail || '').toLowerCase().includes('venue is already booked');
+      const detail = isVenueConflict
+        ? 'Venue is already booked for this time. Please choose another venue or time slot.'
+        : getSubmissionErrorMessage(err);
+      if (isVenueConflict) setCurrentStep(2);
       setApiFeedback({ type: 'error', text: `Proposal was not submitted: ${detail}` });
     } finally {
       setSubmitting(false);
