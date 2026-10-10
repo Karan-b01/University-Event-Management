@@ -1,7 +1,5 @@
 from typing import List, Optional
-import os
-import uuid
-from fastapi import APIRouter, Depends, status, Query, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -123,59 +121,6 @@ def submit_expense(
 ):
     """Submit an expense with duplicate prevention and overrun checks."""
     return FinanceService.submit_expense(db, current_user, expense_in)
-
-
-@router.post(
-    "/expenses/with-receipt",
-    response_model=ExpenseResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Submit an expense with an uploaded receipt",
-    dependencies=[Depends(require_role(["Student Organizer", "Finance Officer", "Admin"]))]
-)
-async def submit_expense_with_receipt(
-    budget_id: int = Form(...),
-    amount: float = Form(..., gt=0),
-    category: str = Form(...),
-    vendor_id: Optional[int] = Form(None),
-    receipt_amount: float = Form(..., gt=0),
-    receipt_date: str = Form(...),
-    receipt_file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    allowed_extensions = {".pdf", ".png", ".jpg", ".jpeg"}
-    extension = os.path.splitext(receipt_file.filename or "")[1].lower()
-    if extension not in allowed_extensions:
-        raise HTTPException(status_code=400, detail="Receipt must be a PDF or image file.")
-
-    content = await receipt_file.read(10 * 1024 * 1024 + 1)
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="Receipt file must be 10 MB or smaller.")
-
-    receipt_dir = os.path.join(os.getcwd(), "uploads", "receipts")
-    os.makedirs(receipt_dir, exist_ok=True)
-    safe_name = f"{uuid.uuid4().hex}{extension}"
-    receipt_path = os.path.join(receipt_dir, safe_name)
-    with open(receipt_path, "wb") as receipt_handle:
-        receipt_handle.write(content)
-
-    try:
-        expense_in = ExpenseCreate(
-            budget_id=budget_id,
-            vendor_id=vendor_id,
-            amount=amount,
-            category=category,
-            receipt={
-                "amount": receipt_amount,
-                "date": receipt_date,
-                "file_path": os.path.relpath(receipt_path, os.getcwd()),
-            },
-        )
-        return FinanceService.submit_expense(db, current_user, expense_in)
-    except Exception:
-        if os.path.exists(receipt_path):
-            os.remove(receipt_path)
-        raise
 
 
 @router.get(

@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.models.resource import Booking
 from app.schemas.resource import (
     ResourceCreate,
     ResourceResponse,
@@ -43,7 +42,7 @@ def list_resources(
     response_model=ResourceResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new resource asset",
-    dependencies=[Depends(require_role(["Admin", "Faculty Advisor", "Resource Manager"]))]
+    dependencies=[Depends(require_role(["Admin", "Faculty Advisor"]))]
 )
 def create_resource(
     resource_in: ResourceCreate,
@@ -62,7 +61,7 @@ def create_resource(
         "Locks the target resource row via .with_for_update() and validates against overlapping "
         "confirmed reservations. Returns 409 Conflict if an overlap occurs."
     ),
-    dependencies=[Depends(require_role(["Student Organizer", "Resource Manager", "Admin"]))]
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
 )
 def book_resource(
     booking_in: BookingCreate,
@@ -76,24 +75,6 @@ def book_resource(
         booking_in=booking_in
     )
     return booking
-
-
-@router.get(
-    "/bookings",
-    response_model=List[BookingResponse],
-    status_code=status.HTTP_200_OK,
-    summary="List resource bookings",
-    description="Returns the current user's bookings, or all bookings for resource administrators."
-)
-def list_bookings(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    roles = {role.role_name for role in current_user.roles}
-    query = db.query(Booking)
-    if not roles.intersection({"Admin", "Faculty Advisor", "Resource Manager"}):
-        query = query.filter(Booking.user_id == current_user.id)
-    return query.order_by(Booking.start_time.desc()).all()
 
 
 @router.post(

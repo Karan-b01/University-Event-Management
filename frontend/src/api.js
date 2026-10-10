@@ -41,10 +41,6 @@ api.interceptors.response.use(
 
 // API Service Endpoints
 export const authApi = {
-  register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
-    return response.data;
-  },
   login: async (email, password) => {
     const response = await api.post('/auth/login', {
       email,
@@ -59,13 +55,6 @@ export const authApi = {
       // Silent catch on logout
     }
   },
-};
-
-export const usersApi = {
-  list: async () => (await api.get('/users/')).data,
-  roles: async () => (await api.get('/users/roles')).data,
-  assignRoles: async (userId, roleNames) =>
-    (await api.put(`/users/${userId}/roles`, { role_names: roleNames })).data,
 };
 
 export const proposalsApi = {
@@ -83,27 +72,6 @@ export const proposalsApi = {
   },
   submit: async (proposalId) => {
     const response = await api.post(`/proposals/${proposalId}/submit`);
-    return response.data;
-  },
-  clone: async (proposalId) => {
-    const response = await api.post(`/proposals/${proposalId}/clone`);
-    return response.data;
-  },
-  withdraw: async (proposalId) => {
-    const response = await api.post(`/proposals/${proposalId}/withdraw`);
-    return response.data;
-  },
-  uploadDocument: async (proposalId, file, docType) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('doc_type', docType);
-    const response = await api.post(`/proposals/${proposalId}/documents`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
-  },
-  export: async (proposalId) => {
-    const response = await api.get(`/proposals/${proposalId}/export`);
     return response.data;
   },
   getById: async (proposalId) => {
@@ -131,10 +99,6 @@ export const approvalsApi = {
 };
 
 export const financeApi = {
-  createBudget: async (budgetData) => {
-    const response = await api.post('/finance/budgets', budgetData);
-    return response.data;
-  },
   getBudget: async (proposalId) => {
     const response = await api.get(`/finance/budgets/${proposalId}`);
     return response.data;
@@ -152,26 +116,12 @@ export const financeApi = {
     const response = await api.post('/finance/expenses', expenseData);
     return response.data;
   },
-  submitExpenseWithReceipt: async (expenseData) => {
-    const formData = new FormData();
-    Object.entries(expenseData).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') formData.append(key, value);
-    });
-    const response = await api.post('/finance/expenses/with-receipt', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
-  },
   payExpense: async (expenseId, paymentReq) => {
     const response = await api.post(`/finance/expenses/${expenseId}/pay`, paymentReq);
     return response.data;
   },
   listVendors: async () => {
     const response = await api.get('/finance/vendors');
-    return response.data;
-  },
-  createVendor: async (vendorData) => {
-    const response = await api.post('/finance/vendors', vendorData);
     return response.data;
   },
 };
@@ -184,10 +134,6 @@ export const resourcesApi = {
   },
   book: async (bookingData) => {
     const response = await api.post('/resources/book', bookingData);
-    return response.data;
-  },
-  listBookings: async () => {
-    const response = await api.get('/resources/bookings');
     return response.data;
   },
   cancelBooking: async (bookingId) => {

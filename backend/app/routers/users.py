@@ -1,9 +1,9 @@
 from typing import List
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User, Role
-from app.schemas.user import UserResponse, RoleResponse, RoleAssignment
+from app.schemas.user import UserResponse, RoleResponse
 from app.core.dependencies import get_current_user, require_role
 
 router = APIRouter(prefix="/users", tags=["Users & Role-Based Access Control"])
@@ -34,27 +34,6 @@ def list_roles(db: Session = Depends(get_db)):
     """Public/Authenticated listing of defined system roles."""
     roles = db.query(Role).all()
     return roles
-
-
-@router.put(
-    "/{user_id}/roles",
-    response_model=UserResponse,
-    summary="Assign roles to a user",
-    dependencies=[Depends(require_role("Admin"))],
-)
-def assign_user_roles(user_id: int, assignment: RoleAssignment, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-    roles = db.query(Role).filter(Role.role_name.in_(assignment.role_names)).all()
-    found = {role.role_name for role in roles}
-    missing = set(assignment.role_names) - found
-    if missing:
-        raise HTTPException(status_code=400, detail=f"Unknown role(s): {', '.join(sorted(missing))}")
-    user.roles = roles
-    db.commit()
-    db.refresh(user)
-    return user
 
 
 @router.get(

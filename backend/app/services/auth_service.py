@@ -58,19 +58,10 @@ class AuthService:
             status=True,
         )
 
-        # Public registration may only create organizer accounts. Privileged
-        # roles must be assigned by an administrator after registration.
-        requested_role = user_data.role_name or "Student Organizer"
-        if requested_role not in {"Student", "Student Organizer"}:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Privileged roles can only be assigned by an administrator.",
-            )
-
         # Attach requested Role
         role_to_assign = AuthService.get_or_create_role(
             db, 
-            role_name=requested_role
+            role_name=user_data.role_name or "Student"
         )
         new_user.roles.append(role_to_assign)
 

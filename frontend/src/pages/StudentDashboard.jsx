@@ -24,10 +24,6 @@ import Input from '../components/common/Input';
 import { useAuth } from '../context/AuthContext';
 import { proposalsApi } from '../api';
 
-const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (character) => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-}[character]));
-
 export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
   const { user: currentUser } = useAuth();
   const [proposals, setProposals] = useState([]);
@@ -35,8 +31,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
-  const [actionMessage, setActionMessage] = useState(null);
-  const [actionInProgress, setActionInProgress] = useState(null);
 
   // Dynamic role title and subtitle
   const roleName = currentUser?.role || 'Student Organizer';
@@ -59,7 +53,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
             ? new Date(startIso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : '09:00 AM - 05:00 PM';
           const participants = item.event_details?.expected_participants || 100;
-          const venue = item.schedule?.venue_preference || 'Not selected';
+          const venue = item.schedule?.venue_preference || 'Anna Auditorium';
           const venueCap = venue.toLowerCase().includes('auditorium')
             ? 1800
             : venue.toLowerCase().includes('stadium')
@@ -86,7 +80,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
             venue,
             expectedParticipants: participants,
             venueCapacity: venueCap,
-            allocatedBudget: item.budget?.allocated_amount || 0,
+            allocatedBudget: item.budget?.allocated_amount || 12000,
             currentSpent: item.budget?.current_spent || 0,
             status: item.status || 'Draft',
             riskLevel,
@@ -137,59 +131,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       setIsLiveConnected(false);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCloneProposal = async (proposalId) => {
-    setActionInProgress(proposalId);
-    setActionMessage(null);
-    try {
-      const clone = await proposalsApi.clone(proposalId);
-      setActionMessage(`Created draft copy ${clone.id}.`);
-      await fetchLiveProposals();
-    } catch (err) {
-      setActionMessage(err.response?.data?.detail || 'Could not clone this proposal.');
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
-  const handleWithdrawProposal = async (proposalId) => {
-    if (!window.confirm('Withdraw this proposal? It will be marked as Withdrawn.')) return;
-    setActionInProgress(proposalId);
-    setActionMessage(null);
-    try {
-      await proposalsApi.withdraw(proposalId);
-      setActionMessage('Proposal withdrawn.');
-      await fetchLiveProposals();
-    } catch (err) {
-      setActionMessage(err.response?.data?.detail || 'Could not withdraw this proposal.');
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
-  const handleExportProposal = async (proposalId) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      setActionMessage('Allow pop-ups to export this proposal as PDF.');
-      return;
-    }
-    setActionInProgress(proposalId);
-    setActionMessage(null);
-    try {
-      const data = await proposalsApi.export(proposalId);
-      const details = data.details || {};
-      const schedule = data.schedule || {};
-      const members = data.organizing_team?.members || [];
-      const documents = data.attached_documents || [];
-      printWindow.document.write(`<!doctype html><html><head><title>${escapeHtml(data.title)}</title><style>body{font:14px Arial,sans-serif;max-width:800px;margin:40px auto;color:#18202a;line-height:1.5}h1{border-bottom:2px solid #0f766e;padding-bottom:12px}h2{margin-top:28px;color:#0f766e}li{margin:4px 0}.meta{color:#52606d}</style></head><body><h1>${escapeHtml(data.title)}</h1><p class="meta">Status: ${escapeHtml(data.status)} · Proposal ID: ${escapeHtml(data.proposal_id)}</p><h2>Event details</h2><p>${escapeHtml(details.description || 'No description')}</p><p><b>Objective:</b> ${escapeHtml(details.objective || '—')}<br><b>Expected participants:</b> ${escapeHtml(details.expected_participants ?? '—')}</p><h2>Schedule</h2><p><b>Venue:</b> ${escapeHtml(schedule.venue_preference || '—')}<br><b>Start:</b> ${escapeHtml(schedule.start_date || '—')}<br><b>End:</b> ${escapeHtml(schedule.end_date || '—')}</p><h2>Organizing team</h2><ul>${members.map((member) => '<li>' + escapeHtml(member.name) + ' — ' + escapeHtml(member.role) + '</li>').join('') || '<li>No team members recorded</li>'}</ul><h2>Attached documents</h2><ul>${documents.map((document) => '<li>' + escapeHtml(document.file_name) + ' (' + escapeHtml(document.type) + ')</li>').join('') || '<li>No documents attached</li>'}</ul><p class="meta">Exported ${escapeHtml(data.exported_at || new Date().toLocaleString())}</p><script>window.onload=()=>setTimeout(()=>window.print(),250)</script></body></html>`);
-      printWindow.document.close();
-    } catch (err) {
-      printWindow.close();
-      setActionMessage(err.response?.data?.detail || 'Could not export this proposal.');
-    } finally {
-      setActionInProgress(null);
     }
   };
 
@@ -310,12 +251,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         </div>
       </div>
 
-      {actionMessage && (
-        <div role="status" className="mb-5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200">
-          {actionMessage}
-        </div>
-      )}
-
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
@@ -423,7 +358,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
               />
             </div>
             <div className="flex items-center gap-1 border border-zinc-200 dark:border-white/10 p-0.5 rounded text-xs">
-              {['All', 'Pending Review', 'Approved', 'Draft', 'Withdrawn'].map((status) => (
+              {['All', 'Pending Review', 'Approved', 'Draft'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
@@ -522,48 +457,17 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
                       </Badge>
                     </td>
                     <td className="py-4 px-5 text-right whitespace-nowrap">
-                      <div className="flex justify-end gap-1.5">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={actionInProgress === proposal.id}
-                          onClick={() => handleExportProposal(proposal.id)}
-                          className="text-[11px]"
-                        >
-                          Export PDF
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={actionInProgress === proposal.id}
-                          onClick={() => handleCloneProposal(proposal.id)}
-                          className="text-[11px]"
-                        >
-                          Clone
-                        </Button>
-                        {['Draft', 'Submitted'].includes(proposal.status) && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={actionInProgress === proposal.id}
-                            onClick={() => handleWithdrawProposal(proposal.id)}
-                            className="text-[11px]"
-                          >
-                            Withdraw
-                          </Button>
-                        )}
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => {
-                            if (onSelectProposal) onSelectProposal(proposal);
-                            onNavigate('approvals');
-                          }}
-                          className="text-[11px]"
-                        >
-                          Review
-                        </Button>
-                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          if (onSelectProposal) onSelectProposal(proposal);
+                          onNavigate('approvals');
+                        }}
+                        className="text-[11px]"
+                      >
+                        Review Folio
+                      </Button>
                     </td>
                   </tr>
                 ))
