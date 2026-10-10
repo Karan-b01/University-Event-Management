@@ -60,6 +60,8 @@ export const FinanceDesk = ({ onNavigate }) => {
           status: expense.status === 'Paid' ? 'Disbursed' : expense.status,
           paymentMethod: transaction?.type || 'Pending',
           receiptName: receipt?.file_path?.split(/[\\/]/).pop() || 'No receipt attached',
+          hasReceipt: Boolean(receipt),
+          receiptRequested: expense.status === 'Receipt Requested',
           duplicateFlag: false,
         };
       });
@@ -129,6 +131,20 @@ export const FinanceDesk = ({ onNavigate }) => {
       await fetchFinanceData();
     } catch (err) {
       setNotification(err.response?.data?.detail || 'Expense could not be submitted.');
+    }
+  };
+
+  const handleRequestReceipt = async (expenseId) => {
+    setPaymentInProgress(expenseId);
+    setNotification(null);
+    try {
+      await financeApi.requestExpenseReceipt(expenseId);
+      setNotification(`Receipt requested for expense #${expenseId}.`);
+      await fetchFinanceData();
+    } catch (err) {
+      setNotification(err.response?.data?.detail || 'Receipt request could not be sent.');
+    } finally {
+      setPaymentInProgress(null);
     }
   };
 
@@ -487,6 +503,17 @@ export const FinanceDesk = ({ onNavigate }) => {
                         </span>
                       ) : (
                         <div className="flex items-center justify-end gap-1.5">
+                          {!item.hasReceipt && !item.receiptRequested && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleRequestReceipt(item.id)}
+                              disabled={paymentInProgress === item.id}
+                              className="text-[11px]"
+                            >
+                              Request Receipt
+                            </Button>
+                          )}
                           <Button
                             variant="primary"
                             size="sm"

@@ -178,6 +178,16 @@ async def submit_expense_with_receipt(
         raise
 
 
+@router.post(
+    "/expenses/{expense_id}/request-receipt",
+    response_model=ExpenseResponse,
+    dependencies=[Depends(require_role(["Finance Officer", "Admin"]))],
+    summary="Request supporting receipt from the student organizer",
+)
+def request_expense_receipt(expense_id: int, db: Session = Depends(get_db)):
+    return FinanceService.request_expense_receipt(db, expense_id)
+
+
 @router.get(
     "/expenses",
     response_model=List[ExpenseResponse],

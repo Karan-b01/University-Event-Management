@@ -92,6 +92,20 @@ class FinanceService:
         return budget
 
     @staticmethod
+    def request_expense_receipt(db: Session, expense_id: int) -> Expense:
+        expense = db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
+        if not expense:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
+        if expense.status == "Paid":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A receipt cannot be requested for a paid expense.")
+        if expense.receipts:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A receipt has already been uploaded for this expense.")
+        expense.status = "Receipt Requested"
+        db.commit()
+        db.refresh(expense)
+        return expense
+
+    @staticmethod
     def submit_expense(db: Session, user: User, expense_in: ExpenseCreate) -> Expense:
         """
         Submits a new Expense line item:

@@ -170,6 +170,8 @@ export const financeApi = {
     });
     return response.data;
   },
+  requestExpenseReceipt: async (expenseId) =>
+    (await api.post(`/finance/expenses/${expenseId}/request-receipt`)).data,
   payExpense: async (expenseId, paymentReq) => {
     const response = await api.post(`/finance/expenses/${expenseId}/pay`, paymentReq);
     return response.data;
