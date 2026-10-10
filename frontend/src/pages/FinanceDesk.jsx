@@ -98,12 +98,15 @@ export const FinanceDesk = ({ onNavigate }) => {
   const handleCreateBudget = async (event) => {
     event.preventDefault();
     try {
-      await financeApi.createBudget({
-        proposal_id: budgetForm.proposal_id,
-        allocated_amount: Number(budgetForm.allocated_amount),
-      });
+      const budgetPayload = { allocated_amount: Number(budgetForm.allocated_amount) };
+      const existingBudget = budgets.find((budget) => budget.proposal_id === budgetForm.proposal_id);
+      if (existingBudget) {
+        await financeApi.updateBudget(budgetForm.proposal_id, budgetPayload);
+      } else {
+        await financeApi.createBudget({ proposal_id: budgetForm.proposal_id, ...budgetPayload });
+      }
       setBudgetForm({ proposal_id: '', allocated_amount: '' });
-      setNotification('Budget allocation saved.');
+      setNotification('Requested and disbursed budget amounts synchronized.');
       await fetchFinanceData();
     } catch (err) {
       setNotification(err.response?.data?.detail || 'Budget could not be saved.');
@@ -237,13 +240,23 @@ export const FinanceDesk = ({ onNavigate }) => {
                 className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]"
               >
                 <option value="">Choose a proposal</option>
-                {proposals.filter((proposal) => !budgets.some((budget) => budget.proposal_id === proposal.id)).map((proposal) => (
-                  <option key={proposal.id} value={proposal.id}>{proposal.title}</option>
+                {proposals.map((proposal) => (
+                  <option key={proposal.id} value={proposal.id}>{proposal.title} — requested ${Number(proposal.team_data?.requested_budget || 0).toLocaleString()}</option>
                 ))}
               </select>
             </label>
+            {budgetForm.proposal_id && (() => {
+              const proposal = proposals.find((item) => item.id === budgetForm.proposal_id);
+              const budget = budgets.find((item) => item.proposal_id === budgetForm.proposal_id);
+              return (
+                <div className="grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 p-3 text-xs dark:border-white/10">
+                  <p>Requested Budget <strong className="block text-sm">${Number(proposal?.team_data?.requested_budget || 0).toLocaleString()}</strong></p>
+                  <p>Current Disbursed <strong className="block text-sm">${Number(budget?.allocated_amount || 0).toLocaleString()}</strong></p>
+                </div>
+              );
+            })()}
             <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Allocated amount
+              Disbursed Budget
               <input
                 type="number"
                 min="0.01"
@@ -255,7 +268,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                 placeholder="0.00"
               />
             </label>
-            <Button type="submit" variant="primary" disabled={!proposals.length}>Save Budget</Button>
+            <Button type="submit" variant="primary" disabled={!budgetForm.proposal_id}>Save Disbursed Budget</Button>
           </form>
         </Card>
 

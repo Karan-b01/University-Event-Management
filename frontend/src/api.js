@@ -143,6 +143,8 @@ export const financeApi = {
     const response = await api.post('/finance/budgets', budgetData);
     return response.data;
   },
+  updateBudget: async (proposalId, budgetData) =>
+    (await api.put(`/finance/budgets/${proposalId}`, budgetData)).data,
   getBudget: async (proposalId) => {
     const response = await api.get(`/finance/budgets/${proposalId}`);
     return response.data;
