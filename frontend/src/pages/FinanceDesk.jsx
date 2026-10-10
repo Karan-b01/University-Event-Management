@@ -273,8 +273,80 @@ export const FinanceDesk = ({ onNavigate }) => {
               </label>
             </div>
 
-            {selectedProposalId && (
-              <form onSubmit={handleUnifiedSubmit} className="space-y-5">
+            {selectedProposalId && (() => {
+              const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
+              const existingBudget = budgets.find((b) => b.proposal_id === selectedProposalId);
+              const itemizedSubExpenses = selectedProposal?.team_data?.expenses || selectedProposal?.team_data?.sub_expenses || [];
+
+              return (
+                <div className="space-y-5">
+                  {/* Read-Only Requested Amount & Current Allocation */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                        Requested Budget Amount (Read-Only)
+                      </span>
+                      <p className="text-2xl font-serif font-bold text-zinc-950 dark:text-white mt-1">
+                        ${Number(selectedProposal?.team_data?.requested_budget || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                        Current Disbursed Amount
+                      </span>
+                      <p className="text-2xl font-serif font-bold text-zinc-950 dark:text-white mt-1">
+                        ${Number(existingBudget?.allocated_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Read-Only Sub-Expenses Itemization Table */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans">
+                        Sub-Expenses Itemization (Submitted by Student Organizer)
+                      </span>
+                      <span className="text-xs text-zinc-500 dark:text-slate-400 font-sans">
+                        {itemizedSubExpenses.length} {itemizedSubExpenses.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
+                    <div className="border border-zinc-200 dark:border-white/10 rounded-lg overflow-hidden bg-white dark:bg-black">
+                      <table className="w-full text-left text-xs font-sans">
+                        <thead className="bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">
+                          <tr>
+                            <th className="p-3">Expense Item</th>
+                            <th className="p-3">Vendor</th>
+                            <th className="p-3 text-right">Amount ($)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
+                          {itemizedSubExpenses.length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className="p-4 text-center text-zinc-400 dark:text-zinc-500 italic">
+                                No itemized sub-expenses recorded for this proposal.
+                              </td>
+                            </tr>
+                          ) : (
+                            itemizedSubExpenses.map((exp, idx) => (
+                              <tr key={idx} className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02]">
+                                <td className="p-3 font-semibold text-zinc-900 dark:text-white">
+                                  {exp.item || exp.category || 'General Expense'}
+                                </td>
+                                <td className="p-3 text-zinc-600 dark:text-slate-300">
+                                  {exp.vendor || '—'}
+                                </td>
+                                <td className="p-3 text-right font-mono font-bold text-zinc-900 dark:text-white">
+                                  ${Number(exp.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleUnifiedSubmit} className="space-y-5 pt-3 border-t border-zinc-200 dark:border-white/10">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
                     Vendor / Payee
@@ -313,7 +385,9 @@ export const FinanceDesk = ({ onNavigate }) => {
                   </Button>
                 </div>
               </form>
-            )}
+            </div>
+          );
+        })()}
           </div>
         </Card>
       </div>

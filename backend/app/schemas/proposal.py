@@ -16,6 +16,10 @@ class OrganizingTeam(BaseModel):
     team_name: Optional[str] = Field(None, description="Name of the organizing committee/club")
     members: List[TeamMember] = Field(default_factory=list, description="List of team members and their roles")
     requested_budget: Optional[float] = Field(None, gt=0, description="Budget requested by the event organizer")
+    expenses: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="Itemized sub-expenses")
+    sub_expenses: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="Itemized sub-expenses")
+
+    model_config = ConfigDict(extra="allow")
 
 
 # ==========================================
