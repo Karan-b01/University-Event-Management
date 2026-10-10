@@ -60,6 +60,7 @@ export const FinanceDesk = ({ onNavigate }) => {
           status: expense.status === 'Paid' ? 'Disbursed' : expense.status,
           paymentMethod: transaction?.type || 'Pending',
           receiptName: receipt?.file_path?.split(/[\\/]/).pop() || 'No receipt attached',
+          receiptId: receipt?.id || null,
           hasReceipt: Boolean(receipt),
           receiptRequested: expense.status === 'Receipt Requested',
           duplicateFlag: false,
@@ -148,6 +149,20 @@ export const FinanceDesk = ({ onNavigate }) => {
       setNotification(err.response?.data?.detail || 'Receipt request could not be sent.');
     } finally {
       setPaymentInProgress(null);
+    }
+  };
+
+  const handleDownloadReceipt = async (receiptId, fileName) => {
+    try {
+      const file = await financeApi.downloadReceipt(receiptId);
+      const fileUrl = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err) {
+      setNotification(err.response?.data?.detail || 'Receipt could not be downloaded.');
     }
   };
 
@@ -501,7 +516,9 @@ export const FinanceDesk = ({ onNavigate }) => {
                       ${item.amount.toLocaleString()}
                     </td>
                     <td className="py-4 px-5 font-mono text-[11px] text-zinc-500 dark:text-slate-400">
-                      {item.receiptName}
+                      {item.receiptId ? (
+                        <button className="underline" onClick={() => handleDownloadReceipt(item.receiptId, item.receiptName)}>{item.receiptName}</button>
+                      ) : item.receiptName}
                     </td>
                     <td className="py-4 px-5">
                       <Badge variant={item.status === 'Disbursed' ? 'approved' : 'pending'}>

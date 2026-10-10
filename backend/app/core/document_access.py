@@ -16,7 +16,7 @@ KNOWN_DOCUMENT_ROLES = {
 def can_view_document(user, document) -> bool:
     """Posters are visible to signed-in campus roles; receipts have a narrower audience."""
     user_roles = {role.role_name for role in getattr(user, "roles", [])}
-    document_type = getattr(document, "type", None)
+    document_type = getattr(document, "type", document.__class__.__name__)
 
     if document_type == "Poster":
         return bool(user_roles.intersection(KNOWN_DOCUMENT_ROLES))

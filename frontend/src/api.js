@@ -185,6 +185,8 @@ export const financeApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })).data;
   },
+  downloadReceipt: async (receiptId) =>
+    (await api.get(`/finance/receipts/${receiptId}/download`, { responseType: 'blob' })).data,
   payExpense: async (expenseId, paymentReq) => {
     const response = await api.post(`/finance/expenses/${expenseId}/pay`, paymentReq);
     return response.data;

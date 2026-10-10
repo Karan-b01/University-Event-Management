@@ -3,11 +3,12 @@ from datetime import date
 import os
 import uuid
 from fastapi import APIRouter, Depends, status, Query, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.models.finance import Budget, Expense, Vendor
+from app.models.finance import Budget, Expense, Receipt, Vendor
 from app.schemas.finance import (
     BudgetCreate,
     BudgetUpdate,
@@ -20,6 +21,7 @@ from app.schemas.finance import (
 )
 from app.services.finance_service import FinanceService
 from app.core.dependencies import get_current_user, require_role
+from app.core.document_access import can_view_document
 
 router = APIRouter(
     prefix="/finance",
@@ -250,12 +252,43 @@ async def upload_requested_receipt(
 def list_expenses(
     budget_id: Optional[int] = Query(None, description="Filter expenses by budget ID"),
     db: Session = Depends(get_db)
+    , current_user: User = Depends(get_current_user)
 ):
     """Query expenses with optional budget filter."""
     query = db.query(Expense)
     if budget_id:
         query = query.filter(Expense.budget_id == budget_id)
-    return query.all()
+    roles = {role.role_name for role in current_user.roles}
+    can_view_receipts = bool(roles.intersection({"Student", "Student Organizer", "Finance Officer", "Admin"}))
+    results = []
+    for expense in query.all():
+        response = ExpenseResponse.model_validate(expense)
+        if not can_view_receipts:
+            response.receipts = []
+        elif "Student Organizer" in roles or ("Student" in roles and not roles.intersection({"Finance Officer", "Admin"})):
+            if expense.budget.proposal.user_id != current_user.id:
+                response.receipts = []
+        results.append(response)
+    return results
+
+
+@router.get("/receipts/{receipt_id}/download", response_class=FileResponse, summary="Download an authorized receipt")
+def download_receipt(
+    receipt_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    receipt = db.query(Receipt).filter(Receipt.id == receipt_id).first()
+    if not receipt:
+        raise HTTPException(status_code=404, detail="Receipt not found.")
+    if not can_view_document(current_user, receipt):
+        raise HTTPException(status_code=403, detail="You cannot view this receipt.")
+    roles = {role.role_name for role in current_user.roles}
+    if not roles.intersection({"Finance Officer", "Admin"}) and receipt.expense.budget.proposal.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="This receipt does not belong to your proposal.")
+    if not os.path.isfile(receipt.file_path):
+        raise HTTPException(status_code=404, detail="Receipt file is unavailable.")
+    return FileResponse(receipt.file_path, filename=os.path.basename(receipt.file_path))
 
 
 @router.post(

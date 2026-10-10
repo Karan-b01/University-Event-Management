@@ -38,6 +38,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
   const [actionMessage, setActionMessage] = useState(null);
   const [actionInProgress, setActionInProgress] = useState(null);
   const [receiptRequests, setReceiptRequests] = useState([]);
+  const [studentReceipts, setStudentReceipts] = useState([]);
   const [receiptUploads, setReceiptUploads] = useState({});
 
   // Dynamic role title and subtitle
@@ -61,6 +62,15 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         setReceiptRequests((expenses || []).filter((expense) => {
           const budget = budgetById.get(expense.budget_id);
           return expense.status === 'Receipt Requested' && ownProposalIds.has(budget?.proposal_id);
+        }));
+        setStudentReceipts((expenses || []).flatMap((expense) => {
+          const budget = budgetById.get(expense.budget_id);
+          if (!ownProposalIds.has(budget?.proposal_id)) return [];
+          return (expense.receipts || []).map((receipt) => ({
+            ...receipt,
+            expenseId: expense.id,
+            category: expense.category,
+          }));
         }));
         const mapped = data.map((item) => {
           const startIso = item.schedule?.start_date;
@@ -169,6 +179,20 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       setActionMessage(err.response?.data?.detail || 'Receipt could not be uploaded.');
     } finally {
       setActionInProgress(null);
+    }
+  };
+
+  const handleDownloadStudentReceipt = async (receipt) => {
+    try {
+      const file = await financeApi.downloadReceipt(receipt.id);
+      const fileUrl = URL.createObjectURL(file);
+      const link = window.document.createElement('a');
+      link.href = fileUrl;
+      link.download = receipt.file_path.split(/[\\/]/).pop() || `receipt-${receipt.id}`;
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err) {
+      setActionMessage(err.response?.data?.detail || 'Receipt could not be downloaded.');
     }
   };
 
@@ -373,6 +397,19 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
               );
             })}
           </div>
+        </Card>
+      )}
+
+      {roleName === 'Student Organizer' && studentReceipts.length > 0 && (
+        <Card title="Uploaded Receipts" subtitle="Receipts attached to expenses from your proposals.">
+          <ul className="space-y-2">
+            {studentReceipts.map((receipt) => (
+              <li key={receipt.id} className="flex items-center justify-between gap-3 text-sm">
+                <span>{receipt.category} · Expense #{receipt.expenseId}</span>
+                <button className="text-emerald-700 underline dark:text-emerald-400" onClick={() => handleDownloadStudentReceipt(receipt)}>View receipt</button>
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
 
