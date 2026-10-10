@@ -33,17 +33,23 @@ def list_approval_inbox(
     if not roles:
         return []
 
+    node_filter = [
+        ApprovalWorkflow.status.in_(["Initiated", "In Progress"]),
+        ApprovalNode.status == "Pending",
+        ApprovalNode.step_number == ApprovalWorkflow.current_step,
+    ]
+    if "Admin" not in roles:
+        node_filter.append(ApprovalNode.required_role.in_(roles))
+
+    matching_proposal_ids = (
+        db.query(ApprovalWorkflow.proposal_id)
+        .join(ApprovalNode, ApprovalNode.workflow_id == ApprovalWorkflow.id)
+        .filter(*node_filter)
+    )
+
     return (
         db.query(EventProposal)
-        .join(ApprovalWorkflow, ApprovalWorkflow.proposal_id == EventProposal.id)
-        .join(ApprovalNode, ApprovalNode.workflow_id == ApprovalWorkflow.id)
-        .filter(
-            ApprovalWorkflow.status.in_(["Initiated", "In Progress"]),
-            ApprovalNode.status == "Pending",
-            ApprovalNode.step_number == ApprovalWorkflow.current_step,
-            ApprovalNode.required_role.in_(roles),
-        )
-        .distinct()
+        .filter(EventProposal.id.in_(matching_proposal_ids))
         .order_by(EventProposal.created_at.desc())
         .all()
     )

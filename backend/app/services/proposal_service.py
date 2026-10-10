@@ -17,6 +17,7 @@ from app.models.proposal import (
     VendorQuotation,
 )
 from app.models.resource import Resource, Booking
+from app.models.finance import Budget
 from app.schemas.proposal import (
     ProposalDraftCreate,
     ProposalUpdate,
@@ -301,6 +302,21 @@ class ProposalService:
             end_time=schedule.end_date,
             status="Confirmed",
         ))
+
+        # Ensure budget record exists so Faculty Advisor budget review gate has an associated record
+        budget = db.query(Budget).filter(Budget.proposal_id == proposal.id).first()
+        if not budget:
+            budget_amount = 0.0
+            try:
+                budget_amount = float((proposal.team_data or {}).get("requested_budget") or 0.0)
+            except (TypeError, ValueError):
+                pass
+            db.add(Budget(
+                proposal_id=proposal.id,
+                allocated_amount=budget_amount,
+                current_spent=0.0,
+                status="Pending",
+            ))
 
         # Transition status
         proposal.status = "Submitted"

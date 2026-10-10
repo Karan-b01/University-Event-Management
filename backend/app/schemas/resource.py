@@ -119,3 +119,22 @@ class DamageReportResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+# ==========================================
+# Resource Availability Schemas
+# ==========================================
+
+class ConflictInfo(BaseModel):
+    start_time: datetime
+    end_time: datetime
+
+
+class AvailabilityResponse(BaseModel):
+    available: bool
+    reason: str
+    resource_id: Optional[int] = None
+    resource_name: Optional[str] = None
+    conflict: Optional[ConflictInfo] = None
+    booked_venues: List[str] = Field(default_factory=list)
+    available_venues: List[str] = Field(default_factory=list)
+

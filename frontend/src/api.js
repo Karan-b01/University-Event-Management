@@ -223,6 +223,13 @@ export const resourcesApi = {
     const response = await api.post(`/resources/${resourceId}/damage`, damageData);
     return response.data;
   },
+  checkAvailability: async (startTime, endTime, venueName = null, resourceId = null) => {
+    const params = { start_time: startTime, end_time: endTime };
+    if (venueName) params.venue_name = venueName;
+    if (resourceId) params.resource_id = resourceId;
+    const response = await api.get('/resources/check-availability', { params });
+    return response.data;
+  },
 };
 
 export default api;
