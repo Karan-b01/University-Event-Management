@@ -87,6 +87,18 @@ def get_budget(
     return FinanceService.get_budget_by_proposal_id(db, proposal_id)
 
 
+@router.get(
+    "/budgets",
+    response_model=List[BudgetResponse],
+    status_code=status.HTTP_200_OK,
+    summary="List all budgets"
+)
+def list_budgets(db: Session = Depends(get_db)):
+    """Retrieve list of all event budgets."""
+    return db.query(Budget).all()
+
+
+
 # ==========================================
 # Expense Endpoints
 # ==========================================
