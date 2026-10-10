@@ -10,6 +10,7 @@ import ProposalWizard from './pages/ProposalWizard';
 import ApprovalInbox from './pages/ApprovalInbox';
 import FinanceDesk from './pages/FinanceDesk';
 import ResourceCalendar from './pages/ResourceCalendar';
+import UserManagement from './pages/UserManagement';
 
 const PATH_TO_PAGE = {
   '/': 'landing',
@@ -20,6 +21,7 @@ const PATH_TO_PAGE = {
   '/approvals': 'approvals',
   '/finance': 'finance',
   '/calendar': 'calendar',
+  '/users': 'users',
 };
 
 const PAGE_TO_PATH = {
@@ -29,6 +31,7 @@ const PAGE_TO_PATH = {
   approvals: '/approvals',
   finance: '/finance',
   calendar: '/calendar',
+  users: '/users',
 };
 
 function getPageFromPath(path) {
@@ -51,7 +54,12 @@ export function ProtectedRoute({
   const isAuthorized = useMemo(() => {
     if (!currentUser) return false;
     if (allowedRoles && allowedRoles.length > 0) {
-      return allowedRoles.includes(currentUser.role);
+      const userRoles = currentUser.roles?.length
+        ? currentUser.roles
+        : currentUser.role
+          ? [currentUser.role]
+          : [];
+      return userRoles.some((role) => allowedRoles.includes(role));
     }
     return true;
   }, [currentUser, allowedRoles]);
@@ -59,7 +67,13 @@ export function ProtectedRoute({
   useEffect(() => {
     if (!currentUser) {
       onUnauthorized('landing', 'Authentication required. Please sign in to access this portal.');
-    } else if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(currentUser.role)) {
+    } else if (
+      allowedRoles &&
+      allowedRoles.length > 0 &&
+      !(currentUser.roles?.length ? currentUser.roles : [currentUser.role]).some((role) =>
+        allowedRoles.includes(role)
+      )
+    ) {
       onUnauthorized(
         'student',
         `Unauthorized: You do not have permission to access the ${pageName || 'requested page'}.`
@@ -253,6 +267,17 @@ export function AppContent() {
             onUnauthorized={handleUnauthorized}
           >
             <ResourceCalendar onNavigate={handleNavigate} />
+          </ProtectedRoute>
+        )}
+
+        {activePage === 'users' && (
+          <ProtectedRoute
+            allowedRoles={['Admin']}
+            currentUser={currentUser}
+            pageName="User Access Administration"
+            onUnauthorized={handleUnauthorized}
+          >
+            <UserManagement />
           </ProtectedRoute>
         )}
       </main>

@@ -39,8 +39,8 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
           const targetDate = startIso
             ? new Date(startIso).toISOString().split('T')[0]
             : 'TBD';
-          const participants = item.event_details?.expected_participants || 100;
-          const venue = item.schedule?.venue_preference || 'Anna Auditorium';
+          const participants = item.event_details?.expected_participants || 0;
+          const venue = item.schedule?.venue_preference || 'Not selected';
           const isHigh = participants >= 500;
           const riskLevel = isHigh ? 'High Risk' : participants >= 250 ? 'Medium Risk' : 'Low Risk';
 
@@ -58,7 +58,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
             targetDate,
             venue,
             expectedParticipants: participants,
-            allocatedBudget: 12000,
+            allocatedBudget: item.budget?.allocated_amount || 0,
             status: item.status || 'Submitted',
             riskLevel,
             description:
@@ -462,15 +462,29 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                   </h3>
 
                   <div className="p-4 rounded-lg bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/10 space-y-2">
-                    {riskFlags.map((flag, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start gap-2 text-xs font-sans text-zinc-800 dark:text-slate-200"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0" />
-                        <span>{flag}</span>
-                      </div>
-                    ))}
+                    {riskFlags.map((flag, idx) => {
+                      const flagText =
+                        typeof flag === 'string'
+                          ? flag
+                          : flag?.warning || flag?.category || 'Compliance review flag';
+
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-2 text-xs font-sans text-zinc-800 dark:text-slate-200"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+                          <div>
+                            <span>{flagText}</span>
+                            {typeof flag === 'object' && flag?.suggestion && (
+                              <p className="mt-1 text-[11px] text-zinc-500 dark:text-slate-400">
+                                Suggested action: {flag.suggestion}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                     <p className="text-[11px] text-zinc-500 dark:text-slate-400 font-sans pt-1 border-t border-zinc-200/40 dark:border-white/5 mt-2">
                       Score:{' '}
                       <strong className="text-zinc-900 dark:text-white">

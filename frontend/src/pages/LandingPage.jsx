@@ -26,81 +26,81 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
     {
       id: 'student',
       number: 'Module 01',
-      title: 'Student Organizer Workspace',
-      subtitle: 'Proposal Drafting & Team Coordination',
-      desc: 'Easily draft event plans, organize committee rosters, and keep all your schedules and event details organized in one collaborative space.',
-      badge: 'Student Clubs',
+      title: 'User and Role Management',
+      subtitle: 'Authentication, Authorization & Role-Based Access',
+      desc: 'Manage stakeholder accounts, profiles, authentication, and permissions from one place. Role-based access gives students, faculty, administrators, finance officers, security officers, and resource managers the tools they need.',
+      badge: 'Identity & Access',
       badgeVariant: 'default',
       icon: FileText,
-      target: 'student',
+      target: currentUser?.role === 'Admin' ? 'users' : 'student',
       features: [
-        'Save progress anytime with draft autosave',
-        'Organize committee rosters and responsibilities',
-        'Export complete event briefs and summaries in one click',
+        'Secure sign-in and account lifecycle management',
+        'Control access with stakeholder roles and permissions',
+        'Provide role-specific profiles and dashboards',
       ],
     },
     {
       id: 'wizard',
       number: 'Module 02',
-      title: 'Guided Proposal Wizard',
-      subtitle: 'Step-by-Step Event Submission',
-      desc: 'A friendly 4-step walkthrough that helps you choose dates, match venue capacity, estimate expenses, and attach event flyers and vendor quotes.',
-      badge: 'Easy Intake',
+      title: 'Event Proposal Management',
+      subtitle: 'Digital Creation, Editing, Submission & Tracking',
+      desc: 'Create, edit, submit, and monitor event proposals through their full lifecycle. Keep proposal details and supporting documents together from the initial draft through final submission.',
+      badge: 'Event Organizers',
       badgeVariant: 'teal',
       icon: Layers,
       target: 'wizard',
       features: [
-        'Instant attendee capacity and venue recommendations',
-        'Audio/visual and equipment setup checklists',
-        'Automated safety pre-checks before final submission',
-      ],
-    },
-    {
-      id: 'approvals',
-      number: 'Module 05',
-      title: 'Fast-Track Approvals & Safety Review',
-      subtitle: 'Streamlined Multi-Tier Clearances',
-      desc: 'Eliminate chasing paper forms across campus. Faculty advisors, campus security, and dean offices review, leave notes, and sign off digitally.',
-      badge: 'Faculty & Deans',
-      badgeVariant: 'security flag',
-      icon: ShieldCheck,
-      target: 'approvals',
-      features: [
-        'Automated crowd size and late-night safety reviews',
-        'Step-by-step role approvals: Advisor, Security, and Dean',
-        'Real-time activity logs and transparent status updates',
+        'Save and update proposals before submission',
+        'Keep required event details and documents together',
+        'Track proposal progress through its lifecycle',
       ],
     },
     {
       id: 'finance',
       number: 'Module 03',
-      title: 'Club Budgets & Expense Desk',
-      subtitle: 'Transparent Fiscal Management',
-      desc: 'Monitor approved allocations, manage vendor invoices, and prevent duplicate bills with real-time disbursement tracking.',
+      title: 'Finance Management',
+      subtitle: 'Budget Planning, Expense Tracking & Reimbursement',
+      desc: 'Manage an event’s financial lifecycle, including budget approval, expense recording, reimbursement processing, vendor management, invoice verification, and financial reporting.',
       badge: 'Finance & Bursar',
       badgeVariant: 'warning',
       icon: DollarSign,
       target: 'finance',
       features: [
-        'Automated check to prevent duplicate invoice submissions',
-        'Live balance tracking against approved club budgets',
-        'Payment tracking for bank wires, UPI, and cheques',
+        'Monitor budgets and record expenses transparently',
+        'Track vendor invoices and reimbursement processing',
+        'Maintain audit trails and generate financial reports',
       ],
     },
     {
       id: 'calendar',
       number: 'Module 04',
-      title: 'Instant Venue & Resource Booking',
-      subtitle: 'Conflict-Free Campus Space Reservations',
-      desc: 'Browse auditoriums, lecture halls, and outdoor grounds with live weekly schedules. Reserve spaces with guaranteed zero double-bookings.',
-      badge: 'Campus Venues',
+      title: 'Resource Management',
+      subtitle: 'Venue, Equipment, Transport & Resource Allocation',
+      desc: 'Coordinate venues, equipment, transportation, accommodation, maintenance, and infrastructure for university events. Check availability to prevent scheduling conflicts and keep booking records centralized.',
+      badge: 'Campus Resources',
       badgeVariant: 'approved',
       icon: Calendar,
       target: 'calendar',
       features: [
-        'Interactive weekly availability calendar for campus spaces',
-        'Guaranteed conflict-free reservations in real time',
-        'One-click booking for halls, stages, and equipment',
+        'Allocate resources and prevent double bookings',
+        'Optimize utilization with availability checks',
+        'Maintain centralized booking and coordination records',
+      ],
+    },
+    {
+      id: 'approvals',
+      number: 'Module 05',
+      title: 'Approval and Compliance Engine',
+      subtitle: 'Automated Multi-Tier Approval & Compliance Verification',
+      desc: 'Route event proposals to the relevant authorities, verify safety requirements and university policies, manage approval states, and maintain a complete audit trail.',
+      badge: 'Approvals & Compliance',
+      badgeVariant: 'security flag',
+      icon: ShieldCheck,
+      target: 'approvals',
+      features: [
+        'Route proposals through required approval roles',
+        'Check mandatory clearances and policy requirements',
+        'Keep approval history and compliance records',
       ],
     },
   ];
@@ -142,9 +142,9 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
 
           {/* Centered Hero Headline (Noto Serif Display) */}
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-white max-w-4xl mx-auto leading-[1.15] drop-shadow-md">
-            University Event Planning &amp;{' '}
+            University Event Management And{' '}
             <span className="italic font-normal underline decoration-1 underline-offset-8 decoration-emerald-400/70 text-emerald-300">
-              Automated Approvals
+              Compliance Engine
             </span>
           </h1>
 
@@ -217,18 +217,18 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
           <div className="mt-12 sm:mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 rounded-xl border border-white/20 bg-black/60 backdrop-blur-md w-full max-w-3xl shadow-xl">
             <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
               <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
-                100%
+                5
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Paperless Forms
+                Documented Modules
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
               <p className="font-serif text-2xl sm:text-3xl font-bold text-emerald-400">
-                0 Collisions
+                4
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Guaranteed Venues
+                Resource Types
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
@@ -236,15 +236,15 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 24–48h
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Average Review
+                Approval Workflow
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center">
               <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
-                Real-Time
+                Audit
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Budget Tracking
+                Approval History
               </p>
             </div>
           </div>
@@ -365,8 +365,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 Live Prototype Navigation
               </h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-slate-300 font-sans">
-                Experience all 7 core operational interfaces with live FastAPI integration,
-                instant role switching, and dual-theme display.
+                Explore the five documented modules. Account roles control access to each workspace.
               </p>
 
               <div className="mt-4 flex flex-col gap-2">

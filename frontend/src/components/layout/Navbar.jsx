@@ -47,6 +47,7 @@ export const Navbar = ({
         { id: 'approvals', label: 'Approval Inbox' },
         { id: 'finance', label: 'Finance Desk' },
         { id: 'calendar', label: 'Venue Calendar' },
+        { id: 'users', label: 'User Access' },
       ];
     }
 
