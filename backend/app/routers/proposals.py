@@ -23,6 +23,7 @@ from app.schemas.proposal import (
     ProposalExportResponse,
 )
 from app.services.proposal_service import ProposalService
+from app.services.approval_service import ApprovalService
 from app.core.dependencies import get_current_user, require_role
 from app.core.document_access import can_view_document
 from app.models.proposal import Document
@@ -121,6 +122,7 @@ def submit_proposal(
         proposal_id=proposal_id,
         user=current_user
     )
+    ApprovalService.initiate_workflow(db, proposal_id=proposal.id, user=current_user)
     return proposal
 
 

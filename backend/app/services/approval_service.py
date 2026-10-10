@@ -204,7 +204,7 @@ class ApprovalService:
            - If Approved: Advances workflow.current_step. If final node, marks workflow and proposal as 'Approved'.
            - If Rejected: Immediately marks workflow and proposal as 'Rejected' and halts routing.
         """
-        node = db.query(ApprovalNode).filter(ApprovalNode.id == node_id).first()
+        node = db.query(ApprovalNode).filter(ApprovalNode.id == node_id).with_for_update().first()
         if not node:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -218,6 +218,12 @@ class ApprovalService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Workflow is already finalized with status '{workflow.status}'."
+            )
+
+        if node.status != "Pending":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"This approval node has already been decided ({node.status}).",
             )
 
         # Ensure review is in sequential order

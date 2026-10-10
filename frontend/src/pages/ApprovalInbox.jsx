@@ -13,7 +13,7 @@ import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import { useAuth } from '../context/AuthContext';
-import { proposalsApi, approvalsApi, financeApi } from '../api';
+import { approvalsApi, financeApi, proposalsApi } from '../api';
 
 export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate }) => {
   const { user: currentUser } = useAuth();
@@ -143,9 +143,10 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
   const canReviewActiveNode = Boolean(
     activeNode &&
       ['Pending', 'In Progress', 'Initiated'].includes(workflow?.status) &&
-      (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin')) &&
-      (activeNode.required_role !== 'Faculty Advisor' || proposalBudget?.status === 'Advisor Approved')
+      (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin'))
   );
+  const canApproveActiveNode = canReviewActiveNode &&
+    (activeNode?.required_role !== 'Faculty Advisor' || proposalBudget?.status === 'Advisor Approved');
 
   const handleBudgetApproval = async () => {
     if (!activeProposal) return;
@@ -183,6 +184,10 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
   // Submit human approval decision to POST /api/v1/approvals/nodes/{node_id}/review
   const handleDecision = async (decision) => {
     if (!activeProposal) return;
+    if (!activeNode || !canReviewActiveNode) {
+      setActionNotice({ type: 'error', text: 'No pending approval node is assigned to your role.' });
+      return;
+    }
     setSubmitting(true);
     setActionNotice(null);
 
@@ -192,28 +197,12 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
         reviewerNotes.trim() ||
         `${decisionFormatted} by ${currentUser?.name || currentUser?.email} (${currentUser?.role})`;
 
-      if (activeNode) {
-        // Send review to FastAPI workflow engine
-        const updatedWf = await approvalsApi.reviewNode(
-          activeNode.id,
-          decisionFormatted,
-          notes
-        );
-        setWorkflow(updatedWf);
-        setActionNotice({
-          type: decision,
-          text: `Workflow Node #${activeNode.id} (${activeNode.required_role}) successfully recorded as ${decisionFormatted}. State machine advanced in database.`,
-        });
-      } else {
-        // Fallback update proposal status if no pending node found
-        await proposalsApi.update(activeProposal.id, {
-          title: activeProposal.title,
-        });
-        setActionNotice({
-          type: decision,
-          text: `Proposal ${activeProposal.id} updated as ${decisionFormatted}. Immutable audit entry logged.`,
-        });
-      }
+      const updatedWf = await approvalsApi.reviewNode(activeNode.id, decisionFormatted, notes);
+      setWorkflow(updatedWf);
+      setActionNotice({
+        type: decision,
+        text: `Workflow Node #${activeNode.id} (${activeNode.required_role}) successfully recorded as ${decisionFormatted}. State machine advanced in database.`,
+      });
 
       // Refresh list to update UI
       await fetchProposals();
@@ -703,7 +692,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       variant="primary"
                       size="sm"
                       icon={submitting ? Loader2 : CheckCircle2}
-                      disabled={submitting || !canReviewActiveNode}
+                      disabled={submitting || !canApproveActiveNode}
                       onClick={() => handleDecision('approved')}
                     >
                       {submitting

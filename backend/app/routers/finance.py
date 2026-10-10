@@ -155,7 +155,7 @@ async def submit_expense_with_receipt(
     amount: float = Form(..., gt=0),
     category: str = Form(...),
     vendor_id: Optional[int] = Form(None),
-    receipt_amount: float = Form(..., gt=0),
+    receipt_amount: Optional[float] = Form(None, gt=0),
     receipt_date: str = Form(...),
     receipt_file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -184,7 +184,7 @@ async def submit_expense_with_receipt(
             amount=amount,
             category=category,
             receipt={
-                "amount": receipt_amount,
+                "amount": receipt_amount or amount,
                 "date": receipt_date,
                 "file_path": os.path.relpath(receipt_path, os.getcwd()),
             },
@@ -251,8 +251,8 @@ async def upload_requested_receipt(
 )
 def list_expenses(
     budget_id: Optional[int] = Query(None, description="Filter expenses by budget ID"),
-    db: Session = Depends(get_db)
-    , current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Query expenses with optional budget filter."""
     query = db.query(Expense)
@@ -265,7 +265,7 @@ def list_expenses(
         response = ExpenseResponse.model_validate(expense)
         if not can_view_receipts:
             response.receipts = []
-        elif "Student Organizer" in roles or ("Student" in roles and not roles.intersection({"Finance Officer", "Admin"})):
+        elif not roles.intersection({"Finance Officer", "Admin"}) and roles.intersection({"Student", "Student Organizer"}):
             if expense.budget.proposal.user_id != current_user.id:
                 response.receipts = []
         results.append(response)

@@ -92,6 +92,8 @@ class FinanceService:
         budget = db.query(Budget).filter(Budget.proposal_id == proposal_id).with_for_update().first()
         if not budget:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found for this proposal.")
+        if budget.status != "Advisor Approved":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="The advisor must approve the requested budget before disbursement.")
         if budget_in.allocated_amount is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Enter a disbursed budget amount.")
         proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).first()
