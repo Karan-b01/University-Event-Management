@@ -113,6 +113,7 @@ class ExpenseResponse(BaseModel):
 class BudgetBase(BaseModel):
     proposal_id: str
     allocated_amount: float = Field(..., gt=0.0, description="Total sanctioned budget amount")
+    reduction_reason: Optional[str] = Field(None, description="Reason if disbursed amount is reduced")
 
 
 class BudgetCreate(BudgetBase):
@@ -122,6 +123,7 @@ class BudgetCreate(BudgetBase):
 class BudgetUpdate(BaseModel):
     allocated_amount: Optional[float] = Field(None, gt=0.0)
     status: Optional[str] = Field(None, description="'Pending', 'Approved', 'Overrun'")
+    reduction_reason: Optional[str] = Field(None, description="Reason if disbursed budget is less than requested")
 
 
 class BudgetResponse(BaseModel):
@@ -130,6 +132,7 @@ class BudgetResponse(BaseModel):
     allocated_amount: float
     current_spent: float
     status: str
+    reduction_reason: Optional[str] = None
     created_at: dt.datetime
     updated_at: dt.datetime
     expenses: List[ExpenseResponse] = []

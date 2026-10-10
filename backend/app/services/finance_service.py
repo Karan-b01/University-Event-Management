@@ -68,6 +68,15 @@ class FinanceService:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Disbursed budget cannot exceed the requested budget.",
             )
+        if requested is not None and budget_in.allocated_amount < float(requested):
+            if not getattr(budget_in, "reduction_reason", None) or not budget_in.reduction_reason.strip():
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Reason for reduction is mandatory when disbursed budget is less than requested.",
+                )
+            team_data = dict(proposal.team_data or {})
+            team_data["reduction_reason"] = budget_in.reduction_reason.strip()
+            proposal.team_data = team_data
 
         existing_budget = db.query(Budget).filter(Budget.proposal_id == budget_in.proposal_id).first()
         if existing_budget:
@@ -100,6 +109,16 @@ class FinanceService:
         requested = (proposal.team_data or {}).get("requested_budget") if proposal else None
         if requested is not None and budget_in.allocated_amount > float(requested):
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Disbursed budget cannot exceed the requested budget.")
+        if requested is not None and budget_in.allocated_amount < float(requested):
+            if not getattr(budget_in, "reduction_reason", None) or not budget_in.reduction_reason.strip():
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Reason for reduction is mandatory when disbursed budget is less than requested.",
+                )
+            if proposal:
+                team_data = dict(proposal.team_data or {})
+                team_data["reduction_reason"] = budget_in.reduction_reason.strip()
+                proposal.team_data = team_data
         if budget_in.allocated_amount < budget.current_spent:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Disbursed budget cannot be lower than funds already spent.")
         budget.allocated_amount = budget_in.allocated_amount

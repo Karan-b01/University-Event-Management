@@ -27,6 +27,7 @@ export const FinanceDesk = ({ onNavigate }) => {
   const [paymentInProgress, setPaymentInProgress] = useState(null);
   const [selectedProposalId, setSelectedProposalId] = useState('');
   const [disbursedAmount, setDisbursedAmount] = useState('');
+  const [reductionReason, setReductionReason] = useState('');
   const [selectedVendorId, setSelectedVendorId] = useState('');
   const [category, setCategory] = useState('Operational');
 
@@ -111,16 +112,24 @@ export const FinanceDesk = ({ onNavigate }) => {
         return;
       }
 
+      const isReduced = requestedAmount > 0 && numericDisbursed > 0 && numericDisbursed < requestedAmount;
+      if (isReduced && !reductionReason.trim()) {
+        setNotification('Reason for reduction is mandatory when disbursing less than the requested budget.');
+        return;
+      }
+
       let currentBudget = budgets.find((b) => b.proposal_id === selectedProposalId);
-      
+      const budgetPayload = {
+        allocated_amount: numericDisbursed,
+        ...(isReduced ? { reduction_reason: reductionReason.trim() } : {}),
+      };
+
       if (currentBudget) {
-        currentBudget = await financeApi.updateBudget(selectedProposalId, {
-          allocated_amount: numericDisbursed,
-        });
+        currentBudget = await financeApi.updateBudget(selectedProposalId, budgetPayload);
       } else {
         currentBudget = await financeApi.createBudget({
           proposal_id: selectedProposalId,
-          allocated_amount: numericDisbursed,
+          ...budgetPayload,
         });
       }
 
@@ -260,6 +269,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                   onChange={(e) => {
                     const propId = e.target.value;
                     setSelectedProposalId(propId);
+                    setReductionReason('');
                     const prop = proposals.find((p) => p.id === propId);
                     const b = budgets.find((item) => item.proposal_id === propId);
                     if (b?.allocated_amount) {
@@ -359,6 +369,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                     const requestedAmount = Number(selectedProposal?.team_data?.requested_budget || 0);
                     const numericDisbursed = Number(disbursedAmount);
                     const isExceedingRequested = requestedAmount > 0 && numericDisbursed > requestedAmount;
+                    const isReduced = requestedAmount > 0 && numericDisbursed > 0 && numericDisbursed < requestedAmount;
 
                     return (
                       <form onSubmit={handleUnifiedSubmit} className="space-y-5 pt-3 border-t border-zinc-200 dark:border-white/10">
@@ -405,6 +416,35 @@ export const FinanceDesk = ({ onNavigate }) => {
                             </select>
                           </label>
 
+                          {/* Mandatory Reason for Reduction when Disbursed < Requested */}
+                          {isReduced && (
+                            <div className="sm:col-span-2">
+                              <label className="block text-xs font-semibold text-amber-700 dark:text-amber-400">
+                                Reason for Reduction (Mandatory)
+                                <span className="text-[11px] font-normal text-zinc-500 dark:text-slate-400 ml-1">
+                                  Justify why the disbursed amount (${numericDisbursed.toLocaleString()}) is reduced from requested (${requestedAmount.toLocaleString()})
+                                </span>
+                                <textarea
+                                  required
+                                  rows={2}
+                                  value={reductionReason}
+                                  onChange={(e) => setReductionReason(e.target.value)}
+                                  placeholder="Provide formal institutional justification for budget reduction..."
+                                  className={`mt-1 w-full rounded border p-2.5 text-xs transition-colors outline-none ${
+                                    !reductionReason.trim()
+                                      ? 'border-amber-400 bg-amber-50/20 dark:border-amber-500/40 dark:bg-amber-950/10 focus:ring-amber-500 text-zinc-900 dark:text-white'
+                                      : 'border-zinc-300 bg-white dark:border-white/15 dark:bg-black text-zinc-900 dark:text-white'
+                                  }`}
+                                />
+                              </label>
+                              {!reductionReason.trim() && (
+                                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                                  A reason for reduction must be provided before proceeding.
+                                </p>
+                              )}
+                            </div>
+                          )}
+
                           <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300 sm:col-span-2">
                             Expense Category
                             <input
@@ -420,7 +460,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                           <Button
                             type="submit"
                             variant="primary"
-                            disabled={!selectedProposalId || !disbursedAmount || isExceedingRequested}
+                            disabled={!selectedProposalId || !disbursedAmount || isExceedingRequested || (isReduced && !reductionReason.trim())}
                           >
                             Save &amp; Request Receipt
                           </Button>
