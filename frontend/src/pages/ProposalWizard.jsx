@@ -104,6 +104,80 @@ export const ProposalWizard = ({ onNavigate }) => {
     };
   }, []);
 
+  const [venueAvailability, setVenueAvailability] = useState({
+    checking: false,
+    available: null,
+    reason: '',
+    conflict: null,
+    bookedVenues: [],
+    availableVenues: [],
+  });
+
+  // Real-time venue availability verification when venue or event timing is changed
+  useEffect(() => {
+    let isMounted = true;
+    const checkAvailability = async () => {
+      let startIso = null;
+      let endIso = null;
+      try {
+        if (formData.targetDate && formData.startTime) {
+          startIso = new Date(`${formData.targetDate}T${formData.startTime}:00`).toISOString();
+        }
+        if (formData.endDate && formData.endTime) {
+          endIso = new Date(`${formData.endDate}T${formData.endTime}:00`).toISOString();
+        }
+      } catch (e) {
+        return;
+      }
+
+      if (!startIso || !endIso) {
+        if (isMounted) {
+          setVenueAvailability({
+            checking: false,
+            available: null,
+            reason: 'Specify event start and end dates/times in Step 1 to check live venue availability.',
+            conflict: null,
+            bookedVenues: [],
+            availableVenues: [],
+          });
+        }
+        return;
+      }
+
+      if (isMounted) {
+        setVenueAvailability((prev) => ({ ...prev, checking: true }));
+      }
+
+      try {
+        const result = await resourcesApi.checkAvailability(startIso, endIso, formData.venue || null);
+        if (isMounted) {
+          setVenueAvailability({
+            checking: false,
+            available: result.available,
+            reason: result.reason,
+            conflict: result.conflict || null,
+            bookedVenues: result.booked_venues || [],
+            availableVenues: result.available_venues || [],
+          });
+        }
+      } catch (err) {
+        console.warn('[ProposalWizard] Availability check error:', err);
+        if (isMounted) {
+          setVenueAvailability((prev) => ({
+            ...prev,
+            checking: false,
+            reason: err.response?.data?.detail || 'Could not verify venue availability.',
+          }));
+        }
+      }
+    };
+
+    checkAvailability();
+    return () => {
+      isMounted = false;
+    };
+  }, [formData.venue, formData.targetDate, formData.startTime, formData.endDate, formData.endTime]);
+
   const steps = [
     { number: 1, title: 'Event Overview', desc: 'Scope, category & schedule', icon: FileText },
     { number: 2, title: 'Venue & Logistics', desc: 'Resource locking & capacity', icon: Building },
@@ -139,6 +213,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       },
       team_data: {
         team_name: formData.category,
+        requested_budget: Number(formData.allocatedBudget) || null,
         members: [
           {
             name: currentUser?.name || currentUser?.email || 'Lead Organizer',
@@ -167,6 +242,9 @@ export const ProposalWizard = ({ onNavigate }) => {
       }
     }
     if (!formData.venue.trim()) errors.push('Choose a requested venue.');
+    if (venueAvailability.available === false) {
+      errors.push('Selected venue has a scheduling conflict. Choose an available venue in Step 2.');
+    }
     if (!attachments.poster && !attachments.quotation && !uploadedDocuments.poster && !uploadedDocuments.quotation) {
       errors.push('Attach a poster or vendor quotation before submitting.');
     }
@@ -245,7 +323,12 @@ export const ProposalWizard = ({ onNavigate }) => {
       setIsSubmitted(true);
     } catch (err) {
       console.warn('[ProposalWizard] Live submission encountered error:', err);
-      const detail = getSubmissionErrorMessage(err);
+      const isVenueConflict = err.response?.status === 409 &&
+        String(err.response?.data?.detail || '').toLowerCase().includes('venue is already booked');
+      const detail = isVenueConflict
+        ? 'Venue is already booked for this time. Please choose another venue or time slot.'
+        : getSubmissionErrorMessage(err);
+      if (isVenueConflict) setCurrentStep(2);
       setApiFeedback({ type: 'error', text: `Proposal was not submitted: ${detail}` });
     } finally {
       setSubmitting(false);
@@ -253,6 +336,13 @@ export const ProposalWizard = ({ onNavigate }) => {
   };
 
   const handleNext = () => {
+    if (currentStep === 2 && venueAvailability.available === false) {
+      setApiFeedback({
+        type: 'error',
+        text: `Cannot proceed: ${venueAvailability.reason || 'The selected venue is already booked for this schedule.'} Please choose an available venue.`,
+      });
+      return;
+    }
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -480,22 +570,42 @@ export const ProposalWizard = ({ onNavigate }) => {
                     label="Requested Primary Venue"
                     value={formData.venue}
                     onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                    options={venues.map((v) => ({
-                      value: v.name,
-                      label: `${v.name} (Capacity: ${v.capacity || v.max_capacity || 'N/A'}${v.location ? ` • ${v.location}` : ''})`,
-                    }))}
+                    options={venues.map((v) => {
+                      const isBooked = venueAvailability.bookedVenues?.includes(v.name);
+                      return {
+                        value: v.name,
+                        label: `${v.name} (Capacity: ${v.capacity || v.max_capacity || 'N/A'}${v.location ? ` • ${v.location}` : ''})${
+                          venueAvailability.bookedVenues?.length
+                            ? isBooked
+                              ? ' — ⚠️ [Already Booked]'
+                              : ' — ✓ [Available]'
+                            : ''
+                        }`,
+                      };
+                    })}
                   />
 
                   <div className="p-3.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
-                        Pessimistic Locking Status
+                        Live Availability Status
                       </p>
                       <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-0.5">
-                        {formData.venue}
+                        {formData.venue || 'No venue chosen'}
                       </p>
                     </div>
-                    <Badge variant="approved">Ready to Lock</Badge>
+                    {venueAvailability.checking ? (
+                      <Badge variant="pending">
+                        <Loader2 className="w-3 h-3 animate-spin mr-1 inline" />
+                        Checking...
+                      </Badge>
+                    ) : venueAvailability.available === true ? (
+                      <Badge variant="approved">Available</Badge>
+                    ) : venueAvailability.available === false ? (
+                      <Badge variant="security flag">Booked / Conflict</Badge>
+                    ) : (
+                      <Badge variant="outline">Schedule Needed</Badge>
+                    )}
                   </div>
                 </div>
 
@@ -517,17 +627,45 @@ export const ProposalWizard = ({ onNavigate }) => {
                   />
                 </div>
 
-                {/* Overlap verification callout */}
-                <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30 flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                  <div className="text-xs text-emerald-900 dark:text-emerald-200 font-sans">
-                    <p className="font-bold">Availability is checked at booking</p>
-                    <p className="mt-0.5">
-                      Submit the event dates here. The Resource Management module checks the
-                      selected resource against confirmed bookings before reserving it.
-                    </p>
+                {/* Real-time availability check banner */}
+                {venueAvailability.checking ? (
+                  <div className="p-4 rounded-lg bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/10 flex items-start gap-3">
+                    <Loader2 className="w-5 h-5 text-zinc-500 animate-spin shrink-0 mt-0.5" />
+                    <div className="text-xs text-zinc-700 dark:text-slate-300 font-sans">
+                      <p className="font-bold">Checking Venue Availability…</p>
+                      <p className="mt-0.5">
+                        Verifying real-time reservations for {formData.venue} between {formData.targetDate} {formData.startTime} and {formData.endDate} {formData.endTime}.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                ) : venueAvailability.available === true ? (
+                  <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30 flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-emerald-900 dark:text-emerald-200 font-sans">
+                      <p className="font-bold">Venue Available at Selection</p>
+                      <p className="mt-0.5">{venueAvailability.reason}</p>
+                    </div>
+                  </div>
+                ) : venueAvailability.available === false ? (
+                  <div className="p-4 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-300 dark:border-rose-500/30 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-rose-900 dark:text-rose-200 font-sans">
+                      <p className="font-bold">Venue Conflict Detected</p>
+                      <p className="mt-0.5">{venueAvailability.reason}</p>
+                      <p className="mt-1 font-semibold text-rose-700 dark:text-rose-300">
+                        Please select another venue from the dropdown above or adjust your event dates in Step 1 before proceeding.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-500/30 flex items-start gap-3">
+                    <Info className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-amber-900 dark:text-amber-200 font-sans">
+                      <p className="font-bold">Schedule Required for Availability Check</p>
+                      <p className="mt-0.5">{venueAvailability.reason}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

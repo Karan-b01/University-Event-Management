@@ -102,6 +102,8 @@ export const proposalsApi = {
     });
     return response.data;
   },
+  downloadDocument: async (proposalId, documentId) =>
+    (await api.get(`/proposals/${proposalId}/documents/${documentId}/download`, { responseType: 'blob' })).data,
   export: async (proposalId) => {
     const response = await api.get(`/proposals/${proposalId}/export`);
     return response.data;
@@ -113,6 +115,14 @@ export const proposalsApi = {
 };
 
 export const approvalsApi = {
+  listInbox: async () => {
+    const response = await api.get('/approvals/inbox');
+    return response.data;
+  },
+  approveBudget: async (proposalId) => {
+    const response = await api.post(`/approvals/${proposalId}/budget/approve`);
+    return response.data;
+  },
   initiate: async (proposalId) => {
     const response = await api.post(`/approvals/initiate/${proposalId}`);
     return response.data;
@@ -135,6 +145,8 @@ export const financeApi = {
     const response = await api.post('/finance/budgets', budgetData);
     return response.data;
   },
+  updateBudget: async (proposalId, budgetData) =>
+    (await api.put(`/finance/budgets/${proposalId}`, budgetData)).data,
   getBudget: async (proposalId) => {
     const response = await api.get(`/finance/budgets/${proposalId}`);
     return response.data;
@@ -162,6 +174,19 @@ export const financeApi = {
     });
     return response.data;
   },
+  requestExpenseReceipt: async (expenseId) =>
+    (await api.post(`/finance/expenses/${expenseId}/request-receipt`)).data,
+  uploadRequestedReceipt: async (expenseId, receipt) => {
+    const formData = new FormData();
+    formData.append('amount', receipt.amount);
+    formData.append('receipt_date', receipt.date);
+    formData.append('receipt_file', receipt.file);
+    return (await api.post(`/finance/expenses/${expenseId}/receipt`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })).data;
+  },
+  downloadReceipt: async (receiptId) =>
+    (await api.get(`/finance/receipts/${receiptId}/download`, { responseType: 'blob' })).data,
   payExpense: async (expenseId, paymentReq) => {
     const response = await api.post(`/finance/expenses/${expenseId}/pay`, paymentReq);
     return response.data;
@@ -196,6 +221,13 @@ export const resourcesApi = {
   },
   reportDamage: async (resourceId, damageData) => {
     const response = await api.post(`/resources/${resourceId}/damage`, damageData);
+    return response.data;
+  },
+  checkAvailability: async (startTime, endTime, venueName = null, resourceId = null) => {
+    const params = { start_time: startTime, end_time: endTime };
+    if (venueName) params.venue_name = venueName;
+    if (resourceId) params.resource_id = resourceId;
+    const response = await api.get('/resources/check-availability', { params });
     return response.data;
   },
 };

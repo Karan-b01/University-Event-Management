@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -62,6 +62,13 @@ class FinanceService:
                 detail=f"Event proposal with ID '{budget_in.proposal_id}' not found."
             )
 
+        requested = (proposal.team_data or {}).get("requested_budget")
+        if requested is not None and budget_in.allocated_amount > float(requested):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Disbursed budget cannot exceed the requested budget.",
+            )
+
         existing_budget = db.query(Budget).filter(Budget.proposal_id == budget_in.proposal_id).first()
         if existing_budget:
             raise HTTPException(
@@ -73,9 +80,31 @@ class FinanceService:
             proposal_id=budget_in.proposal_id,
             allocated_amount=budget_in.allocated_amount,
             current_spent=0.0,
-            status="Approved" if proposal.status in ["Submitted", "Approved"] else "Pending",
+            status="Pending",
         )
         db.add(budget)
+        db.commit()
+        db.refresh(budget)
+        return budget
+
+    @staticmethod
+    def update_budget_disbursement(db: Session, proposal_id: str, budget_in: BudgetUpdate) -> Budget:
+        budget = db.query(Budget).filter(Budget.proposal_id == proposal_id).with_for_update().first()
+        if not budget:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found for this proposal.")
+        if budget.status != "Advisor Approved":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="The advisor must approve the requested budget before disbursement.")
+        if budget_in.allocated_amount is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Enter a disbursed budget amount.")
+        proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).first()
+        requested = (proposal.team_data or {}).get("requested_budget") if proposal else None
+        if requested is not None and budget_in.allocated_amount > float(requested):
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Disbursed budget cannot exceed the requested budget.")
+        if budget_in.allocated_amount < budget.current_spent:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Disbursed budget cannot be lower than funds already spent.")
+        budget.allocated_amount = budget_in.allocated_amount
+        budget.status = "Approved"
+        budget.updated_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(budget)
         return budget
@@ -90,6 +119,50 @@ class FinanceService:
                 detail=f"Budget for proposal '{proposal_id}' not found."
             )
         return budget
+
+    @staticmethod
+    def request_expense_receipt(db: Session, expense_id: int) -> Expense:
+        expense = db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
+        if not expense:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
+        if expense.status == "Paid":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A receipt cannot be requested for a paid expense.")
+        if expense.receipts:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A receipt has already been uploaded for this expense.")
+        expense.status = "Receipt Requested"
+        db.commit()
+        db.refresh(expense)
+        return expense
+
+    @staticmethod
+    def attach_requested_receipt(
+        db: Session, expense_id: int, user: User, amount: float, receipt_date: date, file_path: str
+    ) -> Expense:
+        expense = db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
+        if not expense:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
+        roles = {role.role_name for role in user.roles}
+        is_admin = "Admin" in roles
+        if not is_admin and expense.budget.proposal.user_id != user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This expense does not belong to your proposal.")
+        if expense.status != "Receipt Requested":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Finance has not requested a receipt for this expense.")
+        if expense.receipts:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A receipt has already been uploaded for this expense.")
+        if abs(float(amount) - float(expense.amount)) > 0.005:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Receipt amount must match the requested expense amount.")
+
+        db.add(Receipt(
+            expense_id=expense.id,
+            file_path=file_path,
+            amount=amount,
+            date=receipt_date,
+            is_verified=False,
+        ))
+        expense.status = "Submitted"
+        db.commit()
+        db.refresh(expense)
+        return expense
 
     @staticmethod
     def submit_expense(db: Session, user: User, expense_in: ExpenseCreate) -> Expense:
@@ -166,7 +239,7 @@ class FinanceService:
             new_receipt = Receipt(
                 expense_id=new_expense.id,
                 file_path=expense_in.receipt.file_path,
-                amount=expense_in.receipt.amount,
+                amount=expense_in.receipt.amount or expense_in.amount,
                 date=expense_in.receipt.date,
                 is_verified=False,
             )

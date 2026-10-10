@@ -1,14 +1,17 @@
 from typing import List, Optional
+from datetime import date
 import os
 import uuid
 from fastapi import APIRouter, Depends, status, Query, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.models.finance import Budget, Expense, Vendor
+from app.models.finance import Budget, Expense, Receipt, Vendor
 from app.schemas.finance import (
     BudgetCreate,
+    BudgetUpdate,
     BudgetResponse,
     VendorCreate,
     VendorResponse,
@@ -18,6 +21,7 @@ from app.schemas.finance import (
 )
 from app.services.finance_service import FinanceService
 from app.core.dependencies import get_current_user, require_role
+from app.core.document_access import can_view_document
 
 router = APIRouter(
     prefix="/finance",
@@ -89,6 +93,20 @@ def get_budget(
     return FinanceService.get_budget_by_proposal_id(db, proposal_id)
 
 
+@router.put(
+    "/budgets/{proposal_id}",
+    response_model=BudgetResponse,
+    dependencies=[Depends(require_role(["Finance Officer", "Admin"]))],
+    summary="Record the disbursed amount for a requested event budget",
+)
+def update_budget_disbursement(
+    proposal_id: str,
+    budget_in: BudgetUpdate,
+    db: Session = Depends(get_db),
+):
+    return FinanceService.update_budget_disbursement(db, proposal_id, budget_in)
+
+
 @router.get(
     "/budgets",
     response_model=List[BudgetResponse],
@@ -137,7 +155,7 @@ async def submit_expense_with_receipt(
     amount: float = Form(..., gt=0),
     category: str = Form(...),
     vendor_id: Optional[int] = Form(None),
-    receipt_amount: float = Form(..., gt=0),
+    receipt_amount: Optional[float] = Form(None, gt=0),
     receipt_date: str = Form(...),
     receipt_file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -166,12 +184,59 @@ async def submit_expense_with_receipt(
             amount=amount,
             category=category,
             receipt={
-                "amount": receipt_amount,
+                "amount": receipt_amount or amount,
                 "date": receipt_date,
                 "file_path": os.path.relpath(receipt_path, os.getcwd()),
             },
         )
         return FinanceService.submit_expense(db, current_user, expense_in)
+    except Exception:
+        if os.path.exists(receipt_path):
+            os.remove(receipt_path)
+        raise
+
+
+@router.post(
+    "/expenses/{expense_id}/request-receipt",
+    response_model=ExpenseResponse,
+    dependencies=[Depends(require_role(["Finance Officer", "Admin"]))],
+    summary="Request supporting receipt from the student organizer",
+)
+def request_expense_receipt(expense_id: int, db: Session = Depends(get_db)):
+    return FinanceService.request_expense_receipt(db, expense_id)
+
+
+@router.post(
+    "/expenses/{expense_id}/receipt",
+    response_model=ExpenseResponse,
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))],
+    summary="Upload a receipt requested by Finance",
+)
+async def upload_requested_receipt(
+    expense_id: int,
+    amount: float = Form(..., gt=0),
+    receipt_date: date = Form(...),
+    receipt_file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    extension = os.path.splitext(receipt_file.filename or "")[1].lower()
+    if extension not in {".pdf", ".png", ".jpg", ".jpeg"}:
+        raise HTTPException(status_code=400, detail="Receipt must be a PDF or image file.")
+    content = await receipt_file.read(10 * 1024 * 1024 + 1)
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Receipt file must be 10 MB or smaller.")
+
+    receipt_dir = os.path.join(os.getcwd(), "uploads", "receipts")
+    os.makedirs(receipt_dir, exist_ok=True)
+    receipt_path = os.path.join(receipt_dir, f"{uuid.uuid4().hex}{extension}")
+    with open(receipt_path, "wb") as receipt_handle:
+        receipt_handle.write(content)
+    try:
+        return FinanceService.attach_requested_receipt(
+            db, expense_id, current_user, amount, receipt_date,
+            os.path.relpath(receipt_path, os.getcwd()),
+        )
     except Exception:
         if os.path.exists(receipt_path):
             os.remove(receipt_path)
@@ -186,13 +251,44 @@ async def submit_expense_with_receipt(
 )
 def list_expenses(
     budget_id: Optional[int] = Query(None, description="Filter expenses by budget ID"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Query expenses with optional budget filter."""
     query = db.query(Expense)
     if budget_id:
         query = query.filter(Expense.budget_id == budget_id)
-    return query.all()
+    roles = {role.role_name for role in current_user.roles}
+    can_view_receipts = bool(roles.intersection({"Student", "Student Organizer", "Finance Officer", "Admin"}))
+    results = []
+    for expense in query.all():
+        response = ExpenseResponse.model_validate(expense)
+        if not can_view_receipts:
+            response.receipts = []
+        elif not roles.intersection({"Finance Officer", "Admin"}) and roles.intersection({"Student", "Student Organizer"}):
+            if expense.budget.proposal.user_id != current_user.id:
+                response.receipts = []
+        results.append(response)
+    return results
+
+
+@router.get("/receipts/{receipt_id}/download", response_class=FileResponse, summary="Download an authorized receipt")
+def download_receipt(
+    receipt_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    receipt = db.query(Receipt).filter(Receipt.id == receipt_id).first()
+    if not receipt:
+        raise HTTPException(status_code=404, detail="Receipt not found.")
+    if not can_view_document(current_user, receipt):
+        raise HTTPException(status_code=403, detail="You cannot view this receipt.")
+    roles = {role.role_name for role in current_user.roles}
+    if not roles.intersection({"Finance Officer", "Admin"}) and receipt.expense.budget.proposal.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="This receipt does not belong to your proposal.")
+    if not os.path.isfile(receipt.file_path):
+        raise HTTPException(status_code=404, detail="Receipt file is unavailable.")
+    return FileResponse(receipt.file_path, filename=os.path.basename(receipt.file_path))
 
 
 @router.post(

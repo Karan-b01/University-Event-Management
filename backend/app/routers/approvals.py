@@ -7,6 +7,10 @@ from app.schemas.approval import (
     WorkflowResponse,
     ReviewRequest,
 )
+from app.schemas.proposal import ProposalResponse
+from app.models.proposal import EventProposal
+from app.models.approval import ApprovalWorkflow, ApprovalNode
+from app.schemas.finance import BudgetResponse
 from app.services.approval_service import ApprovalService
 from app.core.dependencies import get_current_user, require_role
 
@@ -14,6 +18,41 @@ router = APIRouter(
     prefix="/approvals",
     tags=["Module 5: Approval and Compliance Engine"]
 )
+
+
+@router.get(
+    "/inbox",
+    response_model=list[ProposalResponse],
+    summary="List proposals awaiting one of the current user's approval roles",
+)
+def list_approval_inbox(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    roles = {role.role_name for role in current_user.roles}
+    if not roles:
+        return []
+
+    node_filter = [
+        ApprovalWorkflow.status.in_(["Initiated", "In Progress"]),
+        ApprovalNode.status == "Pending",
+        ApprovalNode.step_number == ApprovalWorkflow.current_step,
+    ]
+    if "Admin" not in roles:
+        node_filter.append(ApprovalNode.required_role.in_(roles))
+
+    matching_proposal_ids = (
+        db.query(ApprovalWorkflow.proposal_id)
+        .join(ApprovalNode, ApprovalNode.workflow_id == ApprovalWorkflow.id)
+        .filter(*node_filter)
+    )
+
+    return (
+        db.query(EventProposal)
+        .filter(EventProposal.id.in_(matching_proposal_ids))
+        .order_by(EventProposal.created_at.desc())
+        .all()
+    )
 
 
 @router.post(
@@ -34,6 +73,20 @@ def initiate_approval_workflow(
 ):
     """Endpoint to initiate approval workflow."""
     return ApprovalService.initiate_workflow(db, proposal_id=proposal_id, user=current_user)
+
+
+@router.post(
+    "/{proposal_id}/budget/approve",
+    response_model=BudgetResponse,
+    dependencies=[Depends(require_role(["Faculty Advisor", "Admin"]))],
+    summary="Approve a proposal's requested budget before proposal review",
+)
+def approve_requested_budget(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ApprovalService.approve_budget_request(db, proposal_id, current_user)
 
 
 @router.get(

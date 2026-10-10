@@ -13,7 +13,7 @@ import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import { useAuth } from '../context/AuthContext';
-import { proposalsApi, approvalsApi, financeApi } from '../api';
+import { approvalsApi, financeApi, proposalsApi } from '../api';
 
 export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate }) => {
   const { user: currentUser } = useAuth();
@@ -28,11 +28,11 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
   const [workflow, setWorkflow] = useState(null);
   const [proposalBudget, setProposalBudget] = useState(null);
 
-  // Fetch proposals directly from GET /api/v1/proposals/
+  // Load only proposals awaiting one of the current user's approval roles.
   const fetchProposals = async () => {
     setLoading(true);
     try {
-      const data = await proposalsApi.list();
+      const data = await approvalsApi.listInbox();
       if (Array.isArray(data) && data.length > 0) {
         const mapped = data.map((item) => {
           const startIso = item.schedule?.start_date;
@@ -59,6 +59,8 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
             venue,
             expectedParticipants: participants,
             allocatedBudget: item.budget?.allocated_amount || 0,
+            requestedBudget: Number(item.team_data?.requested_budget || 0),
+            documents: item.documents || [],
             status: item.status || 'Submitted',
             riskLevel,
             description:
@@ -133,10 +135,58 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
   const activeNode = workflow?.nodes?.find(
     (n) => n.step_number === workflow.current_step && n.status === 'Pending'
   );
+  const userRoles = currentUser?.roles?.length
+    ? currentUser.roles
+    : currentUser?.role
+      ? [currentUser.role]
+      : [];
+  const canReviewActiveNode = Boolean(
+    activeNode &&
+      ['Pending', 'In Progress', 'Initiated'].includes(workflow?.status) &&
+      (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin'))
+  );
+  const canApproveActiveNode = canReviewActiveNode;
+
+  const handleBudgetApproval = async () => {
+    if (!activeProposal) return;
+    setSubmitting(true);
+    setActionNotice(null);
+    try {
+      const approvedBudget = await approvalsApi.approveBudget(activeProposal.id);
+      setProposalBudget(approvedBudget);
+      setActionNotice({ type: 'success', text: 'Requested budget approved. You can now review the proposal.' });
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'The requested budget could not be approved.';
+      setActionNotice({ type: 'error', text: detail });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDocumentDownload = async (document) => {
+    try {
+      const file = await proposalsApi.downloadDocument(activeProposal.id, document.id);
+      const fileUrl = URL.createObjectURL(file);
+      const link = window.document.createElement('a');
+      link.href = fileUrl;
+      link.download = document.file_name;
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err) {
+      setActionNotice({
+        type: 'error',
+        text: err.response?.data?.detail || 'Document could not be downloaded.',
+      });
+    }
+  };
 
   // Submit human approval decision to POST /api/v1/approvals/nodes/{node_id}/review
   const handleDecision = async (decision) => {
     if (!activeProposal) return;
+    if (!activeNode || !canReviewActiveNode) {
+      setActionNotice({ type: 'error', text: 'No pending approval node is assigned to your role.' });
+      return;
+    }
     setSubmitting(true);
     setActionNotice(null);
 
@@ -146,28 +196,16 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
         reviewerNotes.trim() ||
         `${decisionFormatted} by ${currentUser?.name || currentUser?.email} (${currentUser?.role})`;
 
-      if (activeNode) {
-        // Send review to FastAPI workflow engine
-        const updatedWf = await approvalsApi.reviewNode(
-          activeNode.id,
-          decisionFormatted,
-          notes
-        );
-        setWorkflow(updatedWf);
-        setActionNotice({
-          type: decision,
-          text: `Workflow Node #${activeNode.id} (${activeNode.required_role}) successfully recorded as ${decisionFormatted}. State machine advanced in database.`,
-        });
-      } else {
-        // Fallback update proposal status if no pending node found
-        await proposalsApi.update(activeProposal.id, {
-          title: activeProposal.title,
-        });
-        setActionNotice({
-          type: decision,
-          text: `Proposal ${activeProposal.id} updated as ${decisionFormatted}. Immutable audit entry logged.`,
-        });
-      }
+      const updatedWf = await approvalsApi.reviewNode(activeNode.id, decisionFormatted, notes);
+      setWorkflow(updatedWf);
+      try {
+        const updatedBudget = await financeApi.getBudget(activeProposal.id);
+        setProposalBudget(updatedBudget);
+      } catch (err) {}
+      setActionNotice({
+        type: decision,
+        text: `Workflow Node #${activeNode.id} (${activeNode.required_role}) successfully recorded as ${decisionFormatted}. State machine advanced in database.`,
+      });
 
       // Refresh list to update UI
       await fetchProposals();
@@ -454,6 +492,18 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
 
               {/* Content Tabs: Risk Flags, Multi-tier Nodes, Audit Trail */}
               <div className="p-6 space-y-6">
+                {activeProposal.documents.filter((document) => document.type === 'Poster').length > 0 && (
+                  <section>
+                    <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300">Event Posters</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {activeProposal.documents.filter((document) => document.type === 'Poster').map((document) => (
+                        <Button key={document.id} size="sm" variant="secondary" onClick={() => handleDocumentDownload(document)}>
+                          View {document.file_name}
+                        </Button>
+                      ))}
+                    </div>
+                  </section>
+                )}
                 {/* AUTOMATED PRE-SCREENING RISK REPORT (Module 05) */}
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans mb-3 flex items-center gap-1.5">
@@ -603,12 +653,29 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30 mb-4"
                   />
 
+                  {activeNode?.required_role === 'Faculty Advisor' && userRoles.includes('Faculty Advisor') && (
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs dark:border-amber-500/30 dark:bg-amber-950/20">
+                      <span>
+                        Requested budget: <strong>${activeProposal.requestedBudget.toLocaleString()}</strong>
+                        {' · '}
+                        {proposalBudget?.status === 'Advisor Approved'
+                          ? 'Budget approved'
+                          : 'Approve the budget request before deciding on the proposal.'}
+                      </span>
+                      {proposalBudget?.status !== 'Advisor Approved' && (
+                        <Button size="sm" variant="secondary" disabled={submitting || activeProposal.requestedBudget <= 0} onClick={handleBudgetApproval}>
+                          Approve Budget Request
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap items-center justify-end gap-3">
                     <Button
                       variant="danger"
                       size="sm"
                       icon={submitting ? Loader2 : XCircle}
-                      disabled={submitting}
+                      disabled={submitting || !canReviewActiveNode}
                       onClick={() => handleDecision('rejected')}
                     >
                       {submitting ? 'Updating...' : 'Reject Proposal'}
@@ -628,7 +695,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       variant="primary"
                       size="sm"
                       icon={submitting ? Loader2 : CheckCircle2}
-                      disabled={submitting}
+                      disabled={submitting || !canApproveActiveNode}
                       onClick={() => handleDecision('approved')}
                     >
                       {submitting
