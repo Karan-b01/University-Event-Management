@@ -166,7 +166,15 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
       ['Pending', 'In Progress', 'Initiated'].includes(workflow?.status) &&
       (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin'))
   );
-  const canApproveActiveNode = canReviewActiveNode;
+
+  // Check if current active node is Finance Officer and if payment confirmation is required
+  const isFinanceOfficerNode = activeNode?.required_role === 'Finance Officer';
+  const isPaymentConfirmed = Boolean(
+    proposalBudget?.expenses?.length > 0 &&
+      proposalBudget.expenses.every((exp) => exp.status === 'Paid')
+  );
+  const isFinancePaymentLocked = isFinanceOfficerNode && !isPaymentConfirmed;
+  const canApproveActiveNode = canReviewActiveNode && !isFinancePaymentLocked;
 
   // Check if current user or role has already approved a node in this workflow
   const userApprovedNode = workflow?.nodes?.find(
@@ -216,6 +224,13 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
     if (!activeProposal) return;
     if (!activeNode || !canReviewActiveNode) {
       setActionNotice({ type: 'error', text: 'No pending approval node is assigned to your role.' });
+      return;
+    }
+    if (decision === 'approved' && isFinancePaymentLocked) {
+      setActionNotice({
+        type: 'error',
+        text: 'Awaiting payment confirmation: The Finance Officer must confirm payment before granting approval.',
+      });
       return;
     }
     setSubmitting(true);
@@ -721,6 +736,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                         const isCurrent = node.step_number === workflow.current_step && workflow.status !== 'Approved';
                         const isUserRole = userRoles.includes(node.required_role);
                         const isApprovedByMe = (node.reviewer_id === currentUser?.id || (isUserRole && node.status === 'Approved'));
+                        const isNodePaymentLocked = node.required_role === 'Finance Officer' && node.status === 'Pending' && !isPaymentConfirmed;
                         return (
                           <div
                             key={node.id}
@@ -735,12 +751,18 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                             }`}
                           >
                             <div>
-                              <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-white">
+                              <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-white flex-wrap">
                                 <span>Tier {node.step_number}:</span>
                                 <span>{node.required_role}</span>
                                 {isApprovedByMe && (
                                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.2 rounded">
                                     (Authorized by You)
+                                  </span>
+                                )}
+                                {isNodePaymentLocked && (
+                                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-300/60 dark:border-amber-700/50">
+                                    <Lock className="w-2.5 h-2.5" />
+                                    <span>Payment Locked</span>
                                   </span>
                                 )}
                               </div>
@@ -754,10 +776,12 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                                   ? 'approved'
                                   : node.status === 'Rejected'
                                   ? 'rejected'
+                                  : isNodePaymentLocked
+                                  ? 'warning'
                                   : 'pending'
                               }
                             >
-                              {node.status}
+                              {isNodePaymentLocked ? 'Locked' : node.status}
                             </Badge>
                           </div>
                         );
@@ -839,6 +863,35 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                         </div>
                       )}
 
+                      {/* Payment Lock Gate Indicator for Finance Officer */}
+                      {isFinancePaymentLocked && (
+                        <div className="mb-4 p-4 rounded-xl border border-amber-300/80 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 dark:text-amber-200">
+                          <div className="flex items-start sm:items-center gap-3">
+                            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 shrink-0">
+                              <Lock className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <h5 className="text-xs font-bold font-serif">
+                                Awaiting Payment Confirmation
+                              </h5>
+                              <p className="text-[11px] text-amber-800/90 dark:text-amber-300/80 mt-0.5 leading-relaxed">
+                                The Finance Officer is strictly locked from marking this proposal as Approved until uploaded receipts are verified and payment is confirmed in the Finance Desk.
+                              </p>
+                            </div>
+                          </div>
+                          {onNavigate && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="shrink-0 text-xs border-amber-300 dark:border-amber-700/50 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-900 dark:text-amber-100 font-semibold"
+                              onClick={() => onNavigate('finance')}
+                            >
+                              Go to Finance Desk
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap items-center justify-end gap-3">
                         <Button
                           variant="danger"
@@ -860,19 +913,38 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                         >
                           Request Clarification
                         </Button>
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          icon={submitting ? Loader2 : CheckCircle2}
-                          disabled={submitting || !canApproveActiveNode}
-                          onClick={() => handleDecision('approved')}
+                        <div
+                          className="relative group inline-block"
+                          title={isFinancePaymentLocked ? 'Awaiting payment confirmation' : undefined}
                         >
-                          {submitting
-                            ? 'Authorizing...'
-                            : activeNode
-                            ? `Authorize Tier (${activeNode.required_role})`
-                            : 'Authorize & Sanction'}
-                        </Button>
+                          <Button
+                            variant={isFinancePaymentLocked ? 'secondary' : 'primary'}
+                            size="sm"
+                            icon={submitting ? Loader2 : isFinancePaymentLocked ? Lock : CheckCircle2}
+                            disabled={submitting || !canApproveActiveNode}
+                            title={isFinancePaymentLocked ? 'Awaiting payment confirmation' : undefined}
+                            onClick={() => handleDecision('approved')}
+                            className={
+                              isFinancePaymentLocked
+                                ? 'opacity-60 cursor-not-allowed border-amber-400 dark:border-amber-600/50 text-amber-700 dark:text-amber-300'
+                                : ''
+                            }
+                          >
+                            {submitting
+                              ? 'Authorizing...'
+                              : isFinancePaymentLocked
+                              ? 'Awaiting Payment Confirmation'
+                              : activeNode
+                              ? `Authorize Tier (${activeNode.required_role})`
+                              : 'Authorize & Sanction'}
+                          </Button>
+                          {isFinancePaymentLocked && (
+                            <div className="hidden group-hover:flex items-center gap-1.5 absolute bottom-full mb-2 right-0 px-2.5 py-1 text-[11px] font-medium text-white bg-zinc-900 dark:bg-zinc-800 border border-zinc-700 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none">
+                              <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+                              <span>Awaiting payment confirmation</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : isFullyApproved ? (

@@ -691,7 +691,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                             disabled={paymentInProgress === item.id}
                             className="text-[11px]"
                           >
-                            Disburse Wire
+                            Confirm Payment (Wire)
                           </Button>
                           <Button
                             variant="secondary"
@@ -700,7 +700,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                             disabled={paymentInProgress === item.id}
                             className="text-[11px]"
                           >
-                            UPI
+                            Confirm Payment (UPI)
                           </Button>
                         </div>
                       )}
