@@ -93,6 +93,7 @@ class ResourceService:
             locked_resource = (
                 db.query(Resource)
                 .filter(Resource.id == booking_in.resource_id)
+                .populate_existing()
                 .with_for_update()
                 .first()
             )
@@ -113,11 +114,15 @@ class ResourceService:
             overlapping_booking = (
                 db.query(Booking)
                 .filter(
-                    Booking.resource_id == booking_in.resource_id,
-                    Booking.status == "Confirmed",
-                    Booking.start_time < booking_in.end_time,
-                    Booking.end_time > booking_in.start_time
+                    and_(
+                        Booking.resource_id == locked_resource.id,
+                        Booking.status == "Confirmed",
+                        Booking.start_time < booking_in.end_time,
+                        Booking.end_time > booking_in.start_time,
+                    )
                 )
+                .order_by(Booking.start_time)
+                .with_for_update()
                 .first()
             )
 
