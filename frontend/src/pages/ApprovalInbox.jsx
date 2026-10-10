@@ -133,6 +133,16 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
   const activeNode = workflow?.nodes?.find(
     (n) => n.step_number === workflow.current_step && n.status === 'Pending'
   );
+  const userRoles = currentUser?.roles?.length
+    ? currentUser.roles
+    : currentUser?.role
+      ? [currentUser.role]
+      : [];
+  const canReviewActiveNode = Boolean(
+    activeNode &&
+      ['Pending', 'In Progress', 'Initiated'].includes(workflow?.status) &&
+      (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin'))
+  );
 
   // Submit human approval decision to POST /api/v1/approvals/nodes/{node_id}/review
   const handleDecision = async (decision) => {
@@ -608,7 +618,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       variant="danger"
                       size="sm"
                       icon={submitting ? Loader2 : XCircle}
-                      disabled={submitting}
+                      disabled={submitting || !canReviewActiveNode}
                       onClick={() => handleDecision('rejected')}
                     >
                       {submitting ? 'Updating...' : 'Reject Proposal'}
@@ -628,7 +638,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       variant="primary"
                       size="sm"
                       icon={submitting ? Loader2 : CheckCircle2}
-                      disabled={submitting}
+                      disabled={submitting || !canReviewActiveNode}
                       onClick={() => handleDecision('approved')}
                     >
                       {submitting
