@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   RefreshCw,
   Download,
+  AlertTriangle,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
@@ -102,6 +103,14 @@ export const FinanceDesk = ({ onNavigate }) => {
     setNotification(null);
     try {
       const numericDisbursed = Number(disbursedAmount);
+      const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
+      const requestedAmount = Number(selectedProposal?.team_data?.requested_budget || 0);
+
+      if (requestedAmount > 0 && numericDisbursed > requestedAmount) {
+        setNotification(`Disbursed amount ($${numericDisbursed.toLocaleString()}) cannot exceed the requested budget ($${requestedAmount.toLocaleString()}).`);
+        return;
+      }
+
       let currentBudget = budgets.find((b) => b.proposal_id === selectedProposalId);
       
       if (currentBudget) {
@@ -346,45 +355,79 @@ export const FinanceDesk = ({ onNavigate }) => {
                     </div>
                   </div>
 
-                  <form onSubmit={handleUnifiedSubmit} className="space-y-5 pt-3 border-t border-zinc-200 dark:border-white/10">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-                    Vendor / Payee
-                    <select
-                      value={selectedVendorId}
-                      onChange={(e) => setSelectedVendorId(e.target.value)}
-                      className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
-                    >
-                      <option value="">Direct Reimbursement / Student Organizer</option>
-                      {vendors.map((vendor) => (
-                        <option key={vendor.id} value={vendor.id}>
-                          {vendor.name} ({vendor.bank_details})
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  {(() => {
+                    const requestedAmount = Number(selectedProposal?.team_data?.requested_budget || 0);
+                    const numericDisbursed = Number(disbursedAmount);
+                    const isExceedingRequested = requestedAmount > 0 && numericDisbursed > requestedAmount;
 
-                  <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-                    Expense Category
-                    <input
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
-                      placeholder="e.g. Operational"
-                    />
-                  </label>
-                </div>
+                    return (
+                      <form onSubmit={handleUnifiedSubmit} className="space-y-5 pt-3 border-t border-zinc-200 dark:border-white/10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                              Admitted / Disbursed Amount ($)
+                              <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                required
+                                value={disbursedAmount}
+                                onChange={(e) => setDisbursedAmount(e.target.value)}
+                                className={`mt-1 h-10 w-full rounded border px-3 text-sm transition-colors ${
+                                  isExceedingRequested
+                                    ? 'border-red-500 bg-red-50/20 text-red-600 dark:border-red-500/50 dark:bg-red-950/20 dark:text-red-300 focus:ring-red-500'
+                                    : 'border-zinc-300 bg-white dark:border-white/15 dark:bg-black text-zinc-900 dark:text-white'
+                                }`}
+                                placeholder="0.00"
+                              />
+                            </label>
+                            {isExceedingRequested && (
+                              <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <AlertTriangle className="w-4 h-4 shrink-0" />
+                                Disbursed amount (${numericDisbursed.toLocaleString()}) cannot exceed requested amount (${requestedAmount.toLocaleString()}).
+                              </p>
+                            )}
+                          </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    disabled={!selectedProposalId || !disbursedAmount}
-                  >
-                    Save &amp; Request Receipt
-                  </Button>
-                </div>
-              </form>
+                          <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                            Vendor / Payee
+                            <select
+                              value={selectedVendorId}
+                              onChange={(e) => setSelectedVendorId(e.target.value)}
+                              className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                            >
+                              <option value="">Direct Reimbursement / Student Organizer</option>
+                              {vendors.map((vendor) => (
+                                <option key={vendor.id} value={vendor.id}>
+                                  {vendor.name} ({vendor.bank_details})
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300 sm:col-span-2">
+                            Expense Category
+                            <input
+                              value={category}
+                              onChange={(e) => setCategory(e.target.value)}
+                              className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                              placeholder="e.g. Operational"
+                            />
+                          </label>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={!selectedProposalId || !disbursedAmount || isExceedingRequested}
+                          >
+                            Save &amp; Request Receipt
+                          </Button>
+                        </div>
+                      </form>
+                    );
+                  })()}
             </div>
           );
         })()}
