@@ -54,7 +54,12 @@ export function ProtectedRoute({
   const isAuthorized = useMemo(() => {
     if (!currentUser) return false;
     if (allowedRoles && allowedRoles.length > 0) {
-      return allowedRoles.includes(currentUser.role);
+      const userRoles = currentUser.roles?.length
+        ? currentUser.roles
+        : currentUser.role
+          ? [currentUser.role]
+          : [];
+      return userRoles.some((role) => allowedRoles.includes(role));
     }
     return true;
   }, [currentUser, allowedRoles]);
@@ -62,7 +67,13 @@ export function ProtectedRoute({
   useEffect(() => {
     if (!currentUser) {
       onUnauthorized('landing', 'Authentication required. Please sign in to access this portal.');
-    } else if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(currentUser.role)) {
+    } else if (
+      allowedRoles &&
+      allowedRoles.length > 0 &&
+      !(currentUser.roles?.length ? currentUser.roles : [currentUser.role]).some((role) =>
+        allowedRoles.includes(role)
+      )
+    ) {
       onUnauthorized(
         'student',
         `Unauthorized: You do not have permission to access the ${pageName || 'requested page'}.`

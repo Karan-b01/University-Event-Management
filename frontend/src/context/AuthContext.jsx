@@ -39,6 +39,10 @@ export const AuthProvider = ({ children }) => {
         id: tokenData.user?.id || fallbackUser?.id || 'usr_active',
         name: tokenData.user?.name || fallbackUser?.name || tokenData.user?.email || 'Active User',
         email: tokenData.user?.email || fallbackUser?.email || '',
+        roles:
+          tokenData.user?.roles?.map((role) => role.role_name) ||
+          fallbackUser?.roles ||
+          (fallbackUser?.role ? [fallbackUser.role] : []),
         role:
           tokenData.user?.roles?.[0]?.role_name ||
           fallbackUser?.role ||
