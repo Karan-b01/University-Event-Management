@@ -59,6 +59,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
             venue,
             expectedParticipants: participants,
             allocatedBudget: item.budget?.allocated_amount || 0,
+            requestedBudget: Number(item.team_data?.requested_budget || 0),
             status: item.status || 'Submitted',
             riskLevel,
             description:
@@ -141,8 +142,25 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
   const canReviewActiveNode = Boolean(
     activeNode &&
       ['Pending', 'In Progress', 'Initiated'].includes(workflow?.status) &&
-      (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin'))
+      (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin')) &&
+      (activeNode.required_role !== 'Faculty Advisor' || proposalBudget?.status === 'Advisor Approved')
   );
+
+  const handleBudgetApproval = async () => {
+    if (!activeProposal) return;
+    setSubmitting(true);
+    setActionNotice(null);
+    try {
+      const approvedBudget = await approvalsApi.approveBudget(activeProposal.id);
+      setProposalBudget(approvedBudget);
+      setActionNotice({ type: 'success', text: 'Requested budget approved. You can now review the proposal.' });
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'The requested budget could not be approved.';
+      setActionNotice({ type: 'error', text: detail });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Submit human approval decision to POST /api/v1/approvals/nodes/{node_id}/review
   const handleDecision = async (decision) => {
@@ -612,6 +630,23 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       dark:bg-[#05080A]/80 dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
                       dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30 mb-4"
                   />
+
+                  {activeNode?.required_role === 'Faculty Advisor' && userRoles.includes('Faculty Advisor') && (
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs dark:border-amber-500/30 dark:bg-amber-950/20">
+                      <span>
+                        Requested budget: <strong>${activeProposal.requestedBudget.toLocaleString()}</strong>
+                        {' · '}
+                        {proposalBudget?.status === 'Advisor Approved'
+                          ? 'Budget approved'
+                          : 'Approve the budget request before deciding on the proposal.'}
+                      </span>
+                      {proposalBudget?.status !== 'Advisor Approved' && (
+                        <Button size="sm" variant="secondary" disabled={submitting || activeProposal.requestedBudget <= 0} onClick={handleBudgetApproval}>
+                          Approve Budget Request
+                        </Button>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap items-center justify-end gap-3">
                     <Button

@@ -117,6 +117,10 @@ export const approvalsApi = {
     const response = await api.get('/approvals/inbox');
     return response.data;
   },
+  approveBudget: async (proposalId) => {
+    const response = await api.post(`/approvals/${proposalId}/budget/approve`);
+    return response.data;
+  },
   initiate: async (proposalId) => {
     const response = await api.post(`/approvals/initiate/${proposalId}`);
     return response.data;
