@@ -2,25 +2,15 @@ import React, { useState, useEffect } from 'react';
 import {
   DollarSign,
   TrendingDown,
-  AlertOctagon,
-  ShieldAlert,
-  CheckCircle2,
-  Send,
   CreditCard,
   Building2,
-  FileCheck,
-  Search,
-  Filter,
-  ArrowRight,
-  ShieldCheck,
-  Copy,
+  CheckCircle2,
   RefreshCw,
-  Loader2,
+  Download,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
-import Input from '../components/common/Input';
 import { useAuth } from '../context/AuthContext';
 import { proposalsApi, financeApi } from '../api';
 
@@ -31,48 +21,48 @@ export const FinanceDesk = ({ onNavigate }) => {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [vendors, setVendors] = useState([]);
+  const [budgets, setBudgets] = useState([]);
+  const [proposals, setProposals] = useState([]);
+  const [paymentInProgress, setPaymentInProgress] = useState(null);
+  const [budgetForm, setBudgetForm] = useState({ proposal_id: '', allocated_amount: '' });
+  const [expenseForm, setExpenseForm] = useState({
+    budget_id: '', vendor_id: '', amount: '', category: '', receipt_amount: '', receipt_date: '', receipt_file: null,
+  });
 
   const fetchFinanceData = async () => {
     setLoading(true);
     try {
-      const [proposalsData, budgetsData, vendorsData] = await Promise.all([
+      const [proposalsData, budgetsData, vendorsData, expensesData] = await Promise.all([
         proposalsApi.list().catch(() => []),
         financeApi.listBudgets().catch(() => []),
         financeApi.listVendors().catch(() => []),
+        financeApi.listExpenses().catch(() => []),
       ]);
 
+      setProposals(proposalsData || []);
+      setBudgets(budgetsData || []);
       setVendors(vendorsData || []);
-
-      const items = (proposalsData || []).map((p, idx) => {
-        const b = (budgetsData || []).find((b) => b.proposal_id === p.id);
-        const allocated = b?.allocated_amount || 12000;
-        const spent = b?.current_spent || 0;
-        const vendor = vendorsData?.[idx % (vendorsData.length || 1)] || {
-          id: 1,
-          name: 'AcroSport Staging & Sound',
-        };
-
-        const isDisbursed = p.status === 'Approved' && spent > 0;
-
+      const items = (expensesData || []).map((expense) => {
+        const budget = (budgetsData || []).find((candidate) => candidate.id === expense.budget_id);
+        const proposal = (proposalsData || []).find((candidate) => candidate.id === budget?.proposal_id);
+        const receipt = expense.receipts?.[0];
+        const transaction = expense.transactions?.[expense.transactions.length - 1];
         return {
-          id: `DISB-${p.id.slice(0, 6).toUpperCase()}`,
-          proposalId: p.id,
-          eventTitle: p.title,
-          category: p.event_details?.objective || p.team_data?.category || 'Campus Program',
-          vendorName: vendor.name,
-          vendorId: `VND-${1000 + (vendor.id || idx + 1)}`,
-          invoiceDate: p.schedule?.start_date
-            ? new Date(p.schedule.start_date).toISOString().split('T')[0]
-            : '2026-11-20',
-          amount: allocated,
-          spent: spent,
-          receiptHash: `SHA256-${p.id.replace(/-/g, '').slice(0, 10).toUpperCase()}`,
-          status: isDisbursed ? 'Disbursed' : 'Pending',
-          paymentMethod: isDisbursed ? 'BankTransfer' : 'Pending',
+          id: expense.id,
+          proposalId: budget?.proposal_id || '',
+          eventTitle: proposal?.title || 'Event proposal',
+          category: expense.category,
+          vendorName: expense.vendor?.name || 'Direct reimbursement',
+          vendorId: expense.vendor_id || '—',
+          vendorBankDetails: expense.vendor?.bank_details || '',
+          invoiceDate: receipt?.date || (expense.created_at ? new Date(expense.created_at).toLocaleDateString() : '—'),
+          amount: Number(expense.amount || 0),
+          status: expense.status === 'Paid' ? 'Disbursed' : expense.status,
+          paymentMethod: transaction?.type || 'Pending',
+          receiptName: receipt?.file_path?.split(/[\\/]/).pop() || 'No receipt attached',
           duplicateFlag: false,
         };
       });
-
       setDisbursements(items);
     } catch (err) {
       console.warn('[FinanceDesk] Failed to fetch finance records:', err);
@@ -86,40 +76,90 @@ export const FinanceDesk = ({ onNavigate }) => {
     fetchFinanceData();
   }, []);
 
-  const handleDisburse = (id, method) => {
-    setDisbursements((prev) =>
-      prev.map((d) =>
-        d.id === id ? { ...d, status: 'Disbursed', paymentMethod: method } : d
-      )
-    );
-    setNotification(
-      `Disbursement ${id} finalized via ${method}. Transaction logged to audit ledger.`
-    );
+  const handleDisburse = async (item, method) => {
+    setPaymentInProgress(item.id);
+    setNotification(null);
+    try {
+      const payment = method === 'UPITransfer'
+        ? { payment_type: method, upi_id: item.vendorBankDetails || undefined }
+        : { payment_type: method, bank_account: item.vendorBankDetails || undefined };
+      const result = await financeApi.payExpense(item.id, payment);
+      setNotification(`Payment ${result.transaction_id || ''} recorded by the configured payment gateway.`);
+      await fetchFinanceData();
+    } catch (err) {
+      setNotification(err.response?.data?.detail || 'Payment could not be recorded.');
+    } finally {
+      setPaymentInProgress(null);
+    }
   };
 
-  const handleSimulateDuplicateAttempt = () => {
-    setNotification(
-      'Duplicate Detection Check: Vendor invoice submission verified against DB triples (vendor_id, amount, date). Duplicate detected and rejected (HTTP 400 Bad Request).'
-    );
+  const handleCreateBudget = async (event) => {
+    event.preventDefault();
+    try {
+      await financeApi.createBudget({
+        proposal_id: budgetForm.proposal_id,
+        allocated_amount: Number(budgetForm.allocated_amount),
+      });
+      setBudgetForm({ proposal_id: '', allocated_amount: '' });
+      setNotification('Budget allocation saved.');
+      await fetchFinanceData();
+    } catch (err) {
+      setNotification(err.response?.data?.detail || 'Budget could not be saved.');
+    }
+  };
+
+  const handleSubmitExpense = async (event) => {
+    event.preventDefault();
+    if (!expenseForm.receipt_file) {
+      setNotification('Choose a receipt file before submitting the expense.');
+      return;
+    }
+    try {
+      await financeApi.submitExpenseWithReceipt({
+        budget_id: Number(expenseForm.budget_id),
+        vendor_id: expenseForm.vendor_id ? Number(expenseForm.vendor_id) : '',
+        amount: Number(expenseForm.amount),
+        category: expenseForm.category,
+        receipt_amount: Number(expenseForm.receipt_amount || expenseForm.amount),
+        receipt_date: expenseForm.receipt_date,
+        receipt_file: expenseForm.receipt_file,
+      });
+      setExpenseForm({ budget_id: '', vendor_id: '', amount: '', category: '', receipt_amount: '', receipt_date: '', receipt_file: null });
+      setNotification('Expense and receipt submitted for verification.');
+      await fetchFinanceData();
+    } catch (err) {
+      setNotification(err.response?.data?.detail || 'Expense could not be submitted.');
+    }
   };
 
   const filteredDisbursements = disbursements.filter((d) => {
     if (filterType === 'All') return true;
-    if (filterType === 'Pending') return d.status === 'Pending';
+    if (filterType === 'Pending') return !['Disbursed', 'Paid'].includes(d.status);
     if (filterType === 'Disbursed') return d.status === 'Disbursed';
     if (filterType === 'Flagged') return d.duplicateFlag;
     return true;
   });
 
   // Calculate dynamic metrics from live data
-  const totalBudgetPool = disbursements.reduce((acc, d) => acc + (d.amount || 0), 0);
-  const totalCommittedSpent = disbursements.reduce(
-    (acc, d) => acc + (d.status === 'Disbursed' ? d.amount : 0),
-    0
-  );
-  const pendingDisbursementsCount = disbursements.filter(
-    (d) => d.status === 'Pending'
-  ).length;
+  const totalBudgetPool = budgets.reduce((acc, budget) => acc + Number(budget.allocated_amount || 0), 0);
+  const totalCommittedSpent = budgets.reduce((acc, budget) => acc + Number(budget.current_spent || 0), 0);
+  const pendingDisbursementsCount = disbursements.filter((item) => !['Disbursed', 'Paid'].includes(item.status)).length;
+  const overrunsCount = budgets.filter((budget) => budget.status === 'Overrun').length;
+
+  const exportFinancialReport = () => {
+    const escapeCsv = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
+    const rows = [
+      ['Expense ID', 'Event', 'Proposal ID', 'Category', 'Vendor', 'Date', 'Amount', 'Status', 'Receipt'],
+      ...disbursements.map((item) => [item.id, item.eventTitle, item.proposalId, item.category, item.vendorName, item.invoiceDate, item.amount, item.status, item.receiptName]),
+    ];
+    const csv = rows.map((row) => row.map(escapeCsv).join(',')).join('\r\n');
+    const fileUrl = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = 'university-event-finance-report.csv';
+    link.click();
+    URL.revokeObjectURL(fileUrl);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
@@ -127,13 +167,13 @@ export const FinanceDesk = ({ onNavigate }) => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-zinc-200 dark:border-white/10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant="warning">Module 03: Finance Desk</Badge>
+          <Badge variant="warning">Module 03: Finance Management</Badge>
             <span className="text-xs text-zinc-400 dark:text-slate-400 font-sans">
               1-to-1 Budget Tracking &amp; Payment Gateway Integration
             </span>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
-            Institutional Finance &amp; Disbursements
+            Finance Management
           </h1>
           <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
             Logged in as <strong className="text-zinc-900 dark:text-white">{currentUser?.name || currentUser?.email}</strong> &bull;{' '}
@@ -142,6 +182,9 @@ export const FinanceDesk = ({ onNavigate }) => {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button variant="secondary" size="md" icon={Download} onClick={exportFinancialReport} disabled={loading}>
+            Export CSV
+          </Button>
           <Button
             variant="secondary"
             size="md"
@@ -150,14 +193,6 @@ export const FinanceDesk = ({ onNavigate }) => {
             disabled={loading}
           >
             {loading ? 'Syncing...' : 'Sync Live DB'}
-          </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            icon={Copy}
-            onClick={handleSimulateDuplicateAttempt}
-          >
-            Test Duplicate Detection
           </Button>
         </div>
       </div>
@@ -173,6 +208,81 @@ export const FinanceDesk = ({ onNavigate }) => {
           </button>
         </div>
       )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-8">
+        <Card title="Allocate an Event Budget" subtitle="Create a budget for a submitted proposal.">
+          <form onSubmit={handleCreateBudget} className="space-y-3">
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Event proposal
+              <select
+                required
+                value={budgetForm.proposal_id}
+                onChange={(event) => setBudgetForm((prev) => ({ ...prev, proposal_id: event.target.value }))}
+                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]"
+              >
+                <option value="">Choose a proposal</option>
+                {proposals.filter((proposal) => !budgets.some((budget) => budget.proposal_id === proposal.id)).map((proposal) => (
+                  <option key={proposal.id} value={proposal.id}>{proposal.title}</option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Allocated amount
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                value={budgetForm.allocated_amount}
+                onChange={(event) => setBudgetForm((prev) => ({ ...prev, allocated_amount: event.target.value }))}
+                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]"
+                placeholder="0.00"
+              />
+            </label>
+            <Button type="submit" variant="primary" disabled={!proposals.length}>Save Budget</Button>
+          </form>
+        </Card>
+
+        <Card title="Submit an Expense" subtitle="Attach a receipt; duplicate receipts are checked by the backend.">
+          <form onSubmit={handleSubmitExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Budget
+              <select required value={expenseForm.budget_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, budget_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]">
+                <option value="">Choose a budget</option>
+                {budgets.map((budget) => <option key={budget.id} value={budget.id}>{proposals.find((proposal) => proposal.id === budget.proposal_id)?.title || budget.proposal_id}</option>)}
+              </select>
+            </label>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Vendor
+              <select value={expenseForm.vendor_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, vendor_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]">
+                <option value="">Direct reimbursement</option>
+                {vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}
+              </select>
+            </label>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Expense amount
+              <input type="number" min="0.01" step="0.01" required value={expenseForm.amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" />
+            </label>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Category
+              <input required value={expenseForm.category} onChange={(event) => setExpenseForm((prev) => ({ ...prev, category: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" placeholder="Catering, Logistics…" />
+            </label>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Receipt date
+              <input type="date" required value={expenseForm.receipt_date} onChange={(event) => setExpenseForm((prev) => ({ ...prev, receipt_date: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" />
+            </label>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Receipt amount
+              <input type="number" min="0.01" step="0.01" value={expenseForm.receipt_amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, receipt_amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" placeholder="Same as expense" />
+            </label>
+            <label className="sm:col-span-2 text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              Receipt file (PDF or image, up to 10 MB)
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" required onChange={(event) => setExpenseForm((prev) => ({ ...prev, receipt_file: event.target.files?.[0] || null }))} className="mt-1 block w-full text-sm" />
+            </label>
+            <div className="sm:col-span-2"><Button type="submit" variant="primary" disabled={!budgets.length}>Submit Expense</Button></div>
+          </form>
+        </Card>
+      </div>
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -219,7 +329,7 @@ export const FinanceDesk = ({ onNavigate }) => {
             </span>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
-            Zero budget overruns detected
+            {overrunsCount} budget overrun{overrunsCount === 1 ? '' : 's'} flagged
           </p>
         </Card>
 
@@ -259,7 +369,7 @@ export const FinanceDesk = ({ onNavigate }) => {
               {vendors.length}
             </span>
             <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-sans">
-              Verified
+              Registered
             </span>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
@@ -271,7 +381,7 @@ export const FinanceDesk = ({ onNavigate }) => {
       {/* DISBURSEMENTS TABLE */}
       <Card
         title="Pending &amp; Authorized Vendor Disbursements"
-        subtitle="Itemized invoice verifications with cryptographic receipt hashes"
+        subtitle="Expenses, submitted receipts, and payment records loaded from the finance service."
         headerAction={
           <div className="flex items-center gap-1 border border-zinc-200 dark:border-white/10 p-0.5 rounded text-xs">
             {['All', 'Pending', 'Disbursed'].map((type) => (
@@ -295,12 +405,12 @@ export const FinanceDesk = ({ onNavigate }) => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-white/10 bg-zinc-50/70 dark:bg-white/[0.02] text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
-                <th className="py-3 px-5">Disbursement Ref</th>
+                <th className="py-3 px-5">Expense Ref</th>
                 <th className="py-3 px-5">Associated Event &amp; Category</th>
                 <th className="py-3 px-5">Vendor &amp; ID</th>
                 <th className="py-3 px-5">Invoice Date</th>
                 <th className="py-3 px-5">Amount</th>
-                <th className="py-3 px-5">Receipt Digest</th>
+                <th className="py-3 px-5">Receipt</th>
                 <th className="py-3 px-5">Status</th>
                 <th className="py-3 px-5 text-right">Disbursement Action</th>
               </tr>
@@ -362,7 +472,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                       ${item.amount.toLocaleString()}
                     </td>
                     <td className="py-4 px-5 font-mono text-[11px] text-zinc-500 dark:text-slate-400">
-                      {item.receiptHash}
+                      {item.receiptName}
                     </td>
                     <td className="py-4 px-5">
                       <Badge variant={item.status === 'Disbursed' ? 'approved' : 'pending'}>
@@ -373,14 +483,15 @@ export const FinanceDesk = ({ onNavigate }) => {
                       {item.status === 'Disbursed' ? (
                         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          Disbursed ({item.paymentMethod})
+                          Paid ({item.paymentMethod})
                         </span>
                       ) : (
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => handleDisburse(item.id, 'BankTransfer')}
+                            onClick={() => handleDisburse(item, 'BankTransfer')}
+                            disabled={paymentInProgress === item.id}
                             className="text-[11px]"
                           >
                             Disburse Wire
@@ -388,7 +499,8 @@ export const FinanceDesk = ({ onNavigate }) => {
                           <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => handleDisburse(item.id, 'UPITransfer')}
+                            onClick={() => handleDisburse(item, 'UPITransfer')}
+                            disabled={paymentInProgress === item.id}
                             className="text-[11px]"
                           >
                             UPI
