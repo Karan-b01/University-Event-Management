@@ -28,16 +28,16 @@ class VendorResponse(VendorBase):
 # ==========================================
 
 class ReceiptBase(BaseModel):
-    amount: float = Field(..., gt=0.0, description="Receipt total amount")
     date: dt.date = Field(..., description="Invoice / Receipt date")
     file_path: str = Field(..., description="Uploaded invoice document or image path")
 
 
 class ReceiptCreate(ReceiptBase):
-    pass
+    amount: Optional[float] = Field(None, gt=0.0, description="Optional receipt total; defaults to the expense amount")
 
 
 class ReceiptResponse(ReceiptBase):
+    amount: float
     id: int
     expense_id: int
     is_verified: bool

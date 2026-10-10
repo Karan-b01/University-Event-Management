@@ -166,7 +166,7 @@ class FinanceService:
             new_receipt = Receipt(
                 expense_id=new_expense.id,
                 file_path=expense_in.receipt.file_path,
-                amount=expense_in.receipt.amount,
+                amount=expense_in.receipt.amount or expense_in.amount,
                 date=expense_in.receipt.date,
                 is_verified=False,
             )
