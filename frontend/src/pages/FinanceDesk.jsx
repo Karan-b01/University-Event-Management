@@ -24,10 +24,10 @@ export const FinanceDesk = ({ onNavigate }) => {
   const [budgets, setBudgets] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [paymentInProgress, setPaymentInProgress] = useState(null);
-  const [budgetForm, setBudgetForm] = useState({ proposal_id: '', allocated_amount: '' });
-  const [expenseForm, setExpenseForm] = useState({
-    budget_id: '', vendor_id: '', amount: '', category: '',
-  });
+  const [selectedProposalId, setSelectedProposalId] = useState('');
+  const [disbursedAmount, setDisbursedAmount] = useState('');
+  const [selectedVendorId, setSelectedVendorId] = useState('');
+  const [category, setCategory] = useState('Operational');
 
   const fetchFinanceData = async () => {
     setLoading(true);
@@ -96,38 +96,38 @@ export const FinanceDesk = ({ onNavigate }) => {
     }
   };
 
-  const handleCreateBudget = async (event) => {
+  const handleUnifiedSubmit = async (event) => {
     event.preventDefault();
+    if (!selectedProposalId || !disbursedAmount) return;
+    setNotification(null);
     try {
-      const budgetPayload = { allocated_amount: Number(budgetForm.allocated_amount) };
-      const existingBudget = budgets.find((budget) => budget.proposal_id === budgetForm.proposal_id);
-      if (existingBudget) {
-        await financeApi.updateBudget(budgetForm.proposal_id, budgetPayload);
+      const numericDisbursed = Number(disbursedAmount);
+      let currentBudget = budgets.find((b) => b.proposal_id === selectedProposalId);
+      
+      if (currentBudget) {
+        currentBudget = await financeApi.updateBudget(selectedProposalId, {
+          allocated_amount: numericDisbursed,
+        });
       } else {
-        await financeApi.createBudget({ proposal_id: budgetForm.proposal_id, ...budgetPayload });
+        currentBudget = await financeApi.createBudget({
+          proposal_id: selectedProposalId,
+          allocated_amount: numericDisbursed,
+        });
       }
-      setBudgetForm({ proposal_id: '', allocated_amount: '' });
-      setNotification('Requested and disbursed budget amounts synchronized.');
-      await fetchFinanceData();
-    } catch (err) {
-      setNotification(err.response?.data?.detail || 'Budget could not be saved.');
-    }
-  };
 
-  const handleSubmitExpense = async (event) => {
-    event.preventDefault();
-    try {
-      await financeApi.submitExpense({
-        budget_id: Number(expenseForm.budget_id),
-        ...(expenseForm.vendor_id ? { vendor_id: Number(expenseForm.vendor_id) } : {}),
-        amount: Number(expenseForm.amount),
-        category: expenseForm.category,
+      // Record unified expense and request receipt
+      const createdExpense = await financeApi.submitExpense({
+        budget_id: currentBudget.id,
+        ...(selectedVendorId ? { vendor_id: Number(selectedVendorId) } : {}),
+        amount: numericDisbursed,
+        category: category || 'Operational',
       });
-      setExpenseForm({ budget_id: '', vendor_id: '', amount: '', category: '' });
-      setNotification('Expense recorded. Request supporting documentation from the organizer when ready.');
+
+      await financeApi.requestExpenseReceipt(createdExpense.id);
+      setNotification(`Disbursement of $${numericDisbursed.toLocaleString()} recorded and receipt requested from student organizer.`);
       await fetchFinanceData();
     } catch (err) {
-      setNotification(err.response?.data?.detail || 'Expense could not be submitted.');
+      setNotification(err.response?.data?.detail || 'Could not process budget disbursement and receipt request.');
     }
   };
 
@@ -236,76 +236,85 @@ export const FinanceDesk = ({ onNavigate }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-8">
-        <Card title="Allocate an Event Budget" subtitle="Create a budget for a submitted proposal.">
-          <form onSubmit={handleCreateBudget} className="space-y-3">
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Event proposal
-              <select
-                required
-                value={budgetForm.proposal_id}
-                onChange={(event) => setBudgetForm((prev) => ({ ...prev, proposal_id: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
-              >
-                <option value="">Choose a proposal</option>
-                {proposals.map((proposal) => (
-                  <option key={proposal.id} value={proposal.id}>{proposal.title} — requested ${Number(proposal.team_data?.requested_budget || 0).toLocaleString()}</option>
-                ))}
-              </select>
-            </label>
-            {budgetForm.proposal_id && (() => {
-              const proposal = proposals.find((item) => item.id === budgetForm.proposal_id);
-              const budget = budgets.find((item) => item.proposal_id === budgetForm.proposal_id);
-              return (
-                <div className="grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 p-3 text-xs dark:border-white/10">
-                  <p>Requested Budget <strong className="block text-sm">${Number(proposal?.team_data?.requested_budget || 0).toLocaleString()}</strong></p>
-                  <p>Current Disbursed <strong className="block text-sm">${Number(budget?.allocated_amount || 0).toLocaleString()}</strong></p>
-                </div>
-              );
-            })()}
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Disbursed Budget
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                required
-                value={budgetForm.allocated_amount}
-                onChange={(event) => setBudgetForm((prev) => ({ ...prev, allocated_amount: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
-                placeholder="0.00"
-              />
-            </label>
-            <Button type="submit" variant="primary" disabled={!budgetForm.proposal_id}>Save Disbursed Budget</Button>
-          </form>
-        </Card>
+      {/* UNIFIED BUDGET REVIEW & DISBURSEMENT PANEL */}
+      <div className="mb-8">
+        <Card
+          title="Budget Review & Disbursement"
+          subtitle="Unified review flow for proposal funds, itemized line items, and disbursement."
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                Event Proposal
+                <select
+                  value={selectedProposalId}
+                  onChange={(e) => {
+                    const propId = e.target.value;
+                    setSelectedProposalId(propId);
+                    const prop = proposals.find((p) => p.id === propId);
+                    const b = budgets.find((item) => item.proposal_id === propId);
+                    if (b?.allocated_amount) {
+                      setDisbursedAmount(String(b.allocated_amount));
+                    } else if (prop?.team_data?.requested_budget) {
+                      setDisbursedAmount(String(prop.team_data.requested_budget));
+                    } else {
+                      setDisbursedAmount('');
+                    }
+                  }}
+                  className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                >
+                  <option value="">Choose an Event Proposal for Review</option>
+                  {proposals.map((proposal) => (
+                    <option key={proposal.id} value={proposal.id}>
+                      {proposal.title} (Requested: ${Number(proposal.team_data?.requested_budget || 0).toLocaleString()})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
-        <Card title="Record an Expense" subtitle="Record the expense first, then request a receipt from the student organizer.">
-          <form onSubmit={handleSubmitExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Budget
-              <select required value={expenseForm.budget_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, budget_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
-                <option value="">Choose a budget</option>
-                {budgets.map((budget) => <option key={budget.id} value={budget.id}>{proposals.find((proposal) => proposal.id === budget.proposal_id)?.title || budget.proposal_id}</option>)}
-              </select>
-            </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Vendor
-              <select value={expenseForm.vendor_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, vendor_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
-                <option value="">Direct reimbursement</option>
-                {vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}
-              </select>
-            </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Expense amount
-              <input type="number" min="0.01" step="0.01" required value={expenseForm.amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" />
-            </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Category
-              <input required value={expenseForm.category} onChange={(event) => setExpenseForm((prev) => ({ ...prev, category: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" placeholder="Catering, Logistics…" />
-            </label>
-            <div className="sm:col-span-2"><Button type="submit" variant="primary" disabled={!budgets.length}>Record Expense</Button></div>
-          </form>
+            {selectedProposalId && (
+              <form onSubmit={handleUnifiedSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                    Vendor / Payee
+                    <select
+                      value={selectedVendorId}
+                      onChange={(e) => setSelectedVendorId(e.target.value)}
+                      className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                    >
+                      <option value="">Direct Reimbursement / Student Organizer</option>
+                      {vendors.map((vendor) => (
+                        <option key={vendor.id} value={vendor.id}>
+                          {vendor.name} ({vendor.bank_details})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                    Expense Category
+                    <input
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                      placeholder="e.g. Operational"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={!selectedProposalId || !disbursedAmount}
+                  >
+                    Save &amp; Request Receipt
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
         </Card>
       </div>
 
