@@ -17,6 +17,8 @@ import {
   Sparkles,
   Loader2,
   Wifi,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Input, { Select } from '../components/common/Input';
@@ -184,6 +186,42 @@ export const ProposalWizard = ({ onNavigate }) => {
     { number: 3, title: 'Budget Breakdown', desc: 'Itemized expense ledger', icon: DollarSign },
     { number: 4, title: 'Compliance & Safety', desc: 'Pre-screening & STI files', icon: ShieldCheck },
   ];
+
+  // Step 3 Sub-Expense Itemization State & Handlers
+  const [newExpense, setNewExpense] = useState({
+    item: '',
+    vendor: '',
+    amount: '',
+  });
+
+  const handleAddExpense = (e) => {
+    if (e) e.preventDefault();
+    const trimmedItem = newExpense.item.trim();
+    const parsedAmount = parseFloat(newExpense.amount);
+    if (!trimmedItem) return;
+    if (isNaN(parsedAmount) || parsedAmount < 0) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      expenses: [
+        ...prev.expenses,
+        {
+          item: trimmedItem,
+          vendor: newExpense.vendor.trim() || 'N/A',
+          amount: parsedAmount,
+        },
+      ],
+    }));
+
+    setNewExpense({ item: '', vendor: '', amount: '' });
+  };
+
+  const handleRemoveExpense = (indexToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      expenses: prev.expenses.filter((_, idx) => idx !== indexToRemove),
+    }));
+  };
 
   const buildPayload = () => {
     let startIso = null;
@@ -701,7 +739,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     <p className="text-lg font-bold font-serif text-zinc-900 dark:text-white mt-1">
                       $
                       {formData.expenses
-                        .reduce((sum, item) => sum + item.amount, 0)
+                        .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
                         .toLocaleString()}{' '}
                       <span className="text-xs font-normal text-zinc-500 dark:text-slate-400 font-sans">
                         / ${parseInt(formData.allocatedBudget || 0).toLocaleString()} cap
@@ -712,30 +750,136 @@ export const ProposalWizard = ({ onNavigate }) => {
 
                 {/* Sub-Expense Hierarchy Table */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans mb-3">
-                    Sub-Expense Itemization (Module 03 Specification)
-                  </h4>
-                  <div className="border border-zinc-200 dark:border-white/10 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans">
+                      Sub-Expense Itemization (Module 03 Specification)
+                    </h4>
+                    <span className="text-xs text-zinc-500 dark:text-slate-400 font-sans">
+                      {formData.expenses.length} {formData.expenses.length === 1 ? 'item' : 'items'} itemized
+                    </span>
+                  </div>
+                  <div className="border border-zinc-200 dark:border-white/10 rounded-lg overflow-hidden bg-white dark:bg-black">
                     <table className="w-full text-left text-xs font-sans">
                       <thead className="bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">
                         <tr>
                           <th className="p-3">Expense Item</th>
                           <th className="p-3">Vendor</th>
-                          <th className="p-3 text-right">Amount</th>
+                          <th className="p-3 text-right">Amount ($)</th>
+                          <th className="p-3 text-center w-20">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
-                        {formData.expenses.map((exp, idx) => (
-                          <tr key={idx} className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02]">
-                            <td className="p-3 font-semibold text-zinc-900 dark:text-white">
-                              {exp.item}
-                            </td>
-                            <td className="p-3 text-zinc-600 dark:text-slate-300">{exp.vendor}</td>
-                            <td className="p-3 text-right font-bold text-zinc-900 dark:text-white">
-                              ${exp.amount.toLocaleString()}
+                        {/* Interactive Input Row */}
+                        <tr className="bg-zinc-50/60 dark:bg-white/[0.01]">
+                          <td className="p-2.5">
+                            <input
+                              type="text"
+                              placeholder="e.g. Stage Sound & Lighting"
+                              value={newExpense.item}
+                              onChange={(e) =>
+                                setNewExpense({ ...newExpense, item: e.target.value })
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddExpense();
+                                }
+                              }}
+                              className="w-full px-2.5 py-1.5 text-xs rounded border border-zinc-300 dark:border-white/15 bg-white dark:bg-black text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                          </td>
+                          <td className="p-2.5">
+                            <input
+                              type="text"
+                              placeholder="e.g. Apex Productions"
+                              value={newExpense.vendor}
+                              onChange={(e) =>
+                                setNewExpense({ ...newExpense, vendor: e.target.value })
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddExpense();
+                                }
+                              }}
+                              className="w-full px-2.5 py-1.5 text-xs rounded border border-zinc-300 dark:border-white/15 bg-white dark:bg-black text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                          </td>
+                          <td className="p-2.5">
+                            <input
+                              type="number"
+                              min="0"
+                              step="any"
+                              placeholder="0.00"
+                              value={newExpense.amount}
+                              onChange={(e) =>
+                                setNewExpense({ ...newExpense, amount: e.target.value })
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddExpense();
+                                }
+                              }}
+                              className="w-full px-2.5 py-1.5 text-xs text-right rounded border border-zinc-300 dark:border-white/15 bg-white dark:bg-black text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <button
+                              type="button"
+                              onClick={handleAddExpense}
+                              disabled={!newExpense.item.trim() || !newExpense.amount}
+                              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors shadow-sm"
+                              title="Add Expense Item"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add</span>
+                            </button>
+                          </td>
+                        </tr>
+
+                        {/* List of Added Expense Items */}
+                        {formData.expenses.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="p-5 text-center text-zinc-400 dark:text-zinc-500 italic"
+                            >
+                              No expense items added yet. Fill in the fields above to add an itemized expense.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          formData.expenses.map((exp, idx) => (
+                            <tr
+                              key={idx}
+                              className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                            >
+                              <td className="p-3 font-semibold text-zinc-900 dark:text-white">
+                                {exp.item}
+                              </td>
+                              <td className="p-3 text-zinc-600 dark:text-slate-300">
+                                {exp.vendor}
+                              </td>
+                              <td className="p-3 text-right font-bold text-zinc-900 dark:text-white font-mono">
+                                ${Number(exp.amount || 0).toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </td>
+                              <td className="p-3 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveExpense(idx)}
+                                  className="inline-flex items-center justify-center p-1.5 rounded text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                                  title="Remove item"
+                                  aria-label={`Remove ${exp.item}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
