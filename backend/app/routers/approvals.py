@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
 
 from app.database import get_db
 from app.models.user import User
 from app.schemas.approval import (
+    InboxItemResponse,
     WorkflowResponse,
     ReviewRequest,
 )
@@ -22,8 +24,8 @@ router = APIRouter(
 
 @router.get(
     "/inbox",
-    response_model=list[ProposalResponse],
-    summary="List proposals awaiting one of the current user's approval roles",
+    response_model=list[InboxItemResponse],
+    summary="List proposals awaiting or already reviewed by the current user's approval roles",
 )
 def list_approval_inbox(
     db: Session = Depends(get_db),
@@ -33,26 +35,74 @@ def list_approval_inbox(
     if not roles:
         return []
 
-    node_filter = [
-        ApprovalWorkflow.status.in_(["Initiated", "In Progress"]),
-        ApprovalNode.status == "Pending",
-        ApprovalNode.step_number == ApprovalWorkflow.current_step,
-    ]
-    if "Admin" not in roles:
-        node_filter.append(ApprovalNode.required_role.in_(roles))
+    # If Admin, show all proposals with an approval workflow
+    if "Admin" in roles:
+        matching_proposal_ids = (
+            db.query(ApprovalWorkflow.proposal_id)
+            .distinct()
+        )
+    else:
+        # Match proposals where:
+        # 1. Active step is currently pending for user's role
+        # 2. User explicitly reviewed a node in the workflow
+        # 3. User's role has completed their tier in the workflow
+        matching_proposal_ids = (
+            db.query(ApprovalWorkflow.proposal_id)
+            .join(ApprovalNode, ApprovalNode.workflow_id == ApprovalWorkflow.id)
+            .filter(
+                or_(
+                    and_(
+                        ApprovalWorkflow.status.in_(["Initiated", "In Progress"]),
+                        ApprovalNode.status == "Pending",
+                        ApprovalNode.step_number == ApprovalWorkflow.current_step,
+                        ApprovalNode.required_role.in_(roles),
+                    ),
+                    ApprovalNode.reviewer_id == current_user.id,
+                    and_(
+                        ApprovalNode.required_role.in_(roles),
+                        ApprovalNode.status.in_(["Approved", "Rejected"]),
+                    ),
+                )
+            )
+            .distinct()
+        )
 
-    matching_proposal_ids = (
-        db.query(ApprovalWorkflow.proposal_id)
-        .join(ApprovalNode, ApprovalNode.workflow_id == ApprovalWorkflow.id)
-        .filter(*node_filter)
-    )
-
-    return (
+    proposals = (
         db.query(EventProposal)
         .filter(EventProposal.id.in_(matching_proposal_ids))
         .order_by(EventProposal.created_at.desc())
         .all()
     )
+
+    results = []
+    for p in proposals:
+        p_dict = ProposalResponse.model_validate(p).model_dump()
+        wf = db.query(ApprovalWorkflow).filter(ApprovalWorkflow.proposal_id == p.id).first()
+        if wf:
+            p_dict["workflow_status"] = wf.status
+            p_dict["active_step"] = wf.current_step
+            active_node = next(
+                (n for n in wf.nodes if n.step_number == wf.current_step and n.status == "Pending"),
+                None
+            )
+            p_dict["current_step_role"] = (
+                active_node.required_role if active_node else ("Completed" if wf.status == "Approved" else None)
+            )
+
+            # Check if user or user's role made a decision
+            user_node = next(
+                (n for n in wf.nodes if n.reviewer_id == current_user.id or (n.required_role in roles and n.status in ["Approved", "Rejected"])),
+                None
+            )
+            if user_node:
+                p_dict["user_decision"] = user_node.status
+
+            p_dict["is_action_required"] = bool(
+                active_node and (active_node.required_role in roles or "Admin" in roles)
+            )
+        results.append(InboxItemResponse(**p_dict))
+
+    return results
 
 
 @router.post(

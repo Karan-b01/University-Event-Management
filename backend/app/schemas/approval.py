@@ -1,6 +1,20 @@
 import datetime as dt
 from typing import Optional, List, Any, Dict
 from pydantic import BaseModel, Field, ConfigDict
+from app.schemas.proposal import ProposalResponse
+
+
+# ==========================================
+# Inbox Item Schema
+# ==========================================
+
+class InboxItemResponse(ProposalResponse):
+    workflow_status: Optional[str] = None
+    current_step_role: Optional[str] = None
+    user_decision: Optional[str] = None
+    is_action_required: bool = False
+    active_step: Optional[int] = None
+
 
 
 # ==========================================
