@@ -28,11 +28,11 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
   const [workflow, setWorkflow] = useState(null);
   const [proposalBudget, setProposalBudget] = useState(null);
 
-  // Fetch proposals directly from GET /api/v1/proposals/
+  // Load only proposals awaiting one of the current user's approval roles.
   const fetchProposals = async () => {
     setLoading(true);
     try {
-      const data = await proposalsApi.list();
+      const data = await approvalsApi.listInbox();
       if (Array.isArray(data) && data.length > 0) {
         const mapped = data.map((item) => {
           const startIso = item.schedule?.start_date;

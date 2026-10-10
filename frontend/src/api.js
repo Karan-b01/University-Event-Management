@@ -113,6 +113,10 @@ export const proposalsApi = {
 };
 
 export const approvalsApi = {
+  listInbox: async () => {
+    const response = await api.get('/approvals/inbox');
+    return response.data;
+  },
   initiate: async (proposalId) => {
     const response = await api.post(`/approvals/initiate/${proposalId}`);
     return response.data;
