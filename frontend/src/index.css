@@ -22,20 +22,20 @@
   }
 
   .dark {
-    --bg-primary: #05080A;
-    --bg-secondary: #090D10;
-    --bg-tertiary: #101417;
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --bg-tertiary: #000000;
     --text-primary: #FFFFFF;
-    --text-secondary: #94A3B8;
-    --text-muted: #475569;
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-hairline: rgba(16, 185, 129, 0.28);
+    --text-secondary: #A1A1AA;
+    --text-muted: #71717A;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --border-hairline: rgba(255, 255, 255, 0.2);
     --accent-primary: #10B981;
     --accent-emerald: #10B981;
     --accent-teal: #0F766E;
     --accent-purple: #9898FF;
-    --card-bg: rgba(9, 13, 16, 0.85);
-    --card-border: rgba(255, 255, 255, 0.09);
+    --card-bg: #000000;
+    --card-border: rgba(255, 255, 255, 0.12);
     --badge-bg: rgba(16, 185, 129, 0.1);
   }
 

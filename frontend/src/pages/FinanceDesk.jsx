@@ -26,7 +26,7 @@ export const FinanceDesk = ({ onNavigate }) => {
   const [paymentInProgress, setPaymentInProgress] = useState(null);
   const [budgetForm, setBudgetForm] = useState({ proposal_id: '', allocated_amount: '' });
   const [expenseForm, setExpenseForm] = useState({
-    budget_id: '', vendor_id: '', amount: '', category: '', receipt_amount: '', receipt_date: '', receipt_file: null,
+    budget_id: '', vendor_id: '', amount: '', category: '',
   });
 
   const fetchFinanceData = async () => {
@@ -60,6 +60,9 @@ export const FinanceDesk = ({ onNavigate }) => {
           status: expense.status === 'Paid' ? 'Disbursed' : expense.status,
           paymentMethod: transaction?.type || 'Pending',
           receiptName: receipt?.file_path?.split(/[\\/]/).pop() || 'No receipt attached',
+          receiptId: receipt?.id || null,
+          hasReceipt: Boolean(receipt),
+          receiptRequested: expense.status === 'Receipt Requested',
           duplicateFlag: false,
         };
       });
@@ -96,12 +99,15 @@ export const FinanceDesk = ({ onNavigate }) => {
   const handleCreateBudget = async (event) => {
     event.preventDefault();
     try {
-      await financeApi.createBudget({
-        proposal_id: budgetForm.proposal_id,
-        allocated_amount: Number(budgetForm.allocated_amount),
-      });
+      const budgetPayload = { allocated_amount: Number(budgetForm.allocated_amount) };
+      const existingBudget = budgets.find((budget) => budget.proposal_id === budgetForm.proposal_id);
+      if (existingBudget) {
+        await financeApi.updateBudget(budgetForm.proposal_id, budgetPayload);
+      } else {
+        await financeApi.createBudget({ proposal_id: budgetForm.proposal_id, ...budgetPayload });
+      }
       setBudgetForm({ proposal_id: '', allocated_amount: '' });
-      setNotification('Budget allocation saved.');
+      setNotification('Requested and disbursed budget amounts synchronized.');
       await fetchFinanceData();
     } catch (err) {
       setNotification(err.response?.data?.detail || 'Budget could not be saved.');
@@ -110,25 +116,46 @@ export const FinanceDesk = ({ onNavigate }) => {
 
   const handleSubmitExpense = async (event) => {
     event.preventDefault();
-    if (!expenseForm.receipt_file) {
-      setNotification('Choose a receipt file before submitting the expense.');
-      return;
-    }
     try {
-      await financeApi.submitExpenseWithReceipt({
+      await financeApi.submitExpense({
         budget_id: Number(expenseForm.budget_id),
-        vendor_id: expenseForm.vendor_id ? Number(expenseForm.vendor_id) : '',
+        ...(expenseForm.vendor_id ? { vendor_id: Number(expenseForm.vendor_id) } : {}),
         amount: Number(expenseForm.amount),
         category: expenseForm.category,
-        receipt_amount: Number(expenseForm.receipt_amount || expenseForm.amount),
-        receipt_date: expenseForm.receipt_date,
-        receipt_file: expenseForm.receipt_file,
       });
-      setExpenseForm({ budget_id: '', vendor_id: '', amount: '', category: '', receipt_amount: '', receipt_date: '', receipt_file: null });
-      setNotification('Expense and receipt submitted for verification.');
+      setExpenseForm({ budget_id: '', vendor_id: '', amount: '', category: '' });
+      setNotification('Expense recorded. Request supporting documentation from the organizer when ready.');
       await fetchFinanceData();
     } catch (err) {
       setNotification(err.response?.data?.detail || 'Expense could not be submitted.');
+    }
+  };
+
+  const handleRequestReceipt = async (expenseId) => {
+    setPaymentInProgress(expenseId);
+    setNotification(null);
+    try {
+      await financeApi.requestExpenseReceipt(expenseId);
+      setNotification(`Receipt requested for expense #${expenseId}.`);
+      await fetchFinanceData();
+    } catch (err) {
+      setNotification(err.response?.data?.detail || 'Receipt request could not be sent.');
+    } finally {
+      setPaymentInProgress(null);
+    }
+  };
+
+  const handleDownloadReceipt = async (receiptId, fileName) => {
+    try {
+      const file = await financeApi.downloadReceipt(receiptId);
+      const fileUrl = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err) {
+      setNotification(err.response?.data?.detail || 'Receipt could not be downloaded.');
     }
   };
 
@@ -218,16 +245,26 @@ export const FinanceDesk = ({ onNavigate }) => {
                 required
                 value={budgetForm.proposal_id}
                 onChange={(event) => setBudgetForm((prev) => ({ ...prev, proposal_id: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]"
+                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
               >
                 <option value="">Choose a proposal</option>
-                {proposals.filter((proposal) => !budgets.some((budget) => budget.proposal_id === proposal.id)).map((proposal) => (
-                  <option key={proposal.id} value={proposal.id}>{proposal.title}</option>
+                {proposals.map((proposal) => (
+                  <option key={proposal.id} value={proposal.id}>{proposal.title} — requested ${Number(proposal.team_data?.requested_budget || 0).toLocaleString()}</option>
                 ))}
               </select>
             </label>
+            {budgetForm.proposal_id && (() => {
+              const proposal = proposals.find((item) => item.id === budgetForm.proposal_id);
+              const budget = budgets.find((item) => item.proposal_id === budgetForm.proposal_id);
+              return (
+                <div className="grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 p-3 text-xs dark:border-white/10">
+                  <p>Requested Budget <strong className="block text-sm">${Number(proposal?.team_data?.requested_budget || 0).toLocaleString()}</strong></p>
+                  <p>Current Disbursed <strong className="block text-sm">${Number(budget?.allocated_amount || 0).toLocaleString()}</strong></p>
+                </div>
+              );
+            })()}
             <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Allocated amount
+              Disbursed Budget
               <input
                 type="number"
                 min="0.01"
@@ -235,51 +272,39 @@ export const FinanceDesk = ({ onNavigate }) => {
                 required
                 value={budgetForm.allocated_amount}
                 onChange={(event) => setBudgetForm((prev) => ({ ...prev, allocated_amount: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]"
+                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
                 placeholder="0.00"
               />
             </label>
-            <Button type="submit" variant="primary" disabled={!proposals.length}>Save Budget</Button>
+            <Button type="submit" variant="primary" disabled={!budgetForm.proposal_id}>Save Disbursed Budget</Button>
           </form>
         </Card>
 
-        <Card title="Submit an Expense" subtitle="Attach a receipt; duplicate receipts are checked by the backend.">
+        <Card title="Record an Expense" subtitle="Record the expense first, then request a receipt from the student organizer.">
           <form onSubmit={handleSubmitExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Budget
-              <select required value={expenseForm.budget_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, budget_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]">
+              <select required value={expenseForm.budget_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, budget_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
                 <option value="">Choose a budget</option>
                 {budgets.map((budget) => <option key={budget.id} value={budget.id}>{proposals.find((proposal) => proposal.id === budget.proposal_id)?.title || budget.proposal_id}</option>)}
               </select>
             </label>
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Vendor
-              <select value={expenseForm.vendor_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, vendor_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]">
+              <select value={expenseForm.vendor_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, vendor_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
                 <option value="">Direct reimbursement</option>
                 {vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}
               </select>
             </label>
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Expense amount
-              <input type="number" min="0.01" step="0.01" required value={expenseForm.amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" />
+              <input type="number" min="0.01" step="0.01" required value={expenseForm.amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" />
             </label>
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Category
-              <input required value={expenseForm.category} onChange={(event) => setExpenseForm((prev) => ({ ...prev, category: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" placeholder="Catering, Logistics…" />
+              <input required value={expenseForm.category} onChange={(event) => setExpenseForm((prev) => ({ ...prev, category: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" placeholder="Catering, Logistics…" />
             </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Receipt date
-              <input type="date" required value={expenseForm.receipt_date} onChange={(event) => setExpenseForm((prev) => ({ ...prev, receipt_date: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" />
-            </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Receipt amount
-              <input type="number" min="0.01" step="0.01" value={expenseForm.receipt_amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, receipt_amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" placeholder="Same as expense" />
-            </label>
-            <label className="sm:col-span-2 text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Receipt file (PDF or image, up to 10 MB)
-              <input type="file" accept=".pdf,.png,.jpg,.jpeg" required onChange={(event) => setExpenseForm((prev) => ({ ...prev, receipt_file: event.target.files?.[0] || null }))} className="mt-1 block w-full text-sm" />
-            </label>
-            <div className="sm:col-span-2"><Button type="submit" variant="primary" disabled={!budgets.length}>Submit Expense</Button></div>
+            <div className="sm:col-span-2"><Button type="submit" variant="primary" disabled={!budgets.length}>Record Expense</Button></div>
           </form>
         </Card>
       </div>
@@ -472,7 +497,9 @@ export const FinanceDesk = ({ onNavigate }) => {
                       ${item.amount.toLocaleString()}
                     </td>
                     <td className="py-4 px-5 font-mono text-[11px] text-zinc-500 dark:text-slate-400">
-                      {item.receiptName}
+                      {item.receiptId ? (
+                        <button className="underline" onClick={() => handleDownloadReceipt(item.receiptId, item.receiptName)}>{item.receiptName}</button>
+                      ) : item.receiptName}
                     </td>
                     <td className="py-4 px-5">
                       <Badge variant={item.status === 'Disbursed' ? 'approved' : 'pending'}>
@@ -485,6 +512,20 @@ export const FinanceDesk = ({ onNavigate }) => {
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Paid ({item.paymentMethod})
                         </span>
+                      ) : !item.hasReceipt ? (
+                        item.receiptRequested ? (
+                          <span className="text-xs text-amber-600 dark:text-amber-400">Waiting for organizer receipt</span>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleRequestReceipt(item.id)}
+                            disabled={paymentInProgress === item.id}
+                            className="text-[11px]"
+                          >
+                            Request Receipt
+                          </Button>
+                        )
                       ) : (
                         <div className="flex items-center justify-end gap-1.5">
                           <Button

@@ -43,11 +43,11 @@ export const Modal = ({
       <div
         className={`relative w-full ${maxWidth} z-10 rounded-xl overflow-hidden transition-all duration-300
           bg-white/95 text-zinc-900 border border-zinc-200 shadow-2xl
-          dark:bg-[#090D10]/95 dark:text-white dark:border-emerald-500/30 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8),0_0_35px_rgba(16,185,129,0.15)]
+          dark:bg-black dark:text-white dark:border-white/20 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.95)]
           ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Ambient Top Glow for Obsidian Scholar */}
+        {/* Ambient Top Glow for Pitch Black */}
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent pointer-events-none" />
 
         {/* Header */}

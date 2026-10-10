@@ -64,6 +64,7 @@ from .finance import (
     BudgetResponse,
 )
 from .approval import (
+    InboxItemResponse,
     ReviewRequest,
     NodeResponse,
     HistoryResponse,
@@ -129,6 +130,7 @@ __all__ = [
     "BudgetCreate",
     "BudgetUpdate",
     "BudgetResponse",
+    "InboxItemResponse",
     "ReviewRequest",
     "NodeResponse",
     "HistoryResponse",

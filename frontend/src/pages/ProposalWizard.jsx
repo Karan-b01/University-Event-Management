@@ -25,6 +25,22 @@ import Badge from '../components/common/Badge';
 import { useAuth } from '../context/AuthContext';
 import { proposalsApi, resourcesApi } from '../api';
 
+const getSubmissionErrorMessage = (error) => {
+  const detail = error.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (detail && typeof detail === 'object') {
+    const messages = Array.isArray(detail.errors)
+      ? detail.errors.filter((item) => typeof item === 'string')
+      : [];
+    if (messages.length) return messages.join(' ');
+    if (typeof detail.message === 'string') return detail.message;
+    if (Array.isArray(detail)) {
+      return detail.map((item) => item.msg).filter(Boolean).join(' ');
+    }
+  }
+  return error.message || 'Submission failed. Please review the required proposal details.';
+};
+
 export const ProposalWizard = ({ onNavigate }) => {
   const { user: currentUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
@@ -33,6 +49,7 @@ export const ProposalWizard = ({ onNavigate }) => {
   const [submittedProposalId, setSubmittedProposalId] = useState(null);
   const [apiFeedback, setApiFeedback] = useState(null);
   const [attachments, setAttachments] = useState({ poster: null, quotation: null });
+  const [uploadedDocuments, setUploadedDocuments] = useState({ poster: '', quotation: '' });
 
   // Dynamic Venues State fetched from GET /api/v1/resources/?type=Venue
   const [venues, setVenues] = useState([]);
@@ -87,6 +104,80 @@ export const ProposalWizard = ({ onNavigate }) => {
     };
   }, []);
 
+  const [venueAvailability, setVenueAvailability] = useState({
+    checking: false,
+    available: null,
+    reason: '',
+    conflict: null,
+    bookedVenues: [],
+    availableVenues: [],
+  });
+
+  // Real-time venue availability verification when venue or event timing is changed
+  useEffect(() => {
+    let isMounted = true;
+    const checkAvailability = async () => {
+      let startIso = null;
+      let endIso = null;
+      try {
+        if (formData.targetDate && formData.startTime) {
+          startIso = new Date(`${formData.targetDate}T${formData.startTime}:00`).toISOString();
+        }
+        if (formData.endDate && formData.endTime) {
+          endIso = new Date(`${formData.endDate}T${formData.endTime}:00`).toISOString();
+        }
+      } catch (e) {
+        return;
+      }
+
+      if (!startIso || !endIso) {
+        if (isMounted) {
+          setVenueAvailability({
+            checking: false,
+            available: null,
+            reason: 'Specify event start and end dates/times in Step 1 to check live venue availability.',
+            conflict: null,
+            bookedVenues: [],
+            availableVenues: [],
+          });
+        }
+        return;
+      }
+
+      if (isMounted) {
+        setVenueAvailability((prev) => ({ ...prev, checking: true }));
+      }
+
+      try {
+        const result = await resourcesApi.checkAvailability(startIso, endIso, formData.venue || null);
+        if (isMounted) {
+          setVenueAvailability({
+            checking: false,
+            available: result.available,
+            reason: result.reason,
+            conflict: result.conflict || null,
+            bookedVenues: result.booked_venues || [],
+            availableVenues: result.available_venues || [],
+          });
+        }
+      } catch (err) {
+        console.warn('[ProposalWizard] Availability check error:', err);
+        if (isMounted) {
+          setVenueAvailability((prev) => ({
+            ...prev,
+            checking: false,
+            reason: err.response?.data?.detail || 'Could not verify venue availability.',
+          }));
+        }
+      }
+    };
+
+    checkAvailability();
+    return () => {
+      isMounted = false;
+    };
+  }, [formData.venue, formData.targetDate, formData.startTime, formData.endDate, formData.endTime]);
+
   const steps = [
     { number: 1, title: 'Event Overview', desc: 'Scope, category & schedule', icon: FileText },
     { number: 2, title: 'Venue & Logistics', desc: 'Resource locking & capacity', icon: Building },
@@ -122,6 +213,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       },
       team_data: {
         team_name: formData.category,
+        requested_budget: Number(formData.allocatedBudget) || null,
         members: [
           {
             name: currentUser?.name || currentUser?.email || 'Lead Organizer',
@@ -132,6 +224,48 @@ export const ProposalWizard = ({ onNavigate }) => {
     };
   };
 
+  const validateSubmission = () => {
+    const errors = [];
+    if (!formData.title.trim()) errors.push('Enter an event title.');
+    if (!formData.description.trim()) errors.push('Enter an event description.');
+    if (!formData.category.trim()) errors.push('Choose a primary event category.');
+    if (!formData.expectedAttendance || Number(formData.expectedAttendance) < 1) {
+      errors.push('Enter an expected attendance count greater than zero.');
+    }
+    if (!formData.targetDate || !formData.startTime) errors.push('Choose the event start date and time.');
+    if (!formData.endDate || !formData.endTime) errors.push('Choose the event end date and time.');
+    if (formData.targetDate && formData.startTime && formData.endDate && formData.endTime) {
+      const start = new Date(`${formData.targetDate}T${formData.startTime}`);
+      const end = new Date(`${formData.endDate}T${formData.endTime}`);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+        errors.push('The event end date and time must be after the start date and time.');
+      }
+    }
+    if (!formData.venue.trim()) errors.push('Choose a requested venue.');
+    if (venueAvailability.available === false) {
+      errors.push('Selected venue has a scheduling conflict. Choose an available venue in Step 2.');
+    }
+    if (!attachments.poster && !attachments.quotation && !uploadedDocuments.poster && !uploadedDocuments.quotation) {
+      errors.push('Attach a poster or vendor quotation before submitting.');
+    }
+    return errors;
+  };
+
+  const uploadSelectedDocuments = async (proposalId) => {
+    if (attachments.poster) {
+      const file = attachments.poster;
+      await proposalsApi.uploadDocument(proposalId, file, 'Poster');
+      setUploadedDocuments((current) => ({ ...current, poster: file.name }));
+      setAttachments((current) => ({ ...current, poster: null }));
+    }
+    if (attachments.quotation) {
+      const file = attachments.quotation;
+      await proposalsApi.uploadDocument(proposalId, file, 'VendorQuotation');
+      setUploadedDocuments((current) => ({ ...current, quotation: file.name }));
+      setAttachments((current) => ({ ...current, quotation: null }));
+    }
+  };
+
   const handleSaveDraft = async () => {
     setSubmitting(true);
     setApiFeedback(null);
@@ -140,12 +274,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       const res = submittedProposalId
         ? await proposalsApi.update(submittedProposalId, payload)
         : await proposalsApi.createDraft(payload);
-      if (attachments.poster) {
-        await proposalsApi.uploadDocument(res.id, attachments.poster, 'Poster');
-      }
-      if (attachments.quotation) {
-        await proposalsApi.uploadDocument(res.id, attachments.quotation, 'VendorQuotation');
-      }
+      await uploadSelectedDocuments(res.id);
       setApiFeedback({
         type: 'success',
         text: `Draft and selected documents saved to the backend (ID: ${res.id}).`,
@@ -153,7 +282,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       setSubmittedProposalId(res.id);
     } catch (err) {
       console.warn('[ProposalWizard] POST /proposals/draft error or backend offline:', err);
-      const detail = err.response?.data?.detail || err.message || 'Could not save the draft.';
+      const detail = getSubmissionErrorMessage(err);
       setApiFeedback({
         type: 'error',
         text: `Draft was not saved: ${detail}`,
@@ -164,6 +293,17 @@ export const ProposalWizard = ({ onNavigate }) => {
   };
 
   const handleSubmitProposal = async () => {
+    const validationErrors = validateSubmission();
+    if (validationErrors.length) {
+      const firstError = validationErrors[0];
+      setCurrentStep(firstError.includes('venue') ? 2 : firstError.includes('Attach') ? 4 : 1);
+      setApiFeedback({
+        type: 'error',
+        text: `Please complete the required details: ${validationErrors.join(' ')}`,
+      });
+      return;
+    }
+
     setSubmitting(true);
     setApiFeedback(null);
     try {
@@ -175,12 +315,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       const propId = draftRes.id;
       setSubmittedProposalId(propId);
 
-      if (attachments.poster) {
-        await proposalsApi.uploadDocument(propId, attachments.poster, 'Poster');
-      }
-      if (attachments.quotation) {
-        await proposalsApi.uploadDocument(propId, attachments.quotation, 'VendorQuotation');
-      }
+      await uploadSelectedDocuments(propId);
 
       await proposalsApi.submit(propId);
 
@@ -188,7 +323,12 @@ export const ProposalWizard = ({ onNavigate }) => {
       setIsSubmitted(true);
     } catch (err) {
       console.warn('[ProposalWizard] Live submission encountered error:', err);
-      const detail = err.response?.data?.detail || err.message || 'Submission failed.';
+      const isVenueConflict = err.response?.status === 409 &&
+        String(err.response?.data?.detail || '').toLowerCase().includes('venue is already booked');
+      const detail = isVenueConflict
+        ? 'Venue is already booked for this time. Please choose another venue or time slot.'
+        : getSubmissionErrorMessage(err);
+      if (isVenueConflict) setCurrentStep(2);
       setApiFeedback({ type: 'error', text: `Proposal was not submitted: ${detail}` });
     } finally {
       setSubmitting(false);
@@ -196,6 +336,13 @@ export const ProposalWizard = ({ onNavigate }) => {
   };
 
   const handleNext = () => {
+    if (currentStep === 2 && venueAvailability.available === false) {
+      setApiFeedback({
+        type: 'error',
+        text: `Cannot proceed: ${venueAvailability.reason || 'The selected venue is already booked for this schedule.'} Please choose an available venue.`,
+      });
+      return;
+    }
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -249,7 +396,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       )}
 
       {/* 4-STEP HORIZONTAL STEPPER */}
-      <div className="mb-8 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-[#090D10]/80 backdrop-blur-md">
+      <div className="mb-8 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-black backdrop-blur-md">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {steps.map((s) => {
             const isCompleted = currentStep > s.number;
@@ -328,16 +475,17 @@ export const ProposalWizard = ({ onNavigate }) => {
                   <Select
                     label="Primary Category"
                     value={formData.category}
+                    required
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    options={[
-                      'Engineering & Robotics',
-                      'Technology & Research',
-                      'Cultural & Arts',
-                      'Sports & Athletics',
-                      'Academic & Distinguished',
-                      'Student Life & Orientation',
-                    ]}
-                  />
+                  >
+                    <option value="" disabled>Choose a category</option>
+                    <option value="Engineering & Robotics">Engineering & Robotics</option>
+                    <option value="Technology & Research">Technology & Research</option>
+                    <option value="Cultural & Arts">Cultural & Arts</option>
+                    <option value="Sports & Athletics">Sports & Athletics</option>
+                    <option value="Academic & Distinguished">Academic & Distinguished</option>
+                    <option value="Student Life & Orientation">Student Life & Orientation</option>
+                  </Select>
                 </div>
 
                 <div>
@@ -351,7 +499,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
                       bg-white text-zinc-900 border border-zinc-300 placeholder:text-zinc-400
                       focus:border-black focus:ring-1 focus:ring-black
-                      dark:bg-[#05080A]/80 dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
+                      dark:bg-black dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
                       dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
                   />
                 </div>
@@ -422,22 +570,42 @@ export const ProposalWizard = ({ onNavigate }) => {
                     label="Requested Primary Venue"
                     value={formData.venue}
                     onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                    options={venues.map((v) => ({
-                      value: v.name,
-                      label: `${v.name} (Capacity: ${v.capacity || v.max_capacity || 'N/A'}${v.location ? ` • ${v.location}` : ''})`,
-                    }))}
+                    options={venues.map((v) => {
+                      const isBooked = venueAvailability.bookedVenues?.includes(v.name);
+                      return {
+                        value: v.name,
+                        label: `${v.name} (Capacity: ${v.capacity || v.max_capacity || 'N/A'}${v.location ? ` • ${v.location}` : ''})${
+                          venueAvailability.bookedVenues?.length
+                            ? isBooked
+                              ? ' — ⚠️ [Already Booked]'
+                              : ' — ✓ [Available]'
+                            : ''
+                        }`,
+                      };
+                    })}
                   />
 
                   <div className="p-3.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
-                        Pessimistic Locking Status
+                        Live Availability Status
                       </p>
                       <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-0.5">
-                        {formData.venue}
+                        {formData.venue || 'No venue chosen'}
                       </p>
                     </div>
-                    <Badge variant="approved">Ready to Lock</Badge>
+                    {venueAvailability.checking ? (
+                      <Badge variant="pending">
+                        <Loader2 className="w-3 h-3 animate-spin mr-1 inline" />
+                        Checking...
+                      </Badge>
+                    ) : venueAvailability.available === true ? (
+                      <Badge variant="approved">Available</Badge>
+                    ) : venueAvailability.available === false ? (
+                      <Badge variant="security flag">Booked / Conflict</Badge>
+                    ) : (
+                      <Badge variant="outline">Schedule Needed</Badge>
+                    )}
                   </div>
                 </div>
 
@@ -454,22 +622,50 @@ export const ProposalWizard = ({ onNavigate }) => {
                     className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
                       bg-white text-zinc-900 border border-zinc-300
                       focus:border-black focus:ring-1 focus:ring-black
-                      dark:bg-[#05080A]/80 dark:text-white dark:border-white/15
+                      dark:bg-black dark:text-white dark:border-white/15
                       dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
                   />
                 </div>
 
-                {/* Overlap verification callout */}
-                <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30 flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                  <div className="text-xs text-emerald-900 dark:text-emerald-200 font-sans">
-                    <p className="font-bold">Availability is checked at booking</p>
-                    <p className="mt-0.5">
-                      Submit the event dates here. The Resource Management module checks the
-                      selected resource against confirmed bookings before reserving it.
-                    </p>
+                {/* Real-time availability check banner */}
+                {venueAvailability.checking ? (
+                  <div className="p-4 rounded-lg bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/10 flex items-start gap-3">
+                    <Loader2 className="w-5 h-5 text-zinc-500 animate-spin shrink-0 mt-0.5" />
+                    <div className="text-xs text-zinc-700 dark:text-slate-300 font-sans">
+                      <p className="font-bold">Checking Venue Availability…</p>
+                      <p className="mt-0.5">
+                        Verifying real-time reservations for {formData.venue} between {formData.targetDate} {formData.startTime} and {formData.endDate} {formData.endTime}.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                ) : venueAvailability.available === true ? (
+                  <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30 flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-emerald-900 dark:text-emerald-200 font-sans">
+                      <p className="font-bold">Venue Available at Selection</p>
+                      <p className="mt-0.5">{venueAvailability.reason}</p>
+                    </div>
+                  </div>
+                ) : venueAvailability.available === false ? (
+                  <div className="p-4 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-300 dark:border-rose-500/30 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-rose-900 dark:text-rose-200 font-sans">
+                      <p className="font-bold">Venue Conflict Detected</p>
+                      <p className="mt-0.5">{venueAvailability.reason}</p>
+                      <p className="mt-1 font-semibold text-rose-700 dark:text-rose-300">
+                        Please select another venue from the dropdown above or adjust your event dates in Step 1 before proceeding.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-500/30 flex items-start gap-3">
+                    <Info className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="text-xs text-amber-900 dark:text-amber-200 font-sans">
+                      <p className="font-bold">Schedule Required for Availability Check</p>
+                      <p className="mt-0.5">{venueAvailability.reason}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -605,7 +801,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                             Event Poster Artwork
                           </p>
                           <p className="text-[11px] text-zinc-500 dark:text-slate-400 truncate max-w-48">
-                            {attachments.poster?.name || 'Choose a poster file'}
+                            {attachments.poster?.name || uploadedDocuments.poster || 'Choose a poster file'}
                           </p>
                         </div>
                       </div>
@@ -613,9 +809,14 @@ export const ProposalWizard = ({ onNavigate }) => {
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg"
                         className="sr-only"
-                        onChange={(event) => setAttachments((prev) => ({ ...prev, poster: event.target.files?.[0] || null }))}
+                        onChange={(event) => {
+                          setAttachments((prev) => ({ ...prev, poster: event.target.files?.[0] || null }));
+                          setUploadedDocuments((prev) => ({ ...prev, poster: '' }));
+                        }}
                       />
-                      <Badge variant={attachments.poster ? 'teal' : 'default'}>{attachments.poster ? 'Selected' : 'Optional'}</Badge>
+                      <Badge variant={attachments.poster || uploadedDocuments.poster ? 'teal' : 'default'}>
+                        {attachments.poster ? 'Selected' : uploadedDocuments.poster ? 'Uploaded' : 'Optional'}
+                      </Badge>
                     </label>
 
                     <label className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/[0.01] flex items-center justify-between gap-3 cursor-pointer">
@@ -626,7 +827,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                             Vendor Quotation Package
                           </p>
                           <p className="text-[11px] text-zinc-500 dark:text-slate-400 truncate max-w-48">
-                            {attachments.quotation?.name || 'Choose a quotation file'}
+                            {attachments.quotation?.name || uploadedDocuments.quotation || 'Choose a quotation file'}
                           </p>
                         </div>
                       </div>
@@ -634,9 +835,14 @@ export const ProposalWizard = ({ onNavigate }) => {
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg"
                         className="sr-only"
-                        onChange={(event) => setAttachments((prev) => ({ ...prev, quotation: event.target.files?.[0] || null }))}
+                        onChange={(event) => {
+                          setAttachments((prev) => ({ ...prev, quotation: event.target.files?.[0] || null }));
+                          setUploadedDocuments((prev) => ({ ...prev, quotation: '' }));
+                        }}
                       />
-                      <Badge variant={attachments.quotation ? 'teal' : 'default'}>{attachments.quotation ? 'Selected' : 'Optional'}</Badge>
+                      <Badge variant={attachments.quotation || uploadedDocuments.quotation ? 'teal' : 'default'}>
+                        {attachments.quotation ? 'Selected' : uploadedDocuments.quotation ? 'Uploaded' : 'Optional'}
+                      </Badge>
                     </label>
                   </div>
                   <p className="mt-2 text-[11px] text-zinc-500 dark:text-slate-400">Attach at least one PDF or image before submitting. Drafts can be saved without attachments.</p>

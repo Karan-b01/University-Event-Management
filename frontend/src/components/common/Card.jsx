@@ -16,7 +16,7 @@ export const Card = ({
     <div
       className={`rounded-lg transition-all duration-300 relative overflow-hidden
         bg-white border border-zinc-200 shadow-sm
-        dark:bg-[#090D10]/80 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]
+        dark:bg-black dark:border-white/10 dark:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.9)]
         ${accentBorder ? 'border-l-4 border-l-black dark:border-l-emerald-400' : ''}
         ${highlight ? 'dark:border-emerald-500/40 dark:shadow-[0_0_24px_rgba(16,185,129,0.12)]' : ''}
         ${className}`}

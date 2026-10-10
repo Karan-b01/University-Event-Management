@@ -66,7 +66,7 @@ export const Navbar = ({
       className={`transition-all duration-300 ${
         isTransparent
           ? 'absolute top-0 left-0 w-full z-50 bg-transparent border-none'
-          : 'sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur-md border-zinc-200 dark:bg-[#05080A]/90 dark:backdrop-blur-md dark:border-white/10'
+          : 'sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur-md border-zinc-200 dark:bg-black/90 dark:backdrop-blur-md dark:border-white/10'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
@@ -158,7 +158,7 @@ export const Navbar = ({
               onClick={onOpenAuth}
               className={`text-xs font-semibold ${
                 isTransparent
-                  ? 'bg-white text-zinc-950 hover:bg-zinc-100 dark:bg-emerald-500 dark:text-[#05080A] dark:hover:bg-emerald-400 shadow-md'
+                  ? 'bg-white text-zinc-950 hover:bg-zinc-100 dark:bg-emerald-500 dark:text-black dark:hover:bg-emerald-400 shadow-md'
                   : ''
               }`}
             >
@@ -174,7 +174,7 @@ export const Navbar = ({
           className={`lg:hidden flex items-center gap-1 px-4 py-2 overflow-x-auto ${
             isTransparent
               ? 'bg-black/60 backdrop-blur-md border-t border-white/10'
-              : 'border-t border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-[#090D10]'
+              : 'border-t border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-black'
           }`}
         >
           {navItems.map((item) => {

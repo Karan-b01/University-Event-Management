@@ -22,7 +22,7 @@ import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { useAuth } from '../context/AuthContext';
-import { proposalsApi } from '../api';
+import { proposalsApi, financeApi } from '../api';
 
 const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -37,6 +37,9 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [actionInProgress, setActionInProgress] = useState(null);
+  const [receiptRequests, setReceiptRequests] = useState([]);
+  const [studentReceipts, setStudentReceipts] = useState([]);
+  const [receiptUploads, setReceiptUploads] = useState({});
 
   // Dynamic role title and subtitle
   const roleName = currentUser?.role || 'Student Organizer';
@@ -50,6 +53,25 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
     try {
       const data = await proposalsApi.list();
       if (Array.isArray(data)) {
+        const [expenses, budgets] = await Promise.all([
+          financeApi.listExpenses().catch(() => []),
+          financeApi.listBudgets().catch(() => []),
+        ]);
+        const ownProposalIds = new Set(data.map((proposal) => proposal.id));
+        const budgetById = new Map((budgets || []).map((budget) => [budget.id, budget]));
+        setReceiptRequests((expenses || []).filter((expense) => {
+          const budget = budgetById.get(expense.budget_id);
+          return expense.status === 'Receipt Requested' && ownProposalIds.has(budget?.proposal_id);
+        }));
+        setStudentReceipts((expenses || []).flatMap((expense) => {
+          const budget = budgetById.get(expense.budget_id);
+          if (!ownProposalIds.has(budget?.proposal_id)) return [];
+          return (expense.receipts || []).map((receipt) => ({
+            ...receipt,
+            expenseId: expense.id,
+            category: expense.category,
+          }));
+        }));
         const mapped = data.map((item) => {
           const startIso = item.schedule?.start_date;
           const targetDate = startIso
@@ -137,6 +159,40 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       setIsLiveConnected(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUploadReceipt = async (expenseId) => {
+    const receipt = receiptUploads[expenseId] || {};
+    if (!receipt.file || !receipt.amount || !receipt.date) {
+      setActionMessage('Enter the receipt amount and date, then select the receipt file.');
+      return;
+    }
+    setActionInProgress(`receipt-${expenseId}`);
+    setActionMessage(null);
+    try {
+      await financeApi.uploadRequestedReceipt(expenseId, receipt);
+      setActionMessage(`Receipt uploaded for expense #${expenseId}.`);
+      setReceiptUploads((current) => ({ ...current, [expenseId]: {} }));
+      await fetchLiveProposals();
+    } catch (err) {
+      setActionMessage(err.response?.data?.detail || 'Receipt could not be uploaded.');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleDownloadStudentReceipt = async (receipt) => {
+    try {
+      const file = await financeApi.downloadReceipt(receipt.id);
+      const fileUrl = URL.createObjectURL(file);
+      const link = window.document.createElement('a');
+      link.href = fileUrl;
+      link.download = receipt.file_path.split(/[\\/]/).pop() || `receipt-${receipt.id}`;
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err) {
+      setActionMessage(err.response?.data?.detail || 'Receipt could not be downloaded.');
     }
   };
 
@@ -314,6 +370,47 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         <div role="status" className="mb-5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200">
           {actionMessage}
         </div>
+      )}
+
+      {roleName === 'Student Organizer' && receiptRequests.length > 0 && (
+        <Card title="Receipt Requests" subtitle="Finance has requested supporting receipts for these expenses.">
+          <div className="space-y-4">
+            {receiptRequests.map((expense) => {
+              const upload = receiptUploads[expense.id] || {};
+              return (
+                <div key={expense.id} className="grid grid-cols-1 gap-3 rounded-lg border border-zinc-200 p-4 dark:border-white/10 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+                  <div className="text-sm">
+                    <p className="font-semibold">{expense.category} · Expense #{expense.id}</p>
+                    <p className="text-xs text-zinc-500 dark:text-slate-400">Expected amount: ${Number(expense.amount).toLocaleString()}</p>
+                  </div>
+                  <label className="text-xs font-semibold">Receipt amount
+                    <input type="number" min="0.01" step="0.01" value={upload.amount || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], amount: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-black" />
+                  </label>
+                  <label className="text-xs font-semibold">Receipt date
+                    <input type="date" value={upload.date || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], date: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-black" />
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], file: event.target.files?.[0] || null } }))} className="max-w-48 text-xs" />
+                    <Button size="sm" variant="primary" disabled={actionInProgress === `receipt-${expense.id}`} onClick={() => handleUploadReceipt(expense.id)}>Upload Receipt</Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
+      {roleName === 'Student Organizer' && studentReceipts.length > 0 && (
+        <Card title="Uploaded Receipts" subtitle="Receipts attached to expenses from your proposals.">
+          <ul className="space-y-2">
+            {studentReceipts.map((receipt) => (
+              <li key={receipt.id} className="flex items-center justify-between gap-3 text-sm">
+                <span>{receipt.category} · Expense #{receipt.expenseId}</span>
+                <button className="text-emerald-700 underline dark:text-emerald-400" onClick={() => handleDownloadStudentReceipt(receipt)}>View receipt</button>
+              </li>
+            ))}
+          </ul>
+        </Card>
       )}
 
       {/* KPI METRIC CARDS */}
