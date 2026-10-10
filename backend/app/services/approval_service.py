@@ -232,13 +232,13 @@ class ApprovalService:
         else:
             # Check if there are subsequent nodes in the workflow
             max_step = max(n.step_number for n in workflow.nodes)
-            if workflow.current_step < max_step:
-                workflow.current_step += 1
-            else:
-                # Final step approved -> Full Approval Sanctioned
+            is_final_step = node.required_role == "Admin" or node.step_number >= max_step
+            if is_final_step:
                 workflow.status = "Approved"
                 if proposal:
                     proposal.status = "Approved"
+            else:
+                workflow.current_step = node.step_number + 1
 
         workflow.updated_at = datetime.now(timezone.utc)
         db.commit()
