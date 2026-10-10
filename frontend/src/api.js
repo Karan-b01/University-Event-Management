@@ -172,6 +172,15 @@ export const financeApi = {
   },
   requestExpenseReceipt: async (expenseId) =>
     (await api.post(`/finance/expenses/${expenseId}/request-receipt`)).data,
+  uploadRequestedReceipt: async (expenseId, receipt) => {
+    const formData = new FormData();
+    formData.append('amount', receipt.amount);
+    formData.append('receipt_date', receipt.date);
+    formData.append('receipt_file', receipt.file);
+    return (await api.post(`/finance/expenses/${expenseId}/receipt`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })).data;
+  },
   payExpense: async (expenseId, paymentReq) => {
     const response = await api.post(`/finance/expenses/${expenseId}/pay`, paymentReq);
     return response.data;
