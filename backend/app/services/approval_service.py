@@ -272,6 +272,21 @@ class ApprovalService:
                 detail="Invalid decision. Must be 'Approved' or 'Rejected'."
             )
 
+        # Sequential Payment-to-Approval Gate:
+        # The Finance Officer is strictly forbidden from marking the proposal as Approved until payment confirmation is completed
+        if node.required_role == "Finance Officer" and decision == "Approved":
+            budget = db.query(Budget).filter(Budget.proposal_id == workflow.proposal_id).first()
+            if not budget:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Awaiting payment confirmation: No budget has been disbursed for this proposal."
+                )
+            if not budget.expenses or any(exp.status != "Paid" for exp in budget.expenses):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Awaiting payment confirmation: The Finance Officer must confirm payment before granting approval."
+                )
+
         # Update node
         node.status = decision
         node.reviewer_id = current_user.id
