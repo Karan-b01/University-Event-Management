@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.models.user import User
 from app.models.proposal import (
@@ -15,6 +16,7 @@ from app.models.proposal import (
     Poster,
     VendorQuotation,
 )
+from app.models.resource import Resource, Booking
 from app.schemas.proposal import (
     ProposalDraftCreate,
     ProposalUpdate,
@@ -206,6 +208,11 @@ class ProposalService:
         - At least one Document (Poster or VendorQuotation) must be attached.
         """
         proposal = ProposalService.get_proposal_by_id(db, proposal_id, user)
+        if proposal.status != "Draft":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Proposal cannot be submitted from its current status ({proposal.status}).",
+            )
 
         validation_errors = []
 
@@ -255,6 +262,45 @@ class ProposalService:
                     "errors": validation_errors
                 }
             )
+
+        # Lock the selected venue and reserve it in the same transaction as submission.
+        venue_name = schedule.venue_preference.strip()
+        venue = (
+            db.query(Resource)
+            .filter(func.lower(Resource.name) == venue_name.lower())
+            .populate_existing()
+            .with_for_update()
+            .first()
+        )
+        if not venue:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The selected venue is no longer available.")
+
+        clash = (
+            db.query(Booking)
+            .filter(
+                Booking.resource_id == venue.id,
+                Booking.status == "Confirmed",
+                Booking.start_time < schedule.end_date,
+                Booking.end_time > schedule.start_date,
+            )
+            .order_by(Booking.start_time)
+            .with_for_update()
+            .first()
+        )
+        if clash:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Venue is already booked for this time.",
+            )
+
+        db.add(Booking(
+            user_id=user.id,
+            resource_id=venue.id,
+            start_time=schedule.start_date,
+            end_time=schedule.end_date,
+            status="Confirmed",
+        ))
 
         # Transition status
         proposal.status = "Submitted"
