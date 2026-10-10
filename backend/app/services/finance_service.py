@@ -246,7 +246,7 @@ class FinanceService:
             budget_id=budget.id,
             vendor_id=expense_in.vendor_id,
             amount=expense_in.amount,
-            category=expense_in.category,
+            category=expense_in.category or "Operational",
             status="Submitted",
             parent_expense_id=expense_in.parent_expense_id,
         )

@@ -82,7 +82,7 @@ class ExpenseBase(BaseModel):
     budget_id: int
     vendor_id: Optional[int] = None
     amount: float = Field(..., gt=0.0)
-    category: str = Field(..., description="'Catering', 'Logistics', 'Honorarium', 'Printing', etc.")
+    category: Optional[str] = Field(default="Operational", description="Optional expense categorization")
     parent_expense_id: Optional[int] = Field(None, description="Parent expense ID if this is a sub-expense")
 
 

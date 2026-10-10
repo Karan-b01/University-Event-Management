@@ -29,7 +29,6 @@ export const FinanceDesk = ({ onNavigate }) => {
   const [disbursedAmount, setDisbursedAmount] = useState('');
   const [reductionReason, setReductionReason] = useState('');
   const [selectedVendorId, setSelectedVendorId] = useState('');
-  const [category, setCategory] = useState('Operational');
 
   const fetchFinanceData = async () => {
     setLoading(true);
@@ -138,7 +137,7 @@ export const FinanceDesk = ({ onNavigate }) => {
         budget_id: currentBudget.id,
         ...(selectedVendorId ? { vendor_id: Number(selectedVendorId) } : {}),
         amount: numericDisbursed,
-        category: category || 'Operational',
+        category: selectedProposal?.category || selectedProposal?.details?.objective || 'Operational',
       });
 
       await financeApi.requestExpenseReceipt(createdExpense.id);
@@ -445,15 +444,6 @@ export const FinanceDesk = ({ onNavigate }) => {
                             </div>
                           )}
 
-                          <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300 sm:col-span-2">
-                            Expense Category
-                            <input
-                              value={category}
-                              onChange={(e) => setCategory(e.target.value)}
-                              className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
-                              placeholder="e.g. Operational"
-                            />
-                          </label>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">

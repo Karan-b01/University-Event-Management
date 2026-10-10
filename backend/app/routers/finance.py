@@ -153,7 +153,7 @@ def submit_expense(
 async def submit_expense_with_receipt(
     budget_id: int = Form(...),
     amount: float = Form(..., gt=0),
-    category: str = Form(...),
+    category: Optional[str] = Form("Operational"),
     vendor_id: Optional[int] = Form(None),
     receipt_amount: Optional[float] = Form(None, gt=0),
     receipt_date: str = Form(...),
