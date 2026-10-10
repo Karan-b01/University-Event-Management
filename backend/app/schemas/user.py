@@ -22,6 +22,10 @@ class RoleResponse(RoleBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class RoleAssignment(BaseModel):
+    role_names: List[str] = Field(..., min_length=1)
+
+
 # ==========================================
 # UserProfile Schemas
 # ==========================================
