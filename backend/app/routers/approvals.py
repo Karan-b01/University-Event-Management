@@ -7,6 +7,9 @@ from app.schemas.approval import (
     WorkflowResponse,
     ReviewRequest,
 )
+from app.schemas.proposal import ProposalResponse
+from app.models.proposal import EventProposal
+from app.models.approval import ApprovalWorkflow, ApprovalNode
 from app.services.approval_service import ApprovalService
 from app.core.dependencies import get_current_user, require_role
 
@@ -14,6 +17,35 @@ router = APIRouter(
     prefix="/approvals",
     tags=["Module 5: Approval and Compliance Engine"]
 )
+
+
+@router.get(
+    "/inbox",
+    response_model=list[ProposalResponse],
+    summary="List proposals awaiting one of the current user's approval roles",
+)
+def list_approval_inbox(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    roles = {role.role_name for role in current_user.roles}
+    if not roles:
+        return []
+
+    return (
+        db.query(EventProposal)
+        .join(ApprovalWorkflow, ApprovalWorkflow.proposal_id == EventProposal.id)
+        .join(ApprovalNode, ApprovalNode.workflow_id == ApprovalWorkflow.id)
+        .filter(
+            ApprovalWorkflow.status.in_(["Initiated", "In Progress"]),
+            ApprovalNode.status == "Pending",
+            ApprovalNode.step_number == ApprovalWorkflow.current_step,
+            ApprovalNode.required_role.in_(roles),
+        )
+        .distinct()
+        .order_by(EventProposal.created_at.desc())
+        .all()
+    )
 
 
 @router.post(
