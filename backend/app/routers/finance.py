@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import date
 import os
 import uuid
 from fastapi import APIRouter, Depends, status, Query, HTTPException, UploadFile, File, Form
@@ -186,6 +187,43 @@ async def submit_expense_with_receipt(
 )
 def request_expense_receipt(expense_id: int, db: Session = Depends(get_db)):
     return FinanceService.request_expense_receipt(db, expense_id)
+
+
+@router.post(
+    "/expenses/{expense_id}/receipt",
+    response_model=ExpenseResponse,
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))],
+    summary="Upload a receipt requested by Finance",
+)
+async def upload_requested_receipt(
+    expense_id: int,
+    amount: float = Form(..., gt=0),
+    receipt_date: date = Form(...),
+    receipt_file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    extension = os.path.splitext(receipt_file.filename or "")[1].lower()
+    if extension not in {".pdf", ".png", ".jpg", ".jpeg"}:
+        raise HTTPException(status_code=400, detail="Receipt must be a PDF or image file.")
+    content = await receipt_file.read(10 * 1024 * 1024 + 1)
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Receipt file must be 10 MB or smaller.")
+
+    receipt_dir = os.path.join(os.getcwd(), "uploads", "receipts")
+    os.makedirs(receipt_dir, exist_ok=True)
+    receipt_path = os.path.join(receipt_dir, f"{uuid.uuid4().hex}{extension}")
+    with open(receipt_path, "wb") as receipt_handle:
+        receipt_handle.write(content)
+    try:
+        return FinanceService.attach_requested_receipt(
+            db, expense_id, current_user, amount, receipt_date,
+            os.path.relpath(receipt_path, os.getcwd()),
+        )
+    except Exception:
+        if os.path.exists(receipt_path):
+            os.remove(receipt_path)
+        raise
 
 
 @router.get(

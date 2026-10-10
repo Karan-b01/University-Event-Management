@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -101,6 +101,36 @@ class FinanceService:
         if expense.receipts:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A receipt has already been uploaded for this expense.")
         expense.status = "Receipt Requested"
+        db.commit()
+        db.refresh(expense)
+        return expense
+
+    @staticmethod
+    def attach_requested_receipt(
+        db: Session, expense_id: int, user: User, amount: float, receipt_date: date, file_path: str
+    ) -> Expense:
+        expense = db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
+        if not expense:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
+        roles = {role.role_name for role in user.roles}
+        is_admin = "Admin" in roles
+        if not is_admin and expense.budget.proposal.user_id != user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This expense does not belong to your proposal.")
+        if expense.status != "Receipt Requested":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Finance has not requested a receipt for this expense.")
+        if expense.receipts:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A receipt has already been uploaded for this expense.")
+        if abs(float(amount) - float(expense.amount)) > 0.005:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Receipt amount must match the requested expense amount.")
+
+        db.add(Receipt(
+            expense_id=expense.id,
+            file_path=file_path,
+            amount=amount,
+            date=receipt_date,
+            is_verified=False,
+        ))
+        expense.status = "Submitted"
         db.commit()
         db.refresh(expense)
         return expense
