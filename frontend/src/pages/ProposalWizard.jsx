@@ -25,6 +25,22 @@ import Badge from '../components/common/Badge';
 import { useAuth } from '../context/AuthContext';
 import { proposalsApi, resourcesApi } from '../api';
 
+const getSubmissionErrorMessage = (error) => {
+  const detail = error.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (detail && typeof detail === 'object') {
+    const messages = Array.isArray(detail.errors)
+      ? detail.errors.filter((item) => typeof item === 'string')
+      : [];
+    if (messages.length) return messages.join(' ');
+    if (typeof detail.message === 'string') return detail.message;
+    if (Array.isArray(detail)) {
+      return detail.map((item) => item.msg).filter(Boolean).join(' ');
+    }
+  }
+  return error.message || 'Submission failed. Please review the required proposal details.';
+};
+
 export const ProposalWizard = ({ onNavigate }) => {
   const { user: currentUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
@@ -33,6 +49,7 @@ export const ProposalWizard = ({ onNavigate }) => {
   const [submittedProposalId, setSubmittedProposalId] = useState(null);
   const [apiFeedback, setApiFeedback] = useState(null);
   const [attachments, setAttachments] = useState({ poster: null, quotation: null });
+  const [uploadedDocuments, setUploadedDocuments] = useState({ poster: '', quotation: '' });
 
   // Dynamic Venues State fetched from GET /api/v1/resources/?type=Venue
   const [venues, setVenues] = useState([]);
@@ -132,6 +149,45 @@ export const ProposalWizard = ({ onNavigate }) => {
     };
   };
 
+  const validateSubmission = () => {
+    const errors = [];
+    if (!formData.title.trim()) errors.push('Enter an event title.');
+    if (!formData.description.trim()) errors.push('Enter an event description.');
+    if (!formData.category.trim()) errors.push('Choose a primary event category.');
+    if (!formData.expectedAttendance || Number(formData.expectedAttendance) < 1) {
+      errors.push('Enter an expected attendance count greater than zero.');
+    }
+    if (!formData.targetDate || !formData.startTime) errors.push('Choose the event start date and time.');
+    if (!formData.endDate || !formData.endTime) errors.push('Choose the event end date and time.');
+    if (formData.targetDate && formData.startTime && formData.endDate && formData.endTime) {
+      const start = new Date(`${formData.targetDate}T${formData.startTime}`);
+      const end = new Date(`${formData.endDate}T${formData.endTime}`);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+        errors.push('The event end date and time must be after the start date and time.');
+      }
+    }
+    if (!formData.venue.trim()) errors.push('Choose a requested venue.');
+    if (!attachments.poster && !attachments.quotation && !uploadedDocuments.poster && !uploadedDocuments.quotation) {
+      errors.push('Attach a poster or vendor quotation before submitting.');
+    }
+    return errors;
+  };
+
+  const uploadSelectedDocuments = async (proposalId) => {
+    if (attachments.poster) {
+      const file = attachments.poster;
+      await proposalsApi.uploadDocument(proposalId, file, 'Poster');
+      setUploadedDocuments((current) => ({ ...current, poster: file.name }));
+      setAttachments((current) => ({ ...current, poster: null }));
+    }
+    if (attachments.quotation) {
+      const file = attachments.quotation;
+      await proposalsApi.uploadDocument(proposalId, file, 'VendorQuotation');
+      setUploadedDocuments((current) => ({ ...current, quotation: file.name }));
+      setAttachments((current) => ({ ...current, quotation: null }));
+    }
+  };
+
   const handleSaveDraft = async () => {
     setSubmitting(true);
     setApiFeedback(null);
@@ -140,12 +196,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       const res = submittedProposalId
         ? await proposalsApi.update(submittedProposalId, payload)
         : await proposalsApi.createDraft(payload);
-      if (attachments.poster) {
-        await proposalsApi.uploadDocument(res.id, attachments.poster, 'Poster');
-      }
-      if (attachments.quotation) {
-        await proposalsApi.uploadDocument(res.id, attachments.quotation, 'VendorQuotation');
-      }
+      await uploadSelectedDocuments(res.id);
       setApiFeedback({
         type: 'success',
         text: `Draft and selected documents saved to the backend (ID: ${res.id}).`,
@@ -153,7 +204,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       setSubmittedProposalId(res.id);
     } catch (err) {
       console.warn('[ProposalWizard] POST /proposals/draft error or backend offline:', err);
-      const detail = err.response?.data?.detail || err.message || 'Could not save the draft.';
+      const detail = getSubmissionErrorMessage(err);
       setApiFeedback({
         type: 'error',
         text: `Draft was not saved: ${detail}`,
@@ -164,6 +215,17 @@ export const ProposalWizard = ({ onNavigate }) => {
   };
 
   const handleSubmitProposal = async () => {
+    const validationErrors = validateSubmission();
+    if (validationErrors.length) {
+      const firstError = validationErrors[0];
+      setCurrentStep(firstError.includes('venue') ? 2 : firstError.includes('Attach') ? 4 : 1);
+      setApiFeedback({
+        type: 'error',
+        text: `Please complete the required details: ${validationErrors.join(' ')}`,
+      });
+      return;
+    }
+
     setSubmitting(true);
     setApiFeedback(null);
     try {
@@ -175,12 +237,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       const propId = draftRes.id;
       setSubmittedProposalId(propId);
 
-      if (attachments.poster) {
-        await proposalsApi.uploadDocument(propId, attachments.poster, 'Poster');
-      }
-      if (attachments.quotation) {
-        await proposalsApi.uploadDocument(propId, attachments.quotation, 'VendorQuotation');
-      }
+      await uploadSelectedDocuments(propId);
 
       await proposalsApi.submit(propId);
 
@@ -188,7 +245,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       setIsSubmitted(true);
     } catch (err) {
       console.warn('[ProposalWizard] Live submission encountered error:', err);
-      const detail = err.response?.data?.detail || err.message || 'Submission failed.';
+      const detail = getSubmissionErrorMessage(err);
       setApiFeedback({ type: 'error', text: `Proposal was not submitted: ${detail}` });
     } finally {
       setSubmitting(false);
@@ -328,16 +385,17 @@ export const ProposalWizard = ({ onNavigate }) => {
                   <Select
                     label="Primary Category"
                     value={formData.category}
+                    required
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    options={[
-                      'Engineering & Robotics',
-                      'Technology & Research',
-                      'Cultural & Arts',
-                      'Sports & Athletics',
-                      'Academic & Distinguished',
-                      'Student Life & Orientation',
-                    ]}
-                  />
+                  >
+                    <option value="" disabled>Choose a category</option>
+                    <option value="Engineering & Robotics">Engineering & Robotics</option>
+                    <option value="Technology & Research">Technology & Research</option>
+                    <option value="Cultural & Arts">Cultural & Arts</option>
+                    <option value="Sports & Athletics">Sports & Athletics</option>
+                    <option value="Academic & Distinguished">Academic & Distinguished</option>
+                    <option value="Student Life & Orientation">Student Life & Orientation</option>
+                  </Select>
                 </div>
 
                 <div>
@@ -605,7 +663,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                             Event Poster Artwork
                           </p>
                           <p className="text-[11px] text-zinc-500 dark:text-slate-400 truncate max-w-48">
-                            {attachments.poster?.name || 'Choose a poster file'}
+                            {attachments.poster?.name || uploadedDocuments.poster || 'Choose a poster file'}
                           </p>
                         </div>
                       </div>
@@ -613,9 +671,14 @@ export const ProposalWizard = ({ onNavigate }) => {
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg"
                         className="sr-only"
-                        onChange={(event) => setAttachments((prev) => ({ ...prev, poster: event.target.files?.[0] || null }))}
+                        onChange={(event) => {
+                          setAttachments((prev) => ({ ...prev, poster: event.target.files?.[0] || null }));
+                          setUploadedDocuments((prev) => ({ ...prev, poster: '' }));
+                        }}
                       />
-                      <Badge variant={attachments.poster ? 'teal' : 'default'}>{attachments.poster ? 'Selected' : 'Optional'}</Badge>
+                      <Badge variant={attachments.poster || uploadedDocuments.poster ? 'teal' : 'default'}>
+                        {attachments.poster ? 'Selected' : uploadedDocuments.poster ? 'Uploaded' : 'Optional'}
+                      </Badge>
                     </label>
 
                     <label className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/[0.01] flex items-center justify-between gap-3 cursor-pointer">
@@ -626,7 +689,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                             Vendor Quotation Package
                           </p>
                           <p className="text-[11px] text-zinc-500 dark:text-slate-400 truncate max-w-48">
-                            {attachments.quotation?.name || 'Choose a quotation file'}
+                            {attachments.quotation?.name || uploadedDocuments.quotation || 'Choose a quotation file'}
                           </p>
                         </div>
                       </div>
@@ -634,9 +697,14 @@ export const ProposalWizard = ({ onNavigate }) => {
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg"
                         className="sr-only"
-                        onChange={(event) => setAttachments((prev) => ({ ...prev, quotation: event.target.files?.[0] || null }))}
+                        onChange={(event) => {
+                          setAttachments((prev) => ({ ...prev, quotation: event.target.files?.[0] || null }));
+                          setUploadedDocuments((prev) => ({ ...prev, quotation: '' }));
+                        }}
                       />
-                      <Badge variant={attachments.quotation ? 'teal' : 'default'}>{attachments.quotation ? 'Selected' : 'Optional'}</Badge>
+                      <Badge variant={attachments.quotation || uploadedDocuments.quotation ? 'teal' : 'default'}>
+                        {attachments.quotation ? 'Selected' : uploadedDocuments.quotation ? 'Uploaded' : 'Optional'}
+                      </Badge>
                     </label>
                   </div>
                   <p className="mt-2 text-[11px] text-zinc-500 dark:text-slate-400">Attach at least one PDF or image before submitting. Drafts can be saved without attachments.</p>
