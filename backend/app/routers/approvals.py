@@ -10,6 +10,7 @@ from app.schemas.approval import (
 from app.schemas.proposal import ProposalResponse
 from app.models.proposal import EventProposal
 from app.models.approval import ApprovalWorkflow, ApprovalNode
+from app.schemas.finance import BudgetResponse
 from app.services.approval_service import ApprovalService
 from app.core.dependencies import get_current_user, require_role
 
@@ -66,6 +67,20 @@ def initiate_approval_workflow(
 ):
     """Endpoint to initiate approval workflow."""
     return ApprovalService.initiate_workflow(db, proposal_id=proposal_id, user=current_user)
+
+
+@router.post(
+    "/{proposal_id}/budget/approve",
+    response_model=BudgetResponse,
+    dependencies=[Depends(require_role(["Faculty Advisor", "Admin"]))],
+    summary="Approve a proposal's requested budget before proposal review",
+)
+def approve_requested_budget(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ApprovalService.approve_budget_request(db, proposal_id, current_user)
 
 
 @router.get(

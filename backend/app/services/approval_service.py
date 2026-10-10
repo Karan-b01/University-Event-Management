@@ -11,16 +11,51 @@ from app.models.approval import (
     ApprovalHistory,
     RiskAssessment,
 )
+from app.models.finance import Budget
 from app.schemas.approval import ReviewRequest
 from app.services.compliance_validator import ComplianceValidatorService
 
 
 class ApprovalService:
-    """
-    Workflow engine managing dynamic node generation, compliance validation,
-    multi-tier role authorization, and audit logging.
-    """
+    """Workflow engine for compliance checks and multi-tier approval routing."""
 
+    @staticmethod
+    def approve_budget_request(db: Session, proposal_id: str, current_user: User) -> Budget:
+        """Record the advisor's explicit approval of a proposal's requested budget."""
+        roles = {role.role_name for role in current_user.roles}
+        if "Faculty Advisor" not in roles and "Admin" not in roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Faculty Advisor role required.")
+
+        proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).with_for_update().first()
+        if not proposal:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event proposal not found.")
+
+        workflow = db.query(ApprovalWorkflow).filter(ApprovalWorkflow.proposal_id == proposal_id).first()
+        if not workflow or workflow.status not in ["Initiated", "In Progress"]:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Proposal is not awaiting advisor review.")
+        advisor_node = next((node for node in workflow.nodes if node.step_number == workflow.current_step), None)
+        if not advisor_node or advisor_node.required_role != "Faculty Advisor" or advisor_node.status != "Pending":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="The advisor budget gate is not active.")
+
+        requested_amount = (proposal.team_data or {}).get("requested_budget")
+        try:
+            requested_amount = float(requested_amount)
+        except (TypeError, ValueError):
+            requested_amount = 0
+        if requested_amount <= 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Proposal has no valid requested budget.")
+
+        budget = db.query(Budget).filter(Budget.proposal_id == proposal_id).with_for_update().first()
+        if budget and budget.status not in {"Pending", "Advisor Approved"}:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Budget request has already been finalized.")
+        if budget is None:
+            budget = Budget(proposal_id=proposal_id, allocated_amount=0, current_spent=0, status="Advisor Approved")
+            db.add(budget)
+        else:
+            budget.status = "Advisor Approved"
+        db.commit()
+        db.refresh(budget)
+        return budget
     @staticmethod
     def initiate_workflow(db: Session, proposal_id: str, user: User) -> ApprovalWorkflow:
         """
@@ -199,6 +234,14 @@ class ApprovalService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Access forbidden: You do not possess the required role '{node.required_role}' to review this node."
             )
+
+        if node.required_role == "Faculty Advisor" and review_req.decision.lower() in {"approved", "accepted"}:
+            budget = db.query(Budget).filter(Budget.proposal_id == workflow.proposal_id).first()
+            if not budget or budget.status != "Advisor Approved":
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Approve the requested budget before approving this proposal.",
+                )
 
         # Validate decision value
         decision = review_req.decision.capitalize()
