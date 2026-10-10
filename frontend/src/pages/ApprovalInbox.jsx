@@ -60,6 +60,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
             expectedParticipants: participants,
             allocatedBudget: item.budget?.allocated_amount || 0,
             requestedBudget: Number(item.team_data?.requested_budget || 0),
+            documents: item.documents || [],
             status: item.status || 'Submitted',
             riskLevel,
             description:
@@ -159,6 +160,23 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
       setActionNotice({ type: 'error', text: detail });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDocumentDownload = async (document) => {
+    try {
+      const file = await proposalsApi.downloadDocument(activeProposal.id, document.id);
+      const fileUrl = URL.createObjectURL(file);
+      const link = window.document.createElement('a');
+      link.href = fileUrl;
+      link.download = document.file_name;
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err) {
+      setActionNotice({
+        type: 'error',
+        text: err.response?.data?.detail || 'Document could not be downloaded.',
+      });
     }
   };
 
@@ -482,6 +500,18 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
 
               {/* Content Tabs: Risk Flags, Multi-tier Nodes, Audit Trail */}
               <div className="p-6 space-y-6">
+                {activeProposal.documents.filter((document) => document.type === 'Poster').length > 0 && (
+                  <section>
+                    <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300">Event Posters</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {activeProposal.documents.filter((document) => document.type === 'Poster').map((document) => (
+                        <Button key={document.id} size="sm" variant="secondary" onClick={() => handleDocumentDownload(document)}>
+                          View {document.file_name}
+                        </Button>
+                      ))}
+                    </div>
+                  </section>
+                )}
                 {/* AUTOMATED PRE-SCREENING RISK REPORT (Module 05) */}
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans mb-3 flex items-center gap-1.5">

@@ -102,6 +102,8 @@ export const proposalsApi = {
     });
     return response.data;
   },
+  downloadDocument: async (proposalId, documentId) =>
+    (await api.get(`/proposals/${proposalId}/documents/${documentId}/download`, { responseType: 'blob' })).data,
   export: async (proposalId) => {
     const response = await api.get(`/proposals/${proposalId}/export`);
     return response.data;

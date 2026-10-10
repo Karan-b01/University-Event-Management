@@ -8,6 +8,8 @@ from fastapi import (
     Form,
     HTTPException,
 )
+from fastapi.responses import FileResponse
+import os
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -22,6 +24,8 @@ from app.schemas.proposal import (
 )
 from app.services.proposal_service import ProposalService
 from app.core.dependencies import get_current_user, require_role
+from app.core.document_access import can_view_document
+from app.models.proposal import Document
 
 router = APIRouter(
     prefix="/proposals",
@@ -185,6 +189,30 @@ def get_proposal(
     """Retrieve single proposal by ID."""
     proposal = ProposalService.get_proposal_by_id(db=db, proposal_id=proposal_id, user=current_user)
     return proposal
+
+
+@router.get(
+    "/{proposal_id}/documents/{document_id}/download",
+    response_class=FileResponse,
+    summary="Download a proposal document allowed for the current user",
+)
+def download_proposal_document(
+    proposal_id: str,
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.proposal_id == proposal_id,
+    ).first()
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposal document not found.")
+    if not can_view_document(current_user, document):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot view this document.")
+    if not os.path.isfile(document.file_path):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document file is unavailable.")
+    return FileResponse(document.file_path, filename=document.file_name)
 
 
 @router.get(
