@@ -264,7 +264,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
             setSelectedSlots([]);
             setResourceType(event.target.value);
           }}
-          className="h-10 rounded border border-zinc-300 bg-white px-3 text-sm text-zinc-900 dark:border-white/15 dark:bg-[#090D10] dark:text-white"
+          className="h-10 rounded border border-zinc-300 bg-white px-3 text-sm text-zinc-900 dark:border-white/15 dark:bg-black dark:text-white"
         >
           <option value="Venue">Venues</option>
           <option value="Equipment">Equipment</option>
@@ -329,8 +329,8 @@ export const ResourceCalendar = ({ onNavigate }) => {
                 }}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                   isSelected
-                    ? 'bg-zinc-100 border-black shadow-sm dark:bg-[#101417] dark:border-emerald-400/80 dark:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                    : 'bg-white border-zinc-200 hover:border-zinc-300 dark:bg-[#090D10]/80 dark:border-white/10 dark:hover:border-white/20'
+                    ? 'bg-zinc-100 border-black shadow-sm dark:bg-black dark:border-emerald-400/80 dark:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                    : 'bg-white border-zinc-200 hover:border-zinc-300 dark:bg-black dark:border-white/10 dark:hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -365,7 +365,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
                 <span className="text-zinc-500 dark:text-slate-400">Locked / Confirmed</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-white dark:bg-[#090D10] border border-zinc-300 dark:border-white/20" />
+                <span className="w-3 h-3 rounded bg-white dark:bg-black border border-zinc-300 dark:border-white/20" />
                 <span className="text-zinc-500 dark:text-slate-400">Available Slot</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -417,7 +417,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
                             ? 'bg-zinc-100/90 dark:bg-white/[0.04] cursor-not-allowed text-zinc-400 dark:text-slate-500'
                             : isSelected
                             ? 'bg-black text-white dark:bg-emerald-400 dark:text-black font-semibold cursor-pointer shadow-inner'
-                            : 'bg-white hover:bg-zinc-50 dark:bg-[#05080A] dark:hover:bg-white/[0.02] cursor-pointer'
+                            : 'bg-white hover:bg-zinc-50 dark:bg-black dark:hover:bg-white/[0.02] cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-1">
@@ -508,7 +508,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
                 minLength={5}
                 required
                 rows={3}
-                className="mt-1 block w-full rounded border border-zinc-300 bg-white p-2 text-sm font-normal text-zinc-900 dark:border-white/15 dark:bg-[#090D10] dark:text-white"
+                className="mt-1 block w-full rounded border border-zinc-300 bg-white p-2 text-sm font-normal text-zinc-900 dark:border-white/15 dark:bg-black dark:text-white"
                 placeholder="Describe the damage or incident"
               />
             </label>
@@ -520,7 +520,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
                 step="0.01"
                 value={damageCost}
                 onChange={(event) => setDamageCost(event.target.value)}
-                className="mt-1 block h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm font-normal text-zinc-900 dark:border-white/15 dark:bg-[#090D10] dark:text-white"
+                className="mt-1 block h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm font-normal text-zinc-900 dark:border-white/15 dark:bg-black dark:text-white"
                 placeholder="Optional"
               />
             </label>

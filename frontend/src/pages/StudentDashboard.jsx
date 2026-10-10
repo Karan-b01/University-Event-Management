@@ -384,10 +384,10 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
                     <p className="text-xs text-zinc-500 dark:text-slate-400">Expected amount: ${Number(expense.amount).toLocaleString()}</p>
                   </div>
                   <label className="text-xs font-semibold">Receipt amount
-                    <input type="number" min="0.01" step="0.01" value={upload.amount || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], amount: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-[#090D10]" />
+                    <input type="number" min="0.01" step="0.01" value={upload.amount || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], amount: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-black" />
                   </label>
                   <label className="text-xs font-semibold">Receipt date
-                    <input type="date" value={upload.date || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], date: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-[#090D10]" />
+                    <input type="date" value={upload.date || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], date: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-black" />
                   </label>
                   <div className="flex flex-wrap items-center gap-2">
                     <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], file: event.target.files?.[0] || null } }))} className="max-w-48 text-xs" />

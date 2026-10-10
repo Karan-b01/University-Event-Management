@@ -62,7 +62,7 @@ export default function UserManagement() {
               <tr key={user.id} className="border-t border-zinc-200 dark:border-white/10">
                 <td className="p-4"><div className="font-semibold text-zinc-900 dark:text-white">{user.name}</div><div className="text-xs text-zinc-500">{user.email}</div></td>
                 <td className="p-4">{(user.roles || []).map((role) => role.role_name).join(', ') || 'No role'}</td>
-                <td className="p-4"><select aria-label={`Assign role to ${user.name}`} value={selected[user.id] || ''} onChange={(event) => setSelected((current) => ({ ...current, [user.id]: event.target.value }))} className="rounded-md border border-zinc-300 bg-white px-3 py-2 dark:border-white/15 dark:bg-[#090D10] dark:text-white">{roles.map((role) => <option key={role.id} value={role.role_name}>{role.role_name}</option>)}</select></td>
+                <td className="p-4"><select aria-label={`Assign role to ${user.name}`} value={selected[user.id] || ''} onChange={(event) => setSelected((current) => ({ ...current, [user.id]: event.target.value }))} className="rounded-md border border-zinc-300 bg-white px-3 py-2 dark:border-white/15 dark:bg-black dark:text-white">{roles.map((role) => <option key={role.id} value={role.role_name}>{role.role_name}</option>)}</select></td>
                 <td className="p-4"><Button size="sm" variant="secondary" icon={saving === user.id ? Loader2 : ShieldCheck} disabled={saving === user.id} onClick={() => saveRole(user)}>{saving === user.id ? 'Saving...' : 'Save role'}</Button></td>
               </tr>
             ))}</tbody>

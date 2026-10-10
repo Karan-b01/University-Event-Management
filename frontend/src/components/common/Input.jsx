@@ -35,7 +35,7 @@ export const Input = ({
           className={`w-full h-10 px-3 text-sm font-sans rounded transition-all duration-200 outline-none
             bg-white text-zinc-900 border border-zinc-300 placeholder:text-zinc-400
             focus:border-black focus:ring-1 focus:ring-black
-            dark:bg-[#05080A]/80 dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
+            dark:bg-black dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
             dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30
             ${Icon ? 'pl-9' : ''}
             ${error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''}
@@ -78,7 +78,7 @@ export const Select = ({
         className={`w-full h-10 px-3 text-sm font-sans rounded transition-all duration-200 outline-none
           bg-white text-zinc-900 border border-zinc-300
           focus:border-black focus:ring-1 focus:ring-black
-          dark:bg-[#090D10] dark:text-white dark:border-white/15
+          dark:bg-black dark:text-white dark:border-white/15
           dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30
           ${error ? 'border-rose-500' : ''}
           ${className}`}
@@ -86,7 +86,7 @@ export const Select = ({
       >
         {children ||
           options.map((opt, idx) => (
-            <option key={idx} value={typeof opt === 'object' ? opt.value : opt} className="bg-white dark:bg-[#090D10] text-zinc-900 dark:text-white">
+            <option key={idx} value={typeof opt === 'object' ? opt.value : opt} className="bg-white dark:bg-black text-zinc-900 dark:text-white">
               {typeof opt === 'object' ? opt.label : opt}
             </option>
           ))}

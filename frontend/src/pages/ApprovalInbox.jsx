@@ -426,8 +426,8 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                     onClick={() => setSelectedId(item.id)}
                     className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer relative ${
                       isSelected
-                        ? 'bg-zinc-100 border-black shadow-sm dark:bg-[#101417] dark:border-emerald-400/80 dark:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                        : 'bg-white border-zinc-200 hover:border-zinc-400 dark:bg-[#090D10]/80 dark:border-white/10 dark:hover:border-white/20'
+                        ? 'bg-zinc-100 border-black shadow-sm dark:bg-black dark:border-emerald-400/80 dark:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                        : 'bg-white border-zinc-200 hover:border-zinc-400 dark:bg-black dark:border-white/10 dark:hover:border-white/20'
                     }`}
                   >
                     {/* Left accent bar on active */}
@@ -780,10 +780,10 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                           <div
                             className={`absolute -left-6 top-1 w-3.5 h-3.5 rounded-full border-2 ${
                               item.status === 'completed'
-                                ? 'bg-emerald-500 border-white dark:border-[#090D10]'
+                                ? 'bg-emerald-500 border-white dark:border-black'
                                 : item.status === 'warning'
-                                ? 'bg-rose-500 border-white dark:border-[#090D10]'
-                                : 'bg-amber-500 border-white dark:border-[#090D10] animate-pulse'
+                                ? 'bg-rose-500 border-white dark:border-black'
+                                : 'bg-amber-500 border-white dark:border-black animate-pulse'
                             }`}
                           />
                           <div className="flex items-baseline justify-between gap-2">
@@ -818,7 +818,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                         className="w-full p-3 text-xs font-sans rounded transition-all duration-200 outline-none
                           bg-white text-zinc-900 border border-zinc-300 placeholder:text-zinc-400
                           focus:border-black focus:ring-1 focus:ring-black
-                          dark:bg-[#05080A]/80 dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
+                          dark:bg-black dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
                           dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30 mb-4"
                       />
 

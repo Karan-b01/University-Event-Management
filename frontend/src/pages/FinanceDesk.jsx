@@ -245,7 +245,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                 required
                 value={budgetForm.proposal_id}
                 onChange={(event) => setBudgetForm((prev) => ({ ...prev, proposal_id: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]"
+                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
               >
                 <option value="">Choose a proposal</option>
                 {proposals.map((proposal) => (
@@ -272,7 +272,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                 required
                 value={budgetForm.allocated_amount}
                 onChange={(event) => setBudgetForm((prev) => ({ ...prev, allocated_amount: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]"
+                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
                 placeholder="0.00"
               />
             </label>
@@ -284,25 +284,25 @@ export const FinanceDesk = ({ onNavigate }) => {
           <form onSubmit={handleSubmitExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Budget
-              <select required value={expenseForm.budget_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, budget_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]">
+              <select required value={expenseForm.budget_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, budget_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
                 <option value="">Choose a budget</option>
                 {budgets.map((budget) => <option key={budget.id} value={budget.id}>{proposals.find((proposal) => proposal.id === budget.proposal_id)?.title || budget.proposal_id}</option>)}
               </select>
             </label>
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Vendor
-              <select value={expenseForm.vendor_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, vendor_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]">
+              <select value={expenseForm.vendor_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, vendor_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
                 <option value="">Direct reimbursement</option>
                 {vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}
               </select>
             </label>
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Expense amount
-              <input type="number" min="0.01" step="0.01" required value={expenseForm.amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" />
+              <input type="number" min="0.01" step="0.01" required value={expenseForm.amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" />
             </label>
             <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
               Category
-              <input required value={expenseForm.category} onChange={(event) => setExpenseForm((prev) => ({ ...prev, category: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-[#090D10]" placeholder="Catering, Logistics…" />
+              <input required value={expenseForm.category} onChange={(event) => setExpenseForm((prev) => ({ ...prev, category: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" placeholder="Catering, Logistics…" />
             </label>
             <div className="sm:col-span-2"><Button type="submit" variant="primary" disabled={!budgets.length}>Record Expense</Button></div>
           </form>

@@ -396,7 +396,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       )}
 
       {/* 4-STEP HORIZONTAL STEPPER */}
-      <div className="mb-8 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-[#090D10]/80 backdrop-blur-md">
+      <div className="mb-8 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-black backdrop-blur-md">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {steps.map((s) => {
             const isCompleted = currentStep > s.number;
@@ -499,7 +499,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
                       bg-white text-zinc-900 border border-zinc-300 placeholder:text-zinc-400
                       focus:border-black focus:ring-1 focus:ring-black
-                      dark:bg-[#05080A]/80 dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
+                      dark:bg-black dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
                       dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
                   />
                 </div>
@@ -622,7 +622,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
                       bg-white text-zinc-900 border border-zinc-300
                       focus:border-black focus:ring-1 focus:ring-black
-                      dark:bg-[#05080A]/80 dark:text-white dark:border-white/15
+                      dark:bg-black dark:text-white dark:border-white/15
                       dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
                   />
                 </div>
