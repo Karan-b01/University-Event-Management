@@ -62,6 +62,13 @@ class FinanceService:
                 detail=f"Event proposal with ID '{budget_in.proposal_id}' not found."
             )
 
+        requested = (proposal.team_data or {}).get("requested_budget")
+        if requested is not None and budget_in.allocated_amount > float(requested):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Disbursed budget cannot exceed the requested budget.",
+            )
+
         existing_budget = db.query(Budget).filter(Budget.proposal_id == budget_in.proposal_id).first()
         if existing_budget:
             raise HTTPException(
@@ -73,9 +80,29 @@ class FinanceService:
             proposal_id=budget_in.proposal_id,
             allocated_amount=budget_in.allocated_amount,
             current_spent=0.0,
-            status="Approved" if proposal.status in ["Submitted", "Approved"] else "Pending",
+            status="Pending",
         )
         db.add(budget)
+        db.commit()
+        db.refresh(budget)
+        return budget
+
+    @staticmethod
+    def update_budget_disbursement(db: Session, proposal_id: str, budget_in: BudgetUpdate) -> Budget:
+        budget = db.query(Budget).filter(Budget.proposal_id == proposal_id).with_for_update().first()
+        if not budget:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found for this proposal.")
+        if budget_in.allocated_amount is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Enter a disbursed budget amount.")
+        proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).first()
+        requested = (proposal.team_data or {}).get("requested_budget") if proposal else None
+        if requested is not None and budget_in.allocated_amount > float(requested):
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Disbursed budget cannot exceed the requested budget.")
+        if budget_in.allocated_amount < budget.current_spent:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Disbursed budget cannot be lower than funds already spent.")
+        budget.allocated_amount = budget_in.allocated_amount
+        budget.status = "Approved"
+        budget.updated_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(budget)
         return budget

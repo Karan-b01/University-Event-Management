@@ -239,6 +239,14 @@ class ProposalService:
         if not proposal.documents or len(proposal.documents) == 0:
             validation_errors.append("At least one supporting document (Poster or Vendor Quotation) must be uploaded.")
 
+        requested_budget = (proposal.team_data or {}).get("requested_budget")
+        try:
+            has_requested_budget = float(requested_budget) > 0
+        except (TypeError, ValueError):
+            has_requested_budget = False
+        if not has_requested_budget:
+            validation_errors.append("A requested event budget greater than zero is required.")
+
         if validation_errors:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

@@ -139,6 +139,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       },
       team_data: {
         team_name: formData.category,
+        requested_budget: Number(formData.allocatedBudget) || null,
         members: [
           {
             name: currentUser?.name || currentUser?.email || 'Lead Organizer',

@@ -10,6 +10,7 @@ from app.models.user import User
 from app.models.finance import Budget, Expense, Vendor
 from app.schemas.finance import (
     BudgetCreate,
+    BudgetUpdate,
     BudgetResponse,
     VendorCreate,
     VendorResponse,
@@ -88,6 +89,20 @@ def get_budget(
 ):
     """Retrieve budget and line item expenditures for a proposal."""
     return FinanceService.get_budget_by_proposal_id(db, proposal_id)
+
+
+@router.put(
+    "/budgets/{proposal_id}",
+    response_model=BudgetResponse,
+    dependencies=[Depends(require_role(["Finance Officer", "Admin"]))],
+    summary="Record the disbursed amount for a requested event budget",
+)
+def update_budget_disbursement(
+    proposal_id: str,
+    budget_in: BudgetUpdate,
+    db: Session = Depends(get_db),
+):
+    return FinanceService.update_budget_disbursement(db, proposal_id, budget_in)
 
 
 @router.get(
