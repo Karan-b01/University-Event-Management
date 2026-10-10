@@ -145,8 +145,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
       ['Pending', 'In Progress', 'Initiated'].includes(workflow?.status) &&
       (userRoles.includes(activeNode.required_role) || userRoles.includes('Admin'))
   );
-  const canApproveActiveNode = canReviewActiveNode &&
-    (activeNode?.required_role !== 'Faculty Advisor' || proposalBudget?.status === 'Advisor Approved');
+  const canApproveActiveNode = canReviewActiveNode;
 
   const handleBudgetApproval = async () => {
     if (!activeProposal) return;
@@ -199,6 +198,10 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
 
       const updatedWf = await approvalsApi.reviewNode(activeNode.id, decisionFormatted, notes);
       setWorkflow(updatedWf);
+      try {
+        const updatedBudget = await financeApi.getBudget(activeProposal.id);
+        setProposalBudget(updatedBudget);
+      } catch (err) {}
       setActionNotice({
         type: decision,
         text: `Workflow Node #${activeNode.id} (${activeNode.required_role}) successfully recorded as ${decisionFormatted}. State machine advanced in database.`,

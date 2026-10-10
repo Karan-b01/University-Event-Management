@@ -26,7 +26,7 @@ class ApprovalService:
         if "Faculty Advisor" not in roles and "Admin" not in roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Faculty Advisor role required.")
 
-        proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).with_for_update().first()
+        proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).first()
         if not proposal:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event proposal not found.")
 
@@ -42,16 +42,17 @@ class ApprovalService:
             requested_amount = float(requested_amount)
         except (TypeError, ValueError):
             requested_amount = 0
-        if requested_amount <= 0:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Proposal has no valid requested budget.")
+        if requested_amount < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Proposal has an invalid requested budget.")
 
         budget = db.query(Budget).filter(Budget.proposal_id == proposal_id).with_for_update().first()
         if budget and budget.status not in {"Pending", "Advisor Approved"}:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Budget request has already been finalized.")
         if budget is None:
-            budget = Budget(proposal_id=proposal_id, allocated_amount=0, current_spent=0, status="Advisor Approved")
+            budget = Budget(proposal_id=proposal_id, allocated_amount=requested_amount, current_spent=0, status="Advisor Approved")
             db.add(budget)
         else:
+            budget.allocated_amount = requested_amount
             budget.status = "Advisor Approved"
         db.commit()
         db.refresh(budget)
@@ -243,11 +244,25 @@ class ApprovalService:
 
         if node.required_role == "Faculty Advisor" and review_req.decision.lower() in {"approved", "accepted"}:
             budget = db.query(Budget).filter(Budget.proposal_id == workflow.proposal_id).first()
-            if not budget or budget.status != "Advisor Approved":
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail="Approve the requested budget before approving this proposal.",
+            proposal = workflow.proposal
+            requested_amount = 0.0
+            if proposal:
+                try:
+                    requested_amount = float((proposal.team_data or {}).get("requested_budget") or 0.0)
+                except (TypeError, ValueError):
+                    pass
+            if not budget:
+                budget = Budget(
+                    proposal_id=workflow.proposal_id,
+                    allocated_amount=requested_amount,
+                    current_spent=0.0,
+                    status="Advisor Approved",
                 )
+                db.add(budget)
+            elif budget.status != "Advisor Approved":
+                budget.status = "Advisor Approved"
+                if budget.allocated_amount == 0 and requested_amount > 0:
+                    budget.allocated_amount = requested_amount
 
         # Validate decision value
         decision = review_req.decision.capitalize()
