@@ -142,9 +142,9 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
 
           {/* Centered Hero Headline (Noto Serif Display) */}
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-white max-w-4xl mx-auto leading-[1.15] drop-shadow-md">
-            University Event Planning &amp;{' '}
+            University Event Management And{' '}
             <span className="italic font-normal underline decoration-1 underline-offset-8 decoration-emerald-400/70 text-emerald-300">
-              Automated Approvals
+              Compliance Engine
             </span>
           </h1>
 
