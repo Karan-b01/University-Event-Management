@@ -10,6 +10,7 @@ import ProposalWizard from './pages/ProposalWizard';
 import ApprovalInbox from './pages/ApprovalInbox';
 import FinanceDesk from './pages/FinanceDesk';
 import ResourceCalendar from './pages/ResourceCalendar';
+import UserManagement from './pages/UserManagement';
 
 const PATH_TO_PAGE = {
   '/': 'landing',
@@ -20,6 +21,7 @@ const PATH_TO_PAGE = {
   '/approvals': 'approvals',
   '/finance': 'finance',
   '/calendar': 'calendar',
+  '/users': 'users',
 };
 
 const PAGE_TO_PATH = {
@@ -29,6 +31,7 @@ const PAGE_TO_PATH = {
   approvals: '/approvals',
   finance: '/finance',
   calendar: '/calendar',
+  users: '/users',
 };
 
 function getPageFromPath(path) {
@@ -253,6 +256,17 @@ export function AppContent() {
             onUnauthorized={handleUnauthorized}
           >
             <ResourceCalendar onNavigate={handleNavigate} />
+          </ProtectedRoute>
+        )}
+
+        {activePage === 'users' && (
+          <ProtectedRoute
+            allowedRoles={['Admin']}
+            currentUser={currentUser}
+            pageName="User Access Administration"
+            onUnauthorized={handleUnauthorized}
+          >
+            <UserManagement />
           </ProtectedRoute>
         )}
       </main>

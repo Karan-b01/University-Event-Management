@@ -39,8 +39,8 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
           const targetDate = startIso
             ? new Date(startIso).toISOString().split('T')[0]
             : 'TBD';
-          const participants = item.event_details?.expected_participants || 100;
-          const venue = item.schedule?.venue_preference || 'Anna Auditorium';
+          const participants = item.event_details?.expected_participants || 0;
+          const venue = item.schedule?.venue_preference || 'Not selected';
           const isHigh = participants >= 500;
           const riskLevel = isHigh ? 'High Risk' : participants >= 250 ? 'Medium Risk' : 'Low Risk';
 
@@ -58,7 +58,7 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
             targetDate,
             venue,
             expectedParticipants: participants,
-            allocatedBudget: 12000,
+            allocatedBudget: item.budget?.allocated_amount || 0,
             status: item.status || 'Submitted',
             riskLevel,
             description:

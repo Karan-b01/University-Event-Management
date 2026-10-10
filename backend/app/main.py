@@ -22,6 +22,7 @@ def init_db_roles():
         ("Faculty Advisor", "Faculty member responsible for reviewing and approving event proposals"),
         ("Security Officer", "Campus security coordinator for crowd control, fire safety, and overnight protocol clearances"),
         ("Finance Officer", "Finance staff reviewing event budgets and fund compliance"),
+        ("Resource Manager", "Staff coordinating campus venues, equipment, transport, and accommodation"),
         ("Admin", "System administrator with full access to manage roles, users, and compliance rules")
     ]
     db = SessionLocal()

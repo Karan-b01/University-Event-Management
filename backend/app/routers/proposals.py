@@ -120,6 +120,36 @@ def submit_proposal(
     return proposal
 
 
+@router.post(
+    "/{proposal_id}/clone",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Clone a proposal into a new draft",
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
+)
+def clone_proposal(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return ProposalService.clone_proposal(db, proposal_id, current_user)
+
+
+@router.post(
+    "/{proposal_id}/withdraw",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Withdraw a draft or submitted proposal",
+    dependencies=[Depends(require_role(["Student Organizer", "Admin"]))]
+)
+def withdraw_proposal(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return ProposalService.withdraw_proposal(db, proposal_id, current_user)
+
+
 @router.get(
     "/{proposal_id}/export",
     response_model=ProposalExportResponse,

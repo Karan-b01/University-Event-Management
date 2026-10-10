@@ -32,7 +32,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
       badge: 'Identity & Access',
       badgeVariant: 'default',
       icon: FileText,
-      target: 'student',
+      target: currentUser?.role === 'Admin' ? 'users' : 'student',
       features: [
         'Secure sign-in and account lifecycle management',
         'Control access with stakeholder roles and permissions',
@@ -98,7 +98,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
       icon: ShieldCheck,
       target: 'approvals',
       features: [
-        'Route proposals and escalate delayed approvals',
+        'Route proposals through required approval roles',
         'Check mandatory clearances and policy requirements',
         'Keep approval history and compliance records',
       ],
@@ -217,18 +217,18 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
           <div className="mt-12 sm:mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 rounded-xl border border-white/20 bg-black/60 backdrop-blur-md w-full max-w-3xl shadow-xl">
             <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
               <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
-                100%
+                5
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Paperless Forms
+                Documented Modules
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
               <p className="font-serif text-2xl sm:text-3xl font-bold text-emerald-400">
-                0 Collisions
+                4
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Guaranteed Venues
+                Resource Types
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
@@ -236,15 +236,15 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 24–48h
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Average Review
+                Approval Workflow
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center">
               <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
-                Real-Time
+                Audit
               </p>
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
-                Budget Tracking
+                Approval History
               </p>
             </div>
           </div>
@@ -365,8 +365,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 Live Prototype Navigation
               </h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-slate-300 font-sans">
-                Experience all 7 core operational interfaces with live FastAPI integration,
-                instant role switching, and dual-theme display.
+                Explore the five documented modules. Account roles control access to each workspace.
               </p>
 
               <div className="mt-4 flex flex-col gap-2">
