@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // Light Theme is Default as requested in specifications
+  // Strict Dual-Theme System: Light Mode (default) or Pitch Black ('dark')
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('unievent_theme');
     return saved === 'dark' ? 'dark' : 'light';
@@ -20,11 +20,22 @@ export const ThemeProvider = ({ children }) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const setStrictTheme = (newTheme) => {
+    setTheme(newTheme === 'dark' ? 'dark' : 'light');
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        toggleTheme,
+        setTheme: setStrictTheme,
+        isDark: theme === 'dark',
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

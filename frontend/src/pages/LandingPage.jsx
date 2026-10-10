@@ -293,7 +293,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 }}
                 className="group cursor-pointer rounded-xl p-6 transition-all duration-300 relative overflow-hidden flex flex-col justify-between
                   bg-white border border-zinc-200 hover:border-black hover:shadow-lg
-                  dark:bg-[#090D10]/80 dark:border-white/10 dark:hover:border-emerald-500/50 dark:hover:shadow-[0_10px_30px_-5px_rgba(16,185,129,0.15)]"
+                  dark:bg-black dark:border-white/10 dark:hover:border-emerald-500/50 dark:hover:shadow-[0_10px_30px_-5px_rgba(16,185,129,0.15)]"
               >
                 {/* Subtle top edge lighting */}
                 <div className="absolute top-0 inset-x-0 h-px bg-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-emerald-400/30 dark:to-transparent" />
@@ -348,7 +348,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
           {/* Quick Demo Walkthrough Card */}
           <div className="rounded-xl p-6 transition-all duration-300 relative overflow-hidden flex flex-col justify-between
             bg-zinc-50 border border-dashed border-zinc-300
-            dark:bg-[#05080A] dark:border-emerald-500/30">
+            dark:bg-black dark:border-emerald-500/30">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-zinc-400 dark:text-slate-400">
@@ -403,7 +403,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-zinc-200 dark:border-white/10 py-10 bg-white dark:bg-[#05080A] text-zinc-500 dark:text-slate-400 text-xs font-sans">
+      <footer className="border-t border-zinc-200 dark:border-white/10 py-10 bg-white dark:bg-black text-zinc-500 dark:text-slate-400 text-xs font-sans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-serif font-bold text-zinc-900 dark:text-white text-sm">

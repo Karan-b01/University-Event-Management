@@ -24,9 +24,9 @@ export const Button = ({
     // Light: Solid Black -> Dark: Emerald Ray
     primary:
       'bg-black text-white hover:bg-zinc-800 shadow-sm focus:ring-black/20 ' +
-      'dark:bg-emerald-500 dark:text-[#05080A] dark:hover:bg-emerald-400 dark:shadow-[0_0_16px_rgba(16,185,129,0.35)] dark:focus:ring-emerald-400/30',
+      'dark:bg-emerald-500 dark:text-black dark:hover:bg-emerald-400 dark:shadow-[0_0_16px_rgba(16,185,129,0.35)] dark:focus:ring-emerald-400/30',
 
-    // Light: Clean Academic Border -> Dark: Translucent Obsidian Glass
+    // Light: Clean Academic Border -> Dark: Translucent Pitch Black Glass
     secondary:
       'bg-white text-zinc-900 border border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 ' +
       'dark:bg-white/[0.05] dark:text-white dark:border-white/10 dark:hover:border-emerald-500/40 dark:hover:text-emerald-400 dark:hover:bg-white/[0.08]',
