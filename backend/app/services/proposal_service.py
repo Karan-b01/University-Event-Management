@@ -154,6 +154,49 @@ class ProposalService:
         return proposal
 
     @staticmethod
+    def clone_proposal(db: Session, proposal_id: str, user: User) -> EventProposal:
+        """Create a new draft from an existing proposal's details, schedule, and team."""
+        source = ProposalService.get_proposal_by_id(db, proposal_id, user)
+        clone = EventProposal(
+            user_id=user.id,
+            title=f"{source.title} (Copy)",
+            status="Draft",
+            team_data=source.team_data,
+        )
+        db.add(clone)
+        db.flush()
+        if source.event_details:
+            clone.event_details = EventDetails(
+                description=source.event_details.description,
+                objective=source.event_details.objective,
+                expected_participants=source.event_details.expected_participants,
+            )
+        if source.schedule:
+            clone.schedule = Schedule(
+                start_date=source.schedule.start_date,
+                end_date=source.schedule.end_date,
+                venue_preference=source.schedule.venue_preference,
+            )
+        db.commit()
+        db.refresh(clone)
+        return clone
+
+    @staticmethod
+    def withdraw_proposal(db: Session, proposal_id: str, user: User) -> EventProposal:
+        """Withdraw a draft or submitted proposal before an approval workflow begins."""
+        proposal = ProposalService.get_proposal_by_id(db, proposal_id, user)
+        if proposal.status not in {"Draft", "Submitted"}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only draft or submitted proposals can be withdrawn.",
+            )
+        proposal.status = "Withdrawn"
+        proposal.updated_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(proposal)
+        return proposal
+
+    @staticmethod
     def submit_proposal(db: Session, proposal_id: str, user: User) -> EventProposal:
         """
         Validates the proposal and transitions status from 'Draft' to 'Submitted'.

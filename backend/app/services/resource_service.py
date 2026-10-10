@@ -168,7 +168,7 @@ class ResourceService:
 
         # Verify authorization (booking owner or elevated role)
         user_roles = {r.role_name for r in user.roles}
-        if booking.user_id != user.id and not user_roles.intersection({"Admin", "Faculty Advisor"}):
+        if booking.user_id != user.id and not user_roles.intersection({"Admin", "Faculty Advisor", "Resource Manager"}):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to cancel this booking."
