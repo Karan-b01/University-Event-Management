@@ -11,8 +11,8 @@
 > **UniEvent** is an enterprise-grade event governance and compliance management platform engineered to automate collegiate operations, transactional asset booking, and institutional fiscal workflows.
 >
 > **Architected and Developed by:**
-> - **Prakhar Sethi** — *Project Head, Systema Tech Club*, Vellore Institute of Technology (VIT)
-> - **Karan** — *Lead Full-Stack Engineer*, Vellore Institute of Technology (VIT)
+> - **Prakhar Sethi** 
+> - **Karan Bhatia** 
 
 ---
 
@@ -406,8 +406,8 @@ University-Event-Management/
 
 Developed as an Object-Oriented Analysis and Design (OOAD) project for enterprise university administration.
 
-- **Prakhar Sethi** — *Project Head, Systema Tech Club*, Vellore Institute of Technology (VIT)
-- **Karan** — *Lead Full-Stack Engineer*, Vellore Institute of Technology (VIT)
+- **Prakhar Sethi** 
+- **Karan Bhatia** 
 
 <div align="center">
   <sub>Engineered with precision for Vellore Institute of Technology.</sub>
