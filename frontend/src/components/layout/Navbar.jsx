@@ -66,7 +66,7 @@ export const Navbar = ({
       className={`transition-all duration-300 ${
         isTransparent
           ? 'absolute top-0 left-0 w-full z-50 bg-transparent border-none'
-          : 'sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur-md border-zinc-200 dark:bg-black/90 dark:backdrop-blur-md dark:border-white/10'
+          : 'sticky top-0 z-40 w-full border-b bg-[#F7F7F5]/90 backdrop-blur-md border-stone-200 dark:bg-[#111111]/90 dark:backdrop-blur-md dark:border-[#2A2A2A]'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
@@ -78,8 +78,8 @@ export const Navbar = ({
           <span
             className={`font-serif font-bold text-xl sm:text-2xl tracking-tight transition-colors duration-200 ${
               isTransparent
-                ? 'text-white drop-shadow-md group-hover:text-zinc-200'
-                : 'text-zinc-950 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                ? 'text-white drop-shadow-md group-hover:text-stone-200'
+                : 'text-neutral-900 dark:text-stone-200 group-hover:text-neutral-600 dark:group-hover:text-stone-100'
             }`}
           >
             UniEvent
@@ -99,10 +99,10 @@ export const Navbar = ({
                     isActive
                       ? isTransparent
                         ? 'bg-white/20 text-white border border-white/30 backdrop-blur-sm shadow-sm'
-                        : 'bg-zinc-900 text-white dark:bg-emerald-500/15 dark:text-emerald-400 dark:border dark:border-emerald-500/30'
+                        : 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900'
                       : isTransparent
-                      ? 'text-zinc-200 hover:text-white hover:bg-white/10'
-                      : 'text-zinc-600 hover:text-black hover:bg-zinc-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5'
+                      ? 'text-stone-200 hover:text-white hover:bg-white/10'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-stone-200/60 dark:text-neutral-400 dark:hover:text-neutral-100 dark:hover:bg-[#1A1A1A]'
                   }`}
                 >
                   {item.label}
@@ -121,18 +121,18 @@ export const Navbar = ({
               <div className="hidden sm:flex flex-col text-right">
                 <span
                   className={`text-xs font-semibold font-sans ${
-                    isTransparent ? 'text-white' : 'text-zinc-950 dark:text-white'
+                    isTransparent ? 'text-white' : 'text-neutral-900 dark:text-stone-200'
                   }`}
                 >
                   {currentUser.name || currentUser.email}
                 </span>
                 <span
                   className={`text-[10px] font-sans ${
-                    isTransparent ? 'text-zinc-300' : 'text-zinc-500 dark:text-slate-400'
+                    isTransparent ? 'text-stone-300' : 'text-stone-500 dark:text-neutral-400'
                   }`}
                 >
                   {currentUser.email ? `${currentUser.email} • ` : ''}
-                  <strong className="text-emerald-400 uppercase tracking-wider">
+                  <strong className="text-neutral-800 dark:text-stone-300 uppercase tracking-wider">
                     {currentUser.role}
                   </strong>
                 </span>
@@ -158,7 +158,7 @@ export const Navbar = ({
               onClick={onOpenAuth}
               className={`text-xs font-semibold ${
                 isTransparent
-                  ? 'bg-white text-zinc-950 hover:bg-zinc-100 dark:bg-emerald-500 dark:text-black dark:hover:bg-emerald-400 shadow-md'
+                  ? 'bg-stone-50 text-neutral-900 hover:bg-stone-200 dark:bg-stone-200 dark:text-neutral-900 dark:hover:bg-stone-300 shadow-md'
                   : ''
               }`}
             >
@@ -173,8 +173,8 @@ export const Navbar = ({
         <div
           className={`lg:hidden flex items-center gap-1 px-4 py-2 overflow-x-auto ${
             isTransparent
-              ? 'bg-black/60 backdrop-blur-md border-t border-white/10'
-              : 'border-t border-zinc-100 dark:border-white/5 bg-zinc-50 dark:bg-black'
+              ? 'bg-neutral-900/80 backdrop-blur-md border-t border-white/10'
+              : 'border-t border-stone-200 dark:border-[#2A2A2A] bg-stone-100 dark:bg-[#111111]'
           }`}
         >
           {navItems.map((item) => {
@@ -186,11 +186,11 @@ export const Navbar = ({
                 className={`px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap rounded font-sans transition-all ${
                   isActive
                     ? isTransparent
-                      ? 'bg-white text-black font-bold'
-                      : 'bg-black text-white dark:bg-emerald-500 dark:text-black font-bold'
+                      ? 'bg-stone-100 text-neutral-900 font-bold'
+                      : 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-bold'
                     : isTransparent
-                    ? 'text-zinc-200'
-                    : 'text-zinc-600 dark:text-slate-400'
+                    ? 'text-stone-200'
+                    : 'text-neutral-600 dark:text-neutral-400'
                 }`}
               >
                 {item.label}

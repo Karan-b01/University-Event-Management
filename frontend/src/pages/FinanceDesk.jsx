@@ -208,20 +208,20 @@ export const FinanceDesk = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-zinc-200 dark:border-white/10">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
           <div className="flex items-center gap-2 mb-1">
           <Badge variant="warning">Module 03: Finance Management</Badge>
-            <span className="text-xs text-zinc-400 dark:text-slate-400 font-sans">
+            <span className="text-xs text-neutral-500 dark:text-neutral-400 font-sans">
               1-to-1 Budget Tracking &amp; Payment Gateway Integration
             </span>
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Finance Management
           </h1>
-          <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
-            Logged in as <strong className="text-zinc-900 dark:text-white">{currentUser?.name || currentUser?.email}</strong> &bull;{' '}
-            Role: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{currentUser?.role}</span>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 font-sans mt-1">
+            Logged in as <strong className="text-neutral-900 dark:text-neutral-100">{currentUser?.name || currentUser?.email}</strong> &bull;{' '}
+            Role: <span className="text-neutral-900 dark:text-stone-300 font-semibold">{currentUser?.role}</span>
           </p>
         </div>
 
@@ -242,11 +242,11 @@ export const FinanceDesk = ({ onNavigate }) => {
       </div>
 
       {notification && (
-        <div className="mb-6 p-4 rounded-lg bg-zinc-900 text-white dark:bg-emerald-950/40 dark:text-emerald-200 border border-zinc-700 dark:border-emerald-500/40 flex items-center justify-between text-xs font-sans">
+        <div className="mb-6 p-4 rounded-lg bg-neutral-900 text-stone-50 dark:bg-[#1A1A1A] dark:text-neutral-200 border border-neutral-800 dark:border-[#2A2A2A] flex items-center justify-between text-xs font-sans">
           <span>{notification}</span>
           <button
             onClick={() => setNotification(null)}
-            className="underline font-bold text-emerald-400 ml-4 cursor-pointer"
+            className="underline font-bold text-stone-300 dark:text-stone-200 hover:text-white ml-4 cursor-pointer"
           >
             Dismiss
           </button>
@@ -261,7 +261,7 @@ export const FinanceDesk = ({ onNavigate }) => {
         >
           <div className="space-y-6">
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
                 Event Proposal
                 <select
                   value={selectedProposalId}
@@ -279,7 +279,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                       setDisbursedAmount('');
                     }
                   }}
-                  className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                  className="mt-1 h-10 w-full rounded border border-stone-300 bg-stone-50 px-3 text-sm text-neutral-900 dark:border-[#2A2A2A] dark:bg-[#111111] dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
                 >
                   <option value="">Choose an Event Proposal for Review</option>
                   {proposals.map((proposal) => (
@@ -300,19 +300,19 @@ export const FinanceDesk = ({ onNavigate }) => {
                 <div className="space-y-5">
                   {/* Read-Only Requested Amount & Current Allocation */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                    <div className="p-4 rounded-lg border border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#151515]">
+                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
                         Requested Budget Amount (Read-Only)
                       </span>
-                      <p className="text-2xl font-serif font-bold text-zinc-950 dark:text-white mt-1">
+                      <p className="text-2xl font-serif font-bold text-neutral-900 dark:text-neutral-100 mt-1">
                         ${Number(selectedProposal?.team_data?.requested_budget || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
-                    <div className="p-4 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                    <div className="p-4 rounded-lg border border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#151515]">
+                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
                         Current Disbursed Amount
                       </span>
-                      <p className="text-2xl font-serif font-bold text-zinc-950 dark:text-white mt-1">
+                      <p className="text-2xl font-serif font-bold text-neutral-900 dark:text-neutral-100 mt-1">
                         ${Number(existingBudget?.allocated_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
@@ -321,39 +321,39 @@ export const FinanceDesk = ({ onNavigate }) => {
                   {/* Read-Only Sub-Expenses Itemization Table */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans">
+                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 font-sans">
                         Sub-Expenses Itemization (Submitted by Student Organizer)
                       </span>
-                      <span className="text-xs text-zinc-500 dark:text-slate-400 font-sans">
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 font-sans">
                         {itemizedSubExpenses.length} {itemizedSubExpenses.length === 1 ? 'item' : 'items'}
                       </span>
                     </div>
-                    <div className="border border-zinc-200 dark:border-white/10 rounded-lg overflow-hidden bg-white dark:bg-black">
+                    <div className="border border-stone-200 dark:border-[#2A2A2A] rounded-lg overflow-hidden bg-stone-100 dark:bg-[#1A1A1A]">
                       <table className="w-full text-left text-xs font-sans">
-                        <thead className="bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">
+                        <thead className="bg-stone-50 dark:bg-[#151515] border-b border-stone-200 dark:border-[#2A2A2A] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                           <tr>
                             <th className="p-3">Expense Item</th>
                             <th className="p-3">Vendor</th>
                             <th className="p-3 text-right">Amount ($)</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
+                        <tbody className="divide-y divide-stone-200 dark:divide-[#2A2A2A]">
                           {itemizedSubExpenses.length === 0 ? (
                             <tr>
-                              <td colSpan={3} className="p-4 text-center text-zinc-400 dark:text-zinc-500 italic">
+                              <td colSpan={3} className="p-4 text-center text-neutral-400 dark:text-neutral-500 italic">
                                 No itemized sub-expenses recorded for this proposal.
                               </td>
                             </tr>
                           ) : (
                             itemizedSubExpenses.map((exp, idx) => (
-                              <tr key={idx} className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02]">
-                                <td className="p-3 font-semibold text-zinc-900 dark:text-white">
+                              <tr key={idx} className="hover:bg-stone-50/50 dark:hover:bg-white/[0.02]">
+                                <td className="p-3 font-semibold text-neutral-900 dark:text-neutral-100">
                                   {exp.item || exp.category || 'General Expense'}
                                 </td>
-                                <td className="p-3 text-zinc-600 dark:text-slate-300">
+                                <td className="p-3 text-neutral-600 dark:text-neutral-300">
                                   {exp.vendor || '—'}
                                 </td>
-                                <td className="p-3 text-right font-mono font-bold text-zinc-900 dark:text-white">
+                                <td className="p-3 text-right font-mono font-bold text-neutral-900 dark:text-neutral-100">
                                   ${Number(exp.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
                               </tr>
@@ -371,10 +371,10 @@ export const FinanceDesk = ({ onNavigate }) => {
                     const isReduced = requestedAmount > 0 && numericDisbursed > 0 && numericDisbursed < requestedAmount;
 
                     return (
-                      <form onSubmit={handleUnifiedSubmit} className="space-y-5 pt-3 border-t border-zinc-200 dark:border-white/10">
+                      <form onSubmit={handleUnifiedSubmit} className="space-y-5 pt-3 border-t border-stone-200 dark:border-[#2A2A2A]">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
                               Admitted / Disbursed Amount ($)
                               <input
                                 type="number"
@@ -386,7 +386,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                                 className={`mt-1 h-10 w-full rounded border px-3 text-sm transition-colors ${
                                   isExceedingRequested
                                     ? 'border-red-500 bg-red-50/20 text-red-600 dark:border-red-500/50 dark:bg-red-950/20 dark:text-red-300 focus:ring-red-500'
-                                    : 'border-zinc-300 bg-white dark:border-white/15 dark:bg-black text-zinc-900 dark:text-white'
+                                    : 'border-stone-300 bg-stone-50 dark:border-[#2A2A2A] dark:bg-[#111111] text-neutral-900 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400'
                                 }`}
                                 placeholder="0.00"
                               />
@@ -399,12 +399,12 @@ export const FinanceDesk = ({ onNavigate }) => {
                             )}
                           </div>
 
-                          <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                          <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
                             Vendor / Payee
                             <select
                               value={selectedVendorId}
                               onChange={(e) => setSelectedVendorId(e.target.value)}
-                              className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                              className="mt-1 h-10 w-full rounded border border-stone-300 bg-stone-50 px-3 text-sm text-neutral-900 dark:border-[#2A2A2A] dark:bg-[#111111] dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
                             >
                               <option value="">Direct Reimbursement / Student Organizer</option>
                               {vendors.map((vendor) => (
@@ -420,7 +420,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                             <div className="sm:col-span-2">
                               <label className="block text-xs font-semibold text-amber-700 dark:text-amber-400">
                                 Reason for Reduction (Mandatory)
-                                <span className="text-[11px] font-normal text-zinc-500 dark:text-slate-400 ml-1">
+                                <span className="text-[11px] font-normal text-neutral-500 dark:text-neutral-400 ml-1">
                                   Justify why the disbursed amount (${numericDisbursed.toLocaleString()}) is reduced from requested (${requestedAmount.toLocaleString()})
                                 </span>
                                 <textarea
@@ -431,8 +431,8 @@ export const FinanceDesk = ({ onNavigate }) => {
                                   placeholder="Provide formal institutional justification for budget reduction..."
                                   className={`mt-1 w-full rounded border p-2.5 text-xs transition-colors outline-none ${
                                     !reductionReason.trim()
-                                      ? 'border-amber-400 bg-amber-50/20 dark:border-amber-500/40 dark:bg-amber-950/10 focus:ring-amber-500 text-zinc-900 dark:text-white'
-                                      : 'border-zinc-300 bg-white dark:border-white/15 dark:bg-black text-zinc-900 dark:text-white'
+                                      ? 'border-amber-400 bg-amber-50/20 dark:border-amber-500/40 dark:bg-amber-950/10 focus:ring-amber-500 text-neutral-900 dark:text-neutral-100'
+                                      : 'border-stone-300 bg-stone-50 dark:border-[#2A2A2A] dark:bg-[#111111] text-neutral-900 dark:text-neutral-100'
                                   }`}
                                 />
                               </label>
@@ -467,59 +467,59 @@ export const FinanceDesk = ({ onNavigate }) => {
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-300 dark:hover:border-stone-600 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
               Total Fiscal Pool
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-[#252525] text-neutral-900 dark:text-stone-300">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+            <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               ${totalBudgetPool.toLocaleString()}
             </span>
-            <span className="text-xs font-semibold text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 font-sans">
               Active Budgets
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 font-sans">
             Live sanctioned allocations
           </p>
         </Card>
 
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-300 dark:hover:border-stone-600 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
               Committed Spent
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-[#252525] text-neutral-900 dark:text-stone-300">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+            <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               ${totalCommittedSpent.toLocaleString()}
             </span>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-sans">
+            <span className="text-xs font-semibold text-neutral-700 dark:text-stone-300 font-sans">
               {totalBudgetPool > 0
                 ? Math.round((totalCommittedSpent / totalBudgetPool) * 100)
                 : 0}
               %
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 font-sans">
             {overrunsCount} budget overrun{overrunsCount === 1 ? '' : 's'} flagged
           </p>
         </Card>
 
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-300 dark:hover:border-stone-600 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
               Pending Disbursements
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-[#252525] text-neutral-900 dark:text-stone-300">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
@@ -527,33 +527,33 @@ export const FinanceDesk = ({ onNavigate }) => {
             <span className="font-serif text-3xl font-bold text-amber-600 dark:text-amber-400">
               {pendingDisbursementsCount}
             </span>
-            <span className="text-xs font-semibold text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 font-sans">
               Queued
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 font-sans">
             Awaiting financial sign-off
           </p>
         </Card>
 
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-300 dark:hover:border-stone-600 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
               Registered Vendors
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-[#252525] text-neutral-900 dark:text-stone-300">
               <Building2 className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+            <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               {vendors.length}
             </span>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-sans">
+            <span className="text-xs font-semibold text-neutral-700 dark:text-stone-300 font-sans">
               Registered
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 font-sans">
             Master university vendor catalog
           </p>
         </Card>
@@ -564,15 +564,15 @@ export const FinanceDesk = ({ onNavigate }) => {
         title="Pending &amp; Authorized Vendor Disbursements"
         subtitle="Expenses, submitted receipts, and payment records loaded from the finance service."
         headerAction={
-          <div className="flex items-center gap-1 border border-zinc-200 dark:border-white/10 p-0.5 rounded text-xs">
+          <div className="flex items-center gap-1 border border-stone-200 dark:border-[#2A2A2A] bg-stone-100 dark:bg-[#1A1A1A] p-0.5 rounded text-xs">
             {['All', 'Pending', 'Disbursed'].map((type) => (
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
                 className={`px-3 py-1 rounded text-[11px] font-semibold transition-colors ${
                   filterType === type
-                    ? 'bg-black text-white dark:bg-emerald-500 dark:text-black font-bold'
-                    : 'text-zinc-600 dark:text-slate-400 hover:text-black dark:hover:text-white'
+                    ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-bold'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
                 }`}
               >
                 {type}
@@ -585,7 +585,7 @@ export const FinanceDesk = ({ onNavigate }) => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-white/10 bg-zinc-50/70 dark:bg-white/[0.02] text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+              <tr className="border-b border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#151515] text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
                 <th className="py-3 px-5">Expense Ref</th>
                 <th className="py-3 px-5">Associated Event &amp; Category</th>
                 <th className="py-3 px-5">Vendor &amp; ID</th>
@@ -596,22 +596,22 @@ export const FinanceDesk = ({ onNavigate }) => {
                 <th className="py-3 px-5 text-right">Disbursement Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200/60 dark:divide-white/5 font-sans text-xs">
+            <tbody className="divide-y divide-stone-200 dark:divide-[#2A2A2A] font-sans text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-zinc-500 dark:text-slate-400">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-500" />
+                  <td colSpan={8} className="py-12 text-center text-neutral-500 dark:text-neutral-400">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-neutral-900 dark:text-stone-300" />
                     <p className="text-xs font-medium">Fetching finance records from FastAPI...</p>
                   </td>
                 </tr>
               ) : filteredDisbursements.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-zinc-500 dark:text-slate-400">
-                    <DollarSign className="w-8 h-8 mx-auto mb-2 text-zinc-400 dark:text-slate-500 opacity-60" />
-                    <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">
+                  <td colSpan={8} className="py-12 text-center text-neutral-500 dark:text-neutral-400">
+                    <DollarSign className="w-8 h-8 mx-auto mb-2 text-neutral-400 dark:text-neutral-500 opacity-60" />
+                    <p className="font-semibold text-sm text-neutral-800 dark:text-neutral-200">
                       No records found
                     </p>
-                    <p className="text-xs text-zinc-400 dark:text-slate-500 mt-0.5">
+                    <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
                       No vendor disbursements matching the selected filter.
                     </p>
                   </td>
@@ -620,18 +620,18 @@ export const FinanceDesk = ({ onNavigate }) => {
                 filteredDisbursements.map((item) => (
                   <tr
                     key={item.id}
-                    className={`hover:bg-zinc-50/80 dark:hover:bg-white/[0.03] transition-colors ${
+                    className={`hover:bg-stone-50/80 dark:hover:bg-white/[0.02] transition-colors ${
                       item.duplicateFlag ? 'bg-rose-50/30 dark:bg-rose-950/10' : ''
                     }`}
                   >
-                    <td className="py-4 px-5 font-mono font-bold text-zinc-900 dark:text-white">
+                    <td className="py-4 px-5 font-mono font-bold text-neutral-900 dark:text-neutral-100">
                       {item.id}
                     </td>
                     <td className="py-4 px-5">
-                      <p className="font-serif font-bold text-zinc-950 dark:text-white">
+                      <p className="font-serif font-bold text-neutral-900 dark:text-neutral-100">
                         {item.eventTitle}
                       </p>
-                      <p className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                         {item.proposalId.length > 8
                           ? `${item.proposalId.slice(0, 8)}...`
                           : item.proposalId}{' '}
@@ -639,20 +639,20 @@ export const FinanceDesk = ({ onNavigate }) => {
                       </p>
                     </td>
                     <td className="py-4 px-5">
-                      <span className="font-semibold text-zinc-800 dark:text-slate-200 block">
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200 block">
                         {item.vendorName}
                       </span>
-                      <span className="text-[10px] font-mono text-zinc-400 dark:text-slate-500">
+                      <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500">
                         {item.vendorId}
                       </span>
                     </td>
-                    <td className="py-4 px-5 text-zinc-600 dark:text-slate-300">
+                    <td className="py-4 px-5 text-neutral-600 dark:text-neutral-300">
                       {item.invoiceDate}
                     </td>
-                    <td className="py-4 px-5 font-bold text-zinc-950 dark:text-white">
+                    <td className="py-4 px-5 font-bold text-neutral-900 dark:text-neutral-100">
                       ${item.amount.toLocaleString()}
                     </td>
-                    <td className="py-4 px-5 font-mono text-[11px] text-zinc-500 dark:text-slate-400">
+                    <td className="py-4 px-5 font-mono text-[11px] text-neutral-500 dark:text-neutral-400">
                       {item.receiptId ? (
                         <button className="underline" onClick={() => handleDownloadReceipt(item.receiptId, item.receiptName)}>{item.receiptName}</button>
                       ) : item.receiptName}
@@ -664,7 +664,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                     </td>
                     <td className="py-4 px-5 text-right whitespace-nowrap">
                       {item.status === 'Disbursed' ? (
-                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
+                        <span className="text-xs font-semibold text-neutral-900 dark:text-stone-300 flex items-center justify-end gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Paid ({item.paymentMethod})
                         </span>

@@ -9,22 +9,22 @@ export const ThemeToggle = ({ className = '', isTransparent = false }) => {
     <button
       onClick={toggleTheme}
       type="button"
-      className={`relative inline-flex items-center justify-center w-9 h-9 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${
+      className={`relative inline-flex items-center justify-center w-9 h-9 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-stone-400/40 ${
         isTransparent
           ? isDark
-            ? 'bg-black/60 border-white/20 text-yellow-400 hover:text-yellow-300 hover:border-white/40 hover:bg-black/80 backdrop-blur-md shadow-sm'
-            : 'bg-white/10 border-white/25 text-white hover:bg-white/20 hover:border-white/40 backdrop-blur-md shadow-sm'
+            ? 'bg-[#111111]/70 border-white/15 text-stone-200 hover:text-white hover:border-white/30 hover:bg-[#111111]/90 backdrop-blur-md shadow-sm'
+            : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 backdrop-blur-md shadow-sm'
           : isDark
-          ? 'bg-black border-white/20 text-yellow-400 hover:text-yellow-300 hover:border-white/40 hover:bg-zinc-900 shadow-sm'
-          : 'bg-white border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 hover:border-zinc-300 shadow-sm'
+          ? 'bg-[#1A1A1A] border-[#2A2A2A] text-stone-200 hover:text-stone-100 hover:border-[#383838] hover:bg-[#222222] shadow-sm'
+          : 'bg-stone-100 border-stone-200 text-neutral-800 hover:text-neutral-950 hover:bg-stone-200 hover:border-stone-300 shadow-sm'
       } ${className}`}
-      title={isDark ? 'Switch to Light Mode' : 'Switch to Pitch Black'}
-      aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Pitch Black'}
+      title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
       {isDark ? (
-        <Sun className="w-5 h-5 text-xl transition-transform duration-200 hover:rotate-45" />
+        <Sun className="w-5 h-5 text-stone-200 transition-transform duration-200 hover:rotate-45" />
       ) : (
-        <Moon className="w-5 h-5 text-xl transition-transform duration-200 hover:-rotate-12" />
+        <Moon className="w-5 h-5 text-neutral-800 transition-transform duration-200 hover:-rotate-12" />
       )}
     </button>
   );

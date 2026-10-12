@@ -69,8 +69,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {isRegistering && <Input label="Full name" icon={User} value={name} onChange={(e) => setName(e.target.value)} required minLength={2} />}
         {/* Security protocol banner */}
-        <div className="p-3 rounded-lg bg-zinc-100 dark:bg-emerald-950/20 border border-zinc-200 dark:border-emerald-500/20 flex items-start gap-2.5 text-xs text-zinc-700 dark:text-slate-300 font-sans">
-          <KeyRound className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+        <div className="p-3 rounded-lg bg-stone-50 dark:bg-[#111111] border border-stone-200 dark:border-[#2A2A2A] flex items-start gap-2.5 text-xs text-neutral-700 dark:text-neutral-300 font-sans">
+          <KeyRound className="w-4 h-4 text-neutral-700 dark:text-neutral-300 shrink-0 mt-0.5" />
           <span>
             Hybrid Session-JWT binding active. Credentials authenticate directly against
             FastAPI authenticates your account and loads its assigned access roles.
@@ -78,8 +78,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
         </div>
 
         {errorMessage && (
-          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-500/30 flex items-start gap-2 text-xs text-amber-800 dark:text-amber-200 font-sans">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+          <div className="p-3 rounded-lg bg-stone-100 dark:bg-[#1C1616] border border-stone-300 dark:border-rose-900/30 flex items-start gap-2 text-xs text-neutral-800 dark:text-rose-200 font-sans">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-neutral-700 dark:text-rose-300" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -107,8 +107,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
         />
 
         {/* Quick Demo Role Presets */}
-        {!isRegistering && <div className="pt-2 border-t border-zinc-100 dark:border-white/5">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-slate-400 block mb-2">
+        {!isRegistering && <div className="pt-2 border-t border-stone-200 dark:border-[#2A2A2A]">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-neutral-400 block mb-2">
             Demo account shortcuts
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -117,8 +117,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               onClick={() => handleQuickPreset('Student Organizer', 'prakhar.sethi@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Student Organizer'
-                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
-                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
+                  ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 border-transparent font-bold'
+                  : 'bg-stone-50 dark:bg-[#111111] border-stone-200 dark:border-[#2A2A2A] text-neutral-700 dark:text-neutral-300 hover:bg-stone-100 dark:hover:bg-[#1A1A1A]'
               }`}
             >
               Student
@@ -128,8 +128,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               onClick={() => handleQuickPreset('Faculty Advisor', 'advisor@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Faculty Advisor'
-                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
-                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
+                  ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 border-transparent font-bold'
+                  : 'bg-stone-50 dark:bg-[#111111] border-stone-200 dark:border-[#2A2A2A] text-neutral-700 dark:text-neutral-300 hover:bg-stone-100 dark:hover:bg-[#1A1A1A]'
               }`}
             >
               Faculty Advisor
@@ -139,8 +139,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               onClick={() => handleQuickPreset('Security Officer', 'security@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Security Officer'
-                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
-                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
+                  ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 border-transparent font-bold'
+                  : 'bg-stone-50 dark:bg-[#111111] border-stone-200 dark:border-[#2A2A2A] text-neutral-700 dark:text-neutral-300 hover:bg-stone-100 dark:hover:bg-[#1A1A1A]'
               }`}
             >
               Security
@@ -150,8 +150,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               onClick={() => handleQuickPreset('Finance Officer', 'finance@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Finance Officer'
-                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
-                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
+                  ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 border-transparent font-bold'
+                  : 'bg-stone-50 dark:bg-[#111111] border-stone-200 dark:border-[#2A2A2A] text-neutral-700 dark:text-neutral-300 hover:bg-stone-100 dark:hover:bg-[#1A1A1A]'
               }`}
             >
               Finance
@@ -161,8 +161,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               onClick={() => handleQuickPreset('Admin', 'admin@vit.edu')}
               className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
                 selectedRole === 'Admin'
-                  ? 'bg-black text-white dark:bg-emerald-500 dark:text-black border-transparent font-bold'
-                  : 'bg-zinc-100 dark:bg-white/5 border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-slate-300'
+                  ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 border-transparent font-bold'
+                  : 'bg-stone-50 dark:bg-[#111111] border-stone-200 dark:border-[#2A2A2A] text-neutral-700 dark:text-neutral-300 hover:bg-stone-100 dark:hover:bg-[#1A1A1A]'
               }`}
             >
               Admin
@@ -190,9 +190,9 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
           </Button>
         </div>
       </form>
-      <p className="mt-4 text-center text-xs text-zinc-500 dark:text-slate-400">
+      <p className="mt-4 text-center text-xs text-stone-500 dark:text-neutral-400">
         {isRegistering ? 'Already registered?' : 'New student organizer?'}{' '}
-        <button type="button" className="font-semibold text-emerald-600 dark:text-emerald-400" onClick={() => { setIsRegistering((value) => !value); setErrorMessage(null); }}>
+        <button type="button" className="font-semibold text-neutral-900 dark:text-stone-200 underline" onClick={() => { setIsRegistering((value) => !value); setErrorMessage(null); }}>
           {isRegistering ? 'Sign in' : 'Create an account'}
         </button>
       </p>

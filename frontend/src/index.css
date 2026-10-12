@@ -4,39 +4,33 @@
 
 @layer base {
   :root {
-    --bg-primary: #FFFFFF;
-    --bg-secondary: #F5F5F5;
-    --bg-tertiary: #EBEBEB;
-    --text-primary: #000000;
-    --text-secondary: #757575;
-    --text-muted: #9E9E9E;
-    --border-color: #E0E0E0;
-    --border-hairline: #CCCCCC;
-    --accent-primary: #000000;
-    --accent-emerald: #10B981;
-    --accent-teal: #0F766E;
-    --accent-purple: #382BF0;
-    --card-bg: #FFFFFF;
-    --card-border: #E5E5E5;
-    --badge-bg: #F5F5F5;
+    --bg-primary: #F7F7F5;
+    --bg-secondary: #F5F5F4;
+    --bg-tertiary: #E7E5E4;
+    --text-primary: #171717;
+    --text-secondary: #525252;
+    --text-muted: #737373;
+    --border-color: #E7E5E4;
+    --border-hairline: #D6D3D1;
+    --accent-primary: #171717;
+    --card-bg: #F5F5F4;
+    --card-border: #E7E5E4;
+    --badge-bg: #E7E5E4;
   }
 
   .dark {
-    --bg-primary: #000000;
-    --bg-secondary: #000000;
-    --bg-tertiary: #000000;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A1A1AA;
-    --text-muted: #71717A;
-    --border-color: rgba(255, 255, 255, 0.12);
-    --border-hairline: rgba(255, 255, 255, 0.2);
-    --accent-primary: #10B981;
-    --accent-emerald: #10B981;
-    --accent-teal: #0F766E;
-    --accent-purple: #9898FF;
-    --card-bg: #000000;
-    --card-border: rgba(255, 255, 255, 0.12);
-    --badge-bg: rgba(16, 185, 129, 0.1);
+    --bg-primary: #111111;
+    --bg-secondary: #1A1A1A;
+    --bg-tertiary: #262626;
+    --text-primary: #E5E5E5;
+    --text-secondary: #A3A3A3;
+    --text-muted: #737373;
+    --border-color: #2A2A2A;
+    --border-hairline: #333333;
+    --accent-primary: #E5E5E5;
+    --card-bg: #1A1A1A;
+    --card-border: #2A2A2A;
+    --badge-bg: #222222;
   }
 
   body {
@@ -59,11 +53,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.3);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 3px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: #2A2A2A;
 }
 
 /* Glassmorphism helpers */

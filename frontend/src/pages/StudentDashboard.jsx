@@ -291,34 +291,34 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
       {/* Top Banner / Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-zinc-200 dark:border-white/10">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="teal">Module 01 &amp; 02 Suite</Badge>
             <div className="flex items-center gap-1.5 text-xs font-sans">
               {isLiveConnected ? (
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span className="flex items-center gap-1 text-neutral-800 dark:text-neutral-300 font-semibold">
                   <Wifi className="w-3.5 h-3.5" />
                   <span>FastAPI Connected (GET /api/v1/proposals/)</span>
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                <span className="flex items-center gap-1 text-neutral-600 dark:text-neutral-400 font-semibold">
                   <WifiOff className="w-3.5 h-3.5" />
                   <span>Backend Synchronizing</span>
                 </span>
               )}
             </div>
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             {dashboardTitle}
           </h1>
-          <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
+          <p className="text-sm text-stone-600 dark:text-neutral-300 font-sans mt-1">
             Welcome back,{' '}
-            <span className="font-semibold text-zinc-900 dark:text-white">
+            <span className="font-semibold text-neutral-900 dark:text-neutral-100">
               {currentUser?.name || currentUser?.email || 'User'}
             </span>{' '}
             &bull; {currentUser?.email} (
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+            <span className="text-neutral-800 dark:text-neutral-300 font-medium">
               {currentUser?.role || 'Student Organizer'}
             </span>
             )
@@ -367,7 +367,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       </div>
 
       {actionMessage && (
-        <div role="status" className="mb-5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200">
+        <div role="status" className="mb-5 rounded-lg border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-neutral-800 dark:border-[#2A2A2A] dark:bg-[#1A1A1A] dark:text-neutral-200">
           {actionMessage}
         </div>
       )}
@@ -378,19 +378,19 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
             {receiptRequests.map((expense) => {
               const upload = receiptUploads[expense.id] || {};
               return (
-                <div key={expense.id} className="grid grid-cols-1 gap-3 rounded-lg border border-zinc-200 p-4 dark:border-white/10 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+                <div key={expense.id} className="grid grid-cols-1 gap-3 rounded-lg border border-stone-200 p-4 dark:border-[#2A2A2A] md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
                   <div className="text-sm">
-                    <p className="font-semibold">{expense.category} · Expense #{expense.id}</p>
-                    <p className="text-xs text-zinc-500 dark:text-slate-400">Expected amount: ${Number(expense.amount).toLocaleString()}</p>
+                    <p className="font-semibold text-neutral-900 dark:text-neutral-100">{expense.category} · Expense #{expense.id}</p>
+                    <p className="text-xs text-stone-500 dark:text-neutral-400">Expected amount: ${Number(expense.amount).toLocaleString()}</p>
                   </div>
-                  <label className="text-xs font-semibold">Receipt amount
-                    <input type="number" min="0.01" step="0.01" value={upload.amount || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], amount: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-black" />
+                  <label className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">Receipt amount
+                    <input type="number" min="0.01" step="0.01" value={upload.amount || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], amount: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-stone-200 bg-stone-50 px-3 text-neutral-900 dark:border-[#2A2A2A] dark:bg-[#111111] dark:text-neutral-200" />
                   </label>
-                  <label className="text-xs font-semibold">Receipt date
-                    <input type="date" value={upload.date || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], date: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 dark:border-white/15 dark:bg-black" />
+                  <label className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">Receipt date
+                    <input type="date" value={upload.date || ''} onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], date: event.target.value } }))} className="mt-1 h-10 w-full rounded border border-stone-200 bg-stone-50 px-3 text-neutral-900 dark:border-[#2A2A2A] dark:bg-[#111111] dark:text-neutral-200" />
                   </label>
                   <div className="flex flex-wrap items-center gap-2">
-                    <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], file: event.target.files?.[0] || null } }))} className="max-w-48 text-xs" />
+                    <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setReceiptUploads((current) => ({ ...current, [expense.id]: { ...current[expense.id], file: event.target.files?.[0] || null } }))} className="max-w-48 text-xs text-stone-600 dark:text-neutral-400" />
                     <Button size="sm" variant="primary" disabled={actionInProgress === `receipt-${expense.id}`} onClick={() => handleUploadReceipt(expense.id)}>Upload Receipt</Button>
                   </div>
                 </div>
@@ -405,8 +405,8 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           <ul className="space-y-2">
             {studentReceipts.map((receipt) => (
               <li key={receipt.id} className="flex items-center justify-between gap-3 text-sm">
-                <span>{receipt.category} · Expense #{receipt.expenseId}</span>
-                <button className="text-emerald-700 underline dark:text-emerald-400" onClick={() => handleDownloadStudentReceipt(receipt)}>View receipt</button>
+                <span className="text-neutral-900 dark:text-neutral-200">{receipt.category} · Expense #{receipt.expenseId}</span>
+                <button className="text-neutral-900 underline dark:text-neutral-200 font-medium" onClick={() => handleDownloadStudentReceipt(receipt)}>View receipt</button>
               </li>
             ))}
           </ul>
@@ -415,90 +415,90 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-400 dark:hover:border-[#383838] transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans">
               Active Proposals
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-white/5 text-neutral-900 dark:text-neutral-200">
               <FileText className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+            <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               {activeProposalsCount}
             </span>
-            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 font-sans">
+            <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 font-sans">
               {inReviewCount} in review
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-stone-500 dark:text-neutral-400 font-sans">
             Live database records
           </p>
         </Card>
 
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-400 dark:hover:border-[#383838] transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans">
               Budget Allocated
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-white/5 text-neutral-900 dark:text-neutral-200">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+            <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               ${totalAllocatedBudget.toLocaleString()}
             </span>
-            <span className="text-xs font-semibold text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-semibold text-stone-500 dark:text-neutral-400 font-sans">
               total
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-stone-500 dark:text-neutral-400 font-sans">
             Committed institutional sanction
           </p>
         </Card>
 
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-400 dark:hover:border-[#383838] transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans">
               Reserved Venues
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-white/5 text-neutral-900 dark:text-neutral-200">
               <Building className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+            <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               {reservedVenuesCount}
             </span>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-sans">
+            <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 font-sans">
               Scheduled
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-stone-500 dark:text-neutral-400 font-sans">
             Campus halls &amp; auditoriums
           </p>
         </Card>
 
-        <Card className="hover:border-zinc-400 dark:hover:border-emerald-500/40 transition-colors">
+        <Card className="hover:border-stone-400 dark:hover:border-[#383838] transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans">
               Compliance Rate
             </span>
-            <div className="p-2 rounded bg-zinc-100 dark:bg-emerald-500/10 text-black dark:text-emerald-400">
+            <div className="p-2 rounded bg-stone-200 dark:bg-white/5 text-neutral-900 dark:text-neutral-200">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               {complianceRate}
             </span>
-            <span className="text-xs font-semibold text-zinc-500 dark:text-slate-400 font-sans">
+            <span className="text-xs font-semibold text-stone-500 dark:text-neutral-400 font-sans">
               Passing
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-slate-400 font-sans">
+          <p className="mt-2 text-xs text-stone-500 dark:text-neutral-400 font-sans">
             Pre-screening validation rate
           </p>
         </Card>
@@ -519,15 +519,15 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
                 className="h-8 text-xs"
               />
             </div>
-            <div className="flex items-center gap-1 border border-zinc-200 dark:border-white/10 p-0.5 rounded text-xs">
+            <div className="flex items-center gap-1 border border-stone-200 dark:border-[#2A2A2A] p-0.5 rounded text-xs">
               {['All', 'Pending Review', 'Approved', 'Draft', 'Withdrawn'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
                   className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
                     statusFilter === status
-                      ? 'bg-black text-white dark:bg-emerald-500 dark:text-black font-bold'
-                      : 'text-zinc-600 dark:text-slate-400 hover:text-black dark:hover:text-white'
+                      ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-bold'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
                   }`}
                 >
                   {status}
@@ -541,7 +541,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-white/10 bg-zinc-50/70 dark:bg-white/[0.02] text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+              <tr className="border-b border-stone-200 dark:border-[#2A2A2A] bg-stone-100/70 dark:bg-[#161616] text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans">
                 <th className="py-3 px-5">Proposal ID</th>
                 <th className="py-3 px-5">Event Title &amp; Category</th>
                 <th className="py-3 px-5">Target Date</th>
@@ -552,22 +552,22 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
                 <th className="py-3 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200/60 dark:divide-white/5 font-sans text-xs">
+            <tbody className="divide-y divide-stone-200/60 dark:divide-[#2A2A2A] font-sans text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-zinc-500 dark:text-slate-400">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-500" />
+                  <td colSpan={8} className="py-12 text-center text-stone-500 dark:text-neutral-400">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-stone-400 dark:text-neutral-500" />
                     <p className="text-xs font-medium">Fetching proposals from FastAPI...</p>
                   </td>
                 </tr>
               ) : filteredProposals.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-zinc-500 dark:text-slate-400">
-                    <FileText className="w-8 h-8 mx-auto mb-2 text-zinc-400 dark:text-slate-500 opacity-60" />
-                    <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">
+                  <td colSpan={8} className="py-12 text-center text-stone-500 dark:text-neutral-400">
+                    <FileText className="w-8 h-8 mx-auto mb-2 text-stone-400 dark:text-neutral-500 opacity-60" />
+                    <p className="font-semibold text-sm text-neutral-800 dark:text-neutral-200">
                       No records found
                     </p>
-                    <p className="text-xs text-zinc-400 dark:text-slate-500 mt-0.5">
+                    <p className="text-xs text-stone-400 dark:text-neutral-500 mt-0.5">
                       No event proposals matching your current role view or search filter.
                     </p>
                   </td>
@@ -576,36 +576,36 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
                 filteredProposals.map((proposal) => (
                   <tr
                     key={proposal.id}
-                    className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.03] transition-colors group"
+                    className="hover:bg-stone-200/50 dark:hover:bg-[#202020] transition-colors group"
                   >
-                    <td className="py-4 px-5 font-mono font-bold text-zinc-900 dark:text-white">
+                    <td className="py-4 px-5 font-mono font-bold text-neutral-900 dark:text-neutral-100">
                       {proposal.id.length > 8 ? `${proposal.id.slice(0, 8)}...` : proposal.id}
                     </td>
                     <td className="py-4 px-5">
-                      <p className="font-serif font-bold text-sm text-zinc-950 dark:text-white group-hover:text-black dark:group-hover:text-emerald-300 transition-colors">
+                      <p className="font-serif font-bold text-sm text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-950 dark:group-hover:text-stone-200 transition-colors">
                         {proposal.title}
                       </p>
-                      <p className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">
                         {proposal.category} &bull; {proposal.venue}
                       </p>
                     </td>
                     <td className="py-4 px-5 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 text-zinc-700 dark:text-slate-300">
-                        <Calendar className="w-3.5 h-3.5 text-zinc-400 dark:text-slate-500" />
+                      <div className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300">
+                        <Calendar className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-500" />
                         <span>{proposal.targetDate}</span>
                       </div>
-                      <span className="text-[10px] text-zinc-400 dark:text-slate-400 block mt-0.5">
+                      <span className="text-[10px] text-stone-400 dark:text-neutral-400 block mt-0.5">
                         {proposal.time}
                       </span>
                     </td>
                     <td className="py-4 px-5 whitespace-nowrap">
-                      <div className="flex items-center gap-1 text-zinc-800 dark:text-slate-200 font-semibold">
-                        <Users className="w-3.5 h-3.5 text-zinc-400" />
+                      <div className="flex items-center gap-1 text-neutral-800 dark:text-neutral-200 font-semibold">
+                        <Users className="w-3.5 h-3.5 text-stone-400" />
                         <span>{proposal.expectedParticipants}</span>
-                        <span className="text-zinc-400 font-normal">/ {proposal.venueCapacity}</span>
+                        <span className="text-stone-400 font-normal">/ {proposal.venueCapacity}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-5 whitespace-nowrap font-semibold text-zinc-900 dark:text-white">
+                    <td className="py-4 px-5 whitespace-nowrap font-semibold text-neutral-900 dark:text-neutral-100">
                       ${proposal.allocatedBudget.toLocaleString()}
                     </td>
                     <td className="py-4 px-5 whitespace-nowrap">

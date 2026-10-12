@@ -21,30 +21,30 @@ export const Button = ({
   };
 
   const variantStyles = {
-    // Light: Solid Black -> Dark: Emerald Ray
+    // Primary: Editorial Solid Neutral (Dark in Light Mode, Soft White in Dark Mode)
     primary:
-      'bg-black text-white hover:bg-zinc-800 shadow-sm focus:ring-black/20 ' +
-      'dark:bg-emerald-500 dark:text-black dark:hover:bg-emerald-400 dark:shadow-[0_0_16px_rgba(16,185,129,0.35)] dark:focus:ring-emerald-400/30',
+      'bg-neutral-900 text-stone-50 hover:bg-neutral-800 shadow-sm focus:ring-neutral-900/20 ' +
+      'dark:bg-stone-200 dark:text-neutral-900 dark:hover:bg-stone-300 dark:shadow-none dark:focus:ring-stone-300/30',
 
-    // Light: Clean Academic Border -> Dark: Translucent Pitch Black Glass
+    // Secondary: Elevated subtle surface with hyper-subtle borders
     secondary:
-      'bg-white text-zinc-900 border border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 ' +
-      'dark:bg-white/[0.05] dark:text-white dark:border-white/10 dark:hover:border-emerald-500/40 dark:hover:text-emerald-400 dark:hover:bg-white/[0.08]',
+      'bg-stone-100 text-neutral-900 border border-stone-200 hover:bg-stone-200/60 hover:border-stone-300 ' +
+      'dark:bg-[#1A1A1A] dark:text-neutral-200 dark:border-[#2A2A2A] dark:hover:bg-[#222222] dark:hover:text-neutral-100 dark:hover:border-[#383838]',
 
     // Tertiary / Ghost
     ghost:
-      'bg-transparent text-zinc-600 hover:text-black hover:bg-zinc-100 ' +
-      'dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/[0.05]',
+      'bg-transparent text-neutral-600 hover:text-neutral-900 hover:bg-stone-100 ' +
+      'dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-[#1A1A1A]',
 
     // Danger / Critical Actions
     danger:
-      'bg-rose-600 text-white hover:bg-rose-700 shadow-sm focus:ring-rose-500/30 ' +
-      'dark:bg-rose-950/80 dark:text-rose-200 dark:border dark:border-rose-500/30 dark:hover:bg-rose-900/80',
+      'bg-neutral-900 text-rose-300 border border-rose-900/40 hover:bg-neutral-800 shadow-sm ' +
+      'dark:bg-[#1A1A1A] dark:text-rose-300 dark:border dark:border-rose-800/40 dark:hover:bg-[#222222]',
 
-    // Patina Teal Accent (Stitch secondary)
+    // Monochrome Accent (replaces legacy teal)
     teal:
-      'bg-[#0F766E] text-white hover:bg-[#115E59] shadow-sm ' +
-      'dark:bg-[#0F766E] dark:text-white dark:border dark:border-teal-400/30 dark:hover:bg-teal-700',
+      'bg-neutral-900 text-stone-50 hover:bg-neutral-800 shadow-sm ' +
+      'dark:bg-stone-200 dark:text-neutral-900 dark:hover:bg-stone-300',
   };
 
   return (
