@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   RefreshCw,
   Download,
+  AlertTriangle,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
@@ -24,10 +25,10 @@ export const FinanceDesk = ({ onNavigate }) => {
   const [budgets, setBudgets] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [paymentInProgress, setPaymentInProgress] = useState(null);
-  const [budgetForm, setBudgetForm] = useState({ proposal_id: '', allocated_amount: '' });
-  const [expenseForm, setExpenseForm] = useState({
-    budget_id: '', vendor_id: '', amount: '', category: '',
-  });
+  const [selectedProposalId, setSelectedProposalId] = useState('');
+  const [disbursedAmount, setDisbursedAmount] = useState('');
+  const [reductionReason, setReductionReason] = useState('');
+  const [selectedVendorId, setSelectedVendorId] = useState('');
 
   const fetchFinanceData = async () => {
     setLoading(true);
@@ -96,38 +97,54 @@ export const FinanceDesk = ({ onNavigate }) => {
     }
   };
 
-  const handleCreateBudget = async (event) => {
+  const handleUnifiedSubmit = async (event) => {
     event.preventDefault();
+    if (!selectedProposalId || !disbursedAmount) return;
+    setNotification(null);
     try {
-      const budgetPayload = { allocated_amount: Number(budgetForm.allocated_amount) };
-      const existingBudget = budgets.find((budget) => budget.proposal_id === budgetForm.proposal_id);
-      if (existingBudget) {
-        await financeApi.updateBudget(budgetForm.proposal_id, budgetPayload);
-      } else {
-        await financeApi.createBudget({ proposal_id: budgetForm.proposal_id, ...budgetPayload });
-      }
-      setBudgetForm({ proposal_id: '', allocated_amount: '' });
-      setNotification('Requested and disbursed budget amounts synchronized.');
-      await fetchFinanceData();
-    } catch (err) {
-      setNotification(err.response?.data?.detail || 'Budget could not be saved.');
-    }
-  };
+      const numericDisbursed = Number(disbursedAmount);
+      const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
+      const requestedAmount = Number(selectedProposal?.team_data?.requested_budget || 0);
 
-  const handleSubmitExpense = async (event) => {
-    event.preventDefault();
-    try {
-      await financeApi.submitExpense({
-        budget_id: Number(expenseForm.budget_id),
-        ...(expenseForm.vendor_id ? { vendor_id: Number(expenseForm.vendor_id) } : {}),
-        amount: Number(expenseForm.amount),
-        category: expenseForm.category,
+      if (requestedAmount > 0 && numericDisbursed > requestedAmount) {
+        setNotification(`Disbursed amount ($${numericDisbursed.toLocaleString()}) cannot exceed the requested budget ($${requestedAmount.toLocaleString()}).`);
+        return;
+      }
+
+      const isReduced = requestedAmount > 0 && numericDisbursed > 0 && numericDisbursed < requestedAmount;
+      if (isReduced && !reductionReason.trim()) {
+        setNotification('Reason for reduction is mandatory when disbursing less than the requested budget.');
+        return;
+      }
+
+      let currentBudget = budgets.find((b) => b.proposal_id === selectedProposalId);
+      const budgetPayload = {
+        allocated_amount: numericDisbursed,
+        ...(isReduced ? { reduction_reason: reductionReason.trim() } : {}),
+      };
+
+      if (currentBudget) {
+        currentBudget = await financeApi.updateBudget(selectedProposalId, budgetPayload);
+      } else {
+        currentBudget = await financeApi.createBudget({
+          proposal_id: selectedProposalId,
+          ...budgetPayload,
+        });
+      }
+
+      // Record unified expense and request receipt
+      const createdExpense = await financeApi.submitExpense({
+        budget_id: currentBudget.id,
+        ...(selectedVendorId ? { vendor_id: Number(selectedVendorId) } : {}),
+        amount: numericDisbursed,
+        category: selectedProposal?.category || selectedProposal?.details?.objective || 'Operational',
       });
-      setExpenseForm({ budget_id: '', vendor_id: '', amount: '', category: '' });
-      setNotification('Expense recorded. Request supporting documentation from the organizer when ready.');
+
+      await financeApi.requestExpenseReceipt(createdExpense.id);
+      setNotification(`Disbursement of $${numericDisbursed.toLocaleString()} recorded and receipt requested from student organizer.`);
       await fetchFinanceData();
     } catch (err) {
-      setNotification(err.response?.data?.detail || 'Expense could not be submitted.');
+      setNotification(err.response?.data?.detail || 'Could not process budget disbursement and receipt request.');
     }
   };
 
@@ -236,76 +253,215 @@ export const FinanceDesk = ({ onNavigate }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-8">
-        <Card title="Allocate an Event Budget" subtitle="Create a budget for a submitted proposal.">
-          <form onSubmit={handleCreateBudget} className="space-y-3">
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Event proposal
-              <select
-                required
-                value={budgetForm.proposal_id}
-                onChange={(event) => setBudgetForm((prev) => ({ ...prev, proposal_id: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
-              >
-                <option value="">Choose a proposal</option>
-                {proposals.map((proposal) => (
-                  <option key={proposal.id} value={proposal.id}>{proposal.title} — requested ${Number(proposal.team_data?.requested_budget || 0).toLocaleString()}</option>
-                ))}
-              </select>
-            </label>
-            {budgetForm.proposal_id && (() => {
-              const proposal = proposals.find((item) => item.id === budgetForm.proposal_id);
-              const budget = budgets.find((item) => item.proposal_id === budgetForm.proposal_id);
-              return (
-                <div className="grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 p-3 text-xs dark:border-white/10">
-                  <p>Requested Budget <strong className="block text-sm">${Number(proposal?.team_data?.requested_budget || 0).toLocaleString()}</strong></p>
-                  <p>Current Disbursed <strong className="block text-sm">${Number(budget?.allocated_amount || 0).toLocaleString()}</strong></p>
-                </div>
-              );
-            })()}
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Disbursed Budget
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                required
-                value={budgetForm.allocated_amount}
-                onChange={(event) => setBudgetForm((prev) => ({ ...prev, allocated_amount: event.target.value }))}
-                className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
-                placeholder="0.00"
-              />
-            </label>
-            <Button type="submit" variant="primary" disabled={!budgetForm.proposal_id}>Save Disbursed Budget</Button>
-          </form>
-        </Card>
+      {/* UNIFIED BUDGET REVIEW & DISBURSEMENT PANEL */}
+      <div className="mb-8">
+        <Card
+          title="Budget Review & Disbursement"
+          subtitle="Unified review flow for proposal funds, itemized line items, and disbursement."
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                Event Proposal
+                <select
+                  value={selectedProposalId}
+                  onChange={(e) => {
+                    const propId = e.target.value;
+                    setSelectedProposalId(propId);
+                    setReductionReason('');
+                    const prop = proposals.find((p) => p.id === propId);
+                    const b = budgets.find((item) => item.proposal_id === propId);
+                    if (b?.allocated_amount) {
+                      setDisbursedAmount(String(b.allocated_amount));
+                    } else if (prop?.team_data?.requested_budget) {
+                      setDisbursedAmount(String(prop.team_data.requested_budget));
+                    } else {
+                      setDisbursedAmount('');
+                    }
+                  }}
+                  className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                >
+                  <option value="">Choose an Event Proposal for Review</option>
+                  {proposals.map((proposal) => (
+                    <option key={proposal.id} value={proposal.id}>
+                      {proposal.title} (Requested: ${Number(proposal.team_data?.requested_budget || 0).toLocaleString()})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
-        <Card title="Record an Expense" subtitle="Record the expense first, then request a receipt from the student organizer.">
-          <form onSubmit={handleSubmitExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Budget
-              <select required value={expenseForm.budget_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, budget_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
-                <option value="">Choose a budget</option>
-                {budgets.map((budget) => <option key={budget.id} value={budget.id}>{proposals.find((proposal) => proposal.id === budget.proposal_id)?.title || budget.proposal_id}</option>)}
-              </select>
-            </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Vendor
-              <select value={expenseForm.vendor_id} onChange={(event) => setExpenseForm((prev) => ({ ...prev, vendor_id: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black">
-                <option value="">Direct reimbursement</option>
-                {vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}
-              </select>
-            </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Expense amount
-              <input type="number" min="0.01" step="0.01" required value={expenseForm.amount} onChange={(event) => setExpenseForm((prev) => ({ ...prev, amount: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" />
-            </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
-              Category
-              <input required value={expenseForm.category} onChange={(event) => setExpenseForm((prev) => ({ ...prev, category: event.target.value }))} className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black" placeholder="Catering, Logistics…" />
-            </label>
-            <div className="sm:col-span-2"><Button type="submit" variant="primary" disabled={!budgets.length}>Record Expense</Button></div>
-          </form>
+            {selectedProposalId && (() => {
+              const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
+              const existingBudget = budgets.find((b) => b.proposal_id === selectedProposalId);
+              const itemizedSubExpenses = selectedProposal?.team_data?.expenses || selectedProposal?.team_data?.sub_expenses || [];
+
+              return (
+                <div className="space-y-5">
+                  {/* Read-Only Requested Amount & Current Allocation */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                        Requested Budget Amount (Read-Only)
+                      </span>
+                      <p className="text-2xl font-serif font-bold text-zinc-950 dark:text-white mt-1">
+                        ${Number(selectedProposal?.team_data?.requested_budget || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                        Current Disbursed Amount
+                      </span>
+                      <p className="text-2xl font-serif font-bold text-zinc-950 dark:text-white mt-1">
+                        ${Number(existingBudget?.allocated_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Read-Only Sub-Expenses Itemization Table */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans">
+                        Sub-Expenses Itemization (Submitted by Student Organizer)
+                      </span>
+                      <span className="text-xs text-zinc-500 dark:text-slate-400 font-sans">
+                        {itemizedSubExpenses.length} {itemizedSubExpenses.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
+                    <div className="border border-zinc-200 dark:border-white/10 rounded-lg overflow-hidden bg-white dark:bg-black">
+                      <table className="w-full text-left text-xs font-sans">
+                        <thead className="bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">
+                          <tr>
+                            <th className="p-3">Expense Item</th>
+                            <th className="p-3">Vendor</th>
+                            <th className="p-3 text-right">Amount ($)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
+                          {itemizedSubExpenses.length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className="p-4 text-center text-zinc-400 dark:text-zinc-500 italic">
+                                No itemized sub-expenses recorded for this proposal.
+                              </td>
+                            </tr>
+                          ) : (
+                            itemizedSubExpenses.map((exp, idx) => (
+                              <tr key={idx} className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02]">
+                                <td className="p-3 font-semibold text-zinc-900 dark:text-white">
+                                  {exp.item || exp.category || 'General Expense'}
+                                </td>
+                                <td className="p-3 text-zinc-600 dark:text-slate-300">
+                                  {exp.vendor || '—'}
+                                </td>
+                                <td className="p-3 text-right font-mono font-bold text-zinc-900 dark:text-white">
+                                  ${Number(exp.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const requestedAmount = Number(selectedProposal?.team_data?.requested_budget || 0);
+                    const numericDisbursed = Number(disbursedAmount);
+                    const isExceedingRequested = requestedAmount > 0 && numericDisbursed > requestedAmount;
+                    const isReduced = requestedAmount > 0 && numericDisbursed > 0 && numericDisbursed < requestedAmount;
+
+                    return (
+                      <form onSubmit={handleUnifiedSubmit} className="space-y-5 pt-3 border-t border-zinc-200 dark:border-white/10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                              Admitted / Disbursed Amount ($)
+                              <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                required
+                                value={disbursedAmount}
+                                onChange={(e) => setDisbursedAmount(e.target.value)}
+                                className={`mt-1 h-10 w-full rounded border px-3 text-sm transition-colors ${
+                                  isExceedingRequested
+                                    ? 'border-red-500 bg-red-50/20 text-red-600 dark:border-red-500/50 dark:bg-red-950/20 dark:text-red-300 focus:ring-red-500'
+                                    : 'border-zinc-300 bg-white dark:border-white/15 dark:bg-black text-zinc-900 dark:text-white'
+                                }`}
+                                placeholder="0.00"
+                              />
+                            </label>
+                            {isExceedingRequested && (
+                              <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <AlertTriangle className="w-4 h-4 shrink-0" />
+                                Disbursed amount (${numericDisbursed.toLocaleString()}) cannot exceed requested amount (${requestedAmount.toLocaleString()}).
+                              </p>
+                            )}
+                          </div>
+
+                          <label className="block text-xs font-semibold text-zinc-700 dark:text-slate-300">
+                            Vendor / Payee
+                            <select
+                              value={selectedVendorId}
+                              onChange={(e) => setSelectedVendorId(e.target.value)}
+                              className="mt-1 h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm dark:border-white/15 dark:bg-black"
+                            >
+                              <option value="">Direct Reimbursement / Student Organizer</option>
+                              {vendors.map((vendor) => (
+                                <option key={vendor.id} value={vendor.id}>
+                                  {vendor.name} ({vendor.bank_details})
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          {/* Mandatory Reason for Reduction when Disbursed < Requested */}
+                          {isReduced && (
+                            <div className="sm:col-span-2">
+                              <label className="block text-xs font-semibold text-amber-700 dark:text-amber-400">
+                                Reason for Reduction (Mandatory)
+                                <span className="text-[11px] font-normal text-zinc-500 dark:text-slate-400 ml-1">
+                                  Justify why the disbursed amount (${numericDisbursed.toLocaleString()}) is reduced from requested (${requestedAmount.toLocaleString()})
+                                </span>
+                                <textarea
+                                  required
+                                  rows={2}
+                                  value={reductionReason}
+                                  onChange={(e) => setReductionReason(e.target.value)}
+                                  placeholder="Provide formal institutional justification for budget reduction..."
+                                  className={`mt-1 w-full rounded border p-2.5 text-xs transition-colors outline-none ${
+                                    !reductionReason.trim()
+                                      ? 'border-amber-400 bg-amber-50/20 dark:border-amber-500/40 dark:bg-amber-950/10 focus:ring-amber-500 text-zinc-900 dark:text-white'
+                                      : 'border-zinc-300 bg-white dark:border-white/15 dark:bg-black text-zinc-900 dark:text-white'
+                                  }`}
+                                />
+                              </label>
+                              {!reductionReason.trim() && (
+                                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                                  A reason for reduction must be provided before proceeding.
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={!selectedProposalId || !disbursedAmount || isExceedingRequested || (isReduced && !reductionReason.trim())}
+                          >
+                            Save &amp; Request Receipt
+                          </Button>
+                        </div>
+                      </form>
+                    );
+                  })()}
+            </div>
+          );
+        })()}
+          </div>
         </Card>
       </div>
 
@@ -535,7 +691,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                             disabled={paymentInProgress === item.id}
                             className="text-[11px]"
                           >
-                            Disburse Wire
+                            Confirm Payment (Wire)
                           </Button>
                           <Button
                             variant="secondary"
@@ -544,7 +700,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                             disabled={paymentInProgress === item.id}
                             className="text-[11px]"
                           >
-                            UPI
+                            Confirm Payment (UPI)
                           </Button>
                         </div>
                       )}
