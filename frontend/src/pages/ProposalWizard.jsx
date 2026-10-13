@@ -406,7 +406,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-          Event Proposal Governance Wizard
+          Event Proposal Governance
         </h1>
       </div>
 
@@ -552,6 +552,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Calendar}
                     value={formData.targetDate}
                     onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
 
                   <Input
@@ -560,6 +561,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Calendar}
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
                 </div>
 
@@ -570,6 +572,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Clock}
                     value={formData.startTime}
                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
                   <Input
                     label="Daily End Time"
@@ -577,6 +580,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Clock}
                     value={formData.endTime}
                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
                 </div>
               </div>
@@ -1006,7 +1010,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                 disabled={submitting}
                 onClick={handleSaveDraft}
               >
-                {submitting ? 'Saving Draft...' : 'Save as Draft (POST /draft)'}
+                {submitting ? 'Saving Draft...' : 'Save As Draft'}
               </Button>
 
               <Button

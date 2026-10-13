@@ -299,7 +299,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
             <span className="font-semibold text-neutral-900 dark:text-neutral-100">
               {currentUser?.name || currentUser?.email || 'User'}
             </span>{' '}
-            &bull; {currentUser?.email} (
+            (
             <span className="text-neutral-800 dark:text-neutral-300 font-medium">
               {currentUser?.role || 'Student Organizer'}
             </span>
@@ -488,7 +488,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
 
       {/* PROPOSALS TABLE SECTION */}
       <Card
-        title="Event Proposals &amp; Status Matrix"
+        title="Event Proposals &amp; Status"
         headerAction={
           <div className="flex items-center gap-2">
             <div className="relative w-56 hidden sm:block">
