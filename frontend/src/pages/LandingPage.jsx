@@ -107,7 +107,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* FULL-VIEWPORT HERO SECTION (Centered Vertically and Horizontally) */}
-      <section className="relative w-full min-h-screen flex flex-col justify-center items-center overflow-hidden border-b border-zinc-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-16 pt-24 sm:pt-28">
+      <section className="relative w-full min-h-screen flex flex-col justify-center items-center overflow-hidden border-b border-stone-200 dark:border-[#2A2A2A] px-4 sm:px-6 lg:px-8 py-16 pt-24 sm:pt-28">
         {/* HTML5 Live Video Background */}
         <video
           src="/video.mp4"
@@ -126,16 +126,29 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
 
         {/* Vertically and Horizontally Centered Content */}
         <div className="max-w-5xl mx-auto text-center relative z-20 flex flex-col items-center justify-center">
+          {/* Platform Status Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-black/50 backdrop-blur-md mb-6 sm:mb-8 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-stone-300 animate-pulse" />
+            <span className="text-[11px] font-sans font-bold uppercase tracking-widest text-stone-200">
+              University Event &amp; Safety Platform
+            </span>
+            <span className="text-white/40">|</span>
+            <div className="flex items-center gap-1 text-[11px] font-medium text-stone-200">
+              <Play className="w-3 h-3 fill-current text-stone-300" />
+              <span>Portal</span>
+            </div>
+          </div>
+
           {/* Centered Hero Headline (Noto Serif Display) */}
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-white max-w-4xl mx-auto leading-[1.15] drop-shadow-md">
             University Event Management And{' '}
-            <span className="italic font-normal underline decoration-1 underline-offset-8 decoration-emerald-400/70 text-emerald-300">
+            <span className="italic font-normal underline decoration-1 underline-offset-8 decoration-stone-400/80 text-stone-200">
               Compliance Engine
             </span>
           </h1>
 
           {/* Product-Centric Subtitle */}
-          <p className="mt-5 sm:mt-6 font-sans text-base sm:text-lg lg:text-xl text-zinc-100 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow-sm">
+          <p className="mt-5 sm:mt-6 font-sans text-base sm:text-lg lg:text-xl text-stone-100 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow-sm">
             The modern digital hub for student clubs, faculty advisors, and campus
             administrators. Reserve campus venues, submit event proposals, manage budgets,
             and secure safety clearances in days—not weeks.
@@ -172,7 +185,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 }
               }}
               icon={ShieldCheck}
-              className="text-sm font-medium bg-black/40 border-white/30 text-white hover:bg-black/60 hover:text-emerald-300"
+              className="text-sm font-medium bg-black/40 border-white/30 text-white hover:bg-black/60 hover:text-stone-200"
             >
               {currentUser && currentUser.role === 'Student Organizer' ? 'My Dashboard' : 'Review Approvals'}
             </Button>
@@ -182,7 +195,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 size="lg"
                 onClick={() => onNavigate('student')}
                 icon={Users}
-                className="text-sm text-zinc-200 hover:text-white hover:bg-white/10"
+                className="text-sm text-stone-200 hover:text-white hover:bg-white/10"
               >
                 Go to Dashboard
               </Button>
@@ -192,7 +205,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                 size="lg"
                 onClick={onOpenAuth}
                 icon={Users}
-                className="text-sm text-zinc-200 hover:text-white hover:bg-white/10"
+                className="text-sm text-stone-200 hover:text-white hover:bg-white/10"
               >
                 Sign In to Portal
               </Button>
@@ -205,15 +218,15 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
                 5
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-stone-300 mt-1">
                 Documented Modules
               </p>
             </div>
             <div className="p-2 sm:p-3 text-center border-r border-white/10 last:border-r-0">
-              <p className="font-serif text-2xl sm:text-3xl font-bold text-emerald-400">
+              <p className="font-serif text-2xl sm:text-3xl font-bold text-stone-200">
                 4
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-stone-300 mt-1">
                 Resource Types
               </p>
             </div>
@@ -221,7 +234,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
                 24–48h
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-stone-300 mt-1">
                 Approval Workflow
               </p>
             </div>
@@ -229,7 +242,7 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               <p className="font-serif text-2xl sm:text-3xl font-bold text-white">
                 Audit
               </p>
-              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-zinc-300 mt-1">
+              <p className="text-[11px] font-sans font-semibold uppercase tracking-wider text-stone-300 mt-1">
                 Approval History
               </p>
             </div>
@@ -241,10 +254,10 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
               const el = document.getElementById('modules-grid');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="mt-8 sm:mt-10 inline-flex flex-col items-center text-[11px] font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer group"
+            className="mt-8 sm:mt-10 inline-flex flex-col items-center text-[11px] font-semibold text-stone-300 hover:text-white transition-colors cursor-pointer group"
           >
             <span className="mb-1 tracking-wider uppercase">Explore Features</span>
-            <ChevronDown className="w-4 h-4 animate-bounce text-emerald-400" />
+            <ChevronDown className="w-4 h-4 animate-bounce text-stone-300" />
           </button>
         </div>
       </section>
@@ -255,10 +268,10 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
           <Badge variant="teal" className="mb-3">
             Campus Operations Platform
           </Badge>
-          <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
             Everything You Need to Run Campus Events
           </h2>
-          <p className="mt-3 font-sans text-sm sm:text-base text-zinc-600 dark:text-slate-400">
+          <p className="mt-3 font-sans text-sm sm:text-base text-neutral-600 dark:text-neutral-400">
             Tailored tools designed for student organizers, faculty advisors, finance officers,
             and campus security teams.
           </p>
@@ -278,52 +291,52 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
                   }
                 }}
                 className="group cursor-pointer rounded-xl p-6 transition-all duration-300 relative overflow-hidden flex flex-col justify-between
-                  bg-white border border-zinc-200 hover:border-black hover:shadow-lg
-                  dark:bg-black dark:border-white/10 dark:hover:border-emerald-500/50 dark:hover:shadow-[0_10px_30px_-5px_rgba(16,185,129,0.15)]"
+                  bg-stone-100 border border-stone-200 hover:border-neutral-400 hover:shadow-md
+                  dark:bg-[#1A1A1A] dark:border-[#2A2A2A] dark:hover:border-stone-500"
               >
                 {/* Subtle top edge lighting */}
-                <div className="absolute top-0 inset-x-0 h-px bg-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-emerald-400/30 dark:to-transparent" />
+                <div className="absolute top-0 inset-x-0 h-px bg-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white/10 dark:to-transparent" />
 
                 <div>
                   <div className="flex items-center justify-between gap-3 mb-4">
-                    <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-zinc-400 dark:text-slate-400">
+                    <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-stone-400 dark:text-neutral-500">
                       {mod.number}
                     </span>
                     <Badge variant={mod.badgeVariant}>{mod.badge}</Badge>
                   </div>
 
                   <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-colors
-                    bg-zinc-100 text-black group-hover:bg-black group-hover:text-white
-                    dark:bg-emerald-500/10 dark:text-emerald-400 dark:border dark:border-emerald-500/30 dark:group-hover:bg-emerald-500/20">
+                    bg-stone-200 text-neutral-900 group-hover:bg-neutral-900 group-hover:text-stone-50
+                    dark:bg-white/5 dark:text-stone-300 dark:border dark:border-[#2A2A2A] dark:group-hover:bg-white/10">
                     <Icon className="w-6 h-6" />
                   </div>
 
-                  <h3 className="font-serif text-xl font-bold tracking-tight text-zinc-950 dark:text-white group-hover:text-black dark:group-hover:text-emerald-300 transition-colors">
+                  <h3 className="font-serif text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-950 dark:group-hover:text-stone-200 transition-colors">
                     {mod.title}
                   </h3>
 
-                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-teal-400/90 font-sans mt-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans mt-1">
                     {mod.subtitle}
                   </p>
 
-                  <p className="mt-3 text-sm text-zinc-600 dark:text-slate-300 font-sans leading-relaxed">
+                  <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300 font-sans leading-relaxed">
                     {mod.desc}
                   </p>
 
-                  <ul className="mt-4 space-y-2 border-t border-zinc-100 dark:border-white/5 pt-4">
+                  <ul className="mt-4 space-y-2 border-t border-stone-200 dark:border-[#2A2A2A] pt-4">
                     {mod.features.map((feat, idx) => (
                       <li
                         key={idx}
-                        className="text-xs text-zinc-500 dark:text-slate-400 flex items-start gap-2 font-sans"
+                        className="text-xs text-neutral-600 dark:text-neutral-400 flex items-start gap-2 font-sans"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-neutral-700 dark:text-neutral-300 shrink-0 mt-0.5" />
                         <span>{feat}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-white/5 flex items-center justify-between text-xs font-bold text-zinc-900 dark:text-emerald-400 font-sans group-hover:translate-x-1 transition-transform">
+                <div className="mt-6 pt-4 border-t border-stone-200 dark:border-[#2A2A2A] flex items-center justify-between text-xs font-bold text-neutral-900 dark:text-stone-300 font-sans group-hover:translate-x-1 transition-transform">
                   <span>Open Workspace</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
@@ -333,24 +346,24 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
 
           {/* Quick Demo Walkthrough Card */}
           <div className="rounded-xl p-6 transition-all duration-300 relative overflow-hidden flex flex-col justify-between
-            bg-zinc-50 border border-dashed border-zinc-300
-            dark:bg-black dark:border-emerald-500/30">
+            bg-stone-100/70 border border-dashed border-stone-300
+            dark:bg-[#1A1A1A] dark:border-[#2A2A2A]">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-zinc-400 dark:text-slate-400">
+                <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-stone-400 dark:text-neutral-500">
                   Interactive Exploration
                 </span>
                 <Badge variant="purple">Full Prototype</Badge>
               </div>
 
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-zinc-200 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 border border-purple-500/20">
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-stone-200 dark:bg-white/5 text-neutral-800 dark:text-stone-200 border border-stone-300 dark:border-[#2A2A2A]">
                 <Sparkles className="w-6 h-6" />
               </div>
 
-              <h3 className="font-serif text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
+              <h3 className="font-serif text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
                 Live Prototype Navigation
               </h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-slate-300 font-sans">
+              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 font-sans">
                 Explore the five documented modules. Account roles control access to each workspace.
               </p>
 
@@ -389,17 +402,17 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-zinc-200 dark:border-white/10 py-10 bg-white dark:bg-black text-zinc-500 dark:text-slate-400 text-xs font-sans">
+      <footer className="border-t border-stone-200 dark:border-[#2A2A2A] py-10 bg-[#F7F7F5] dark:bg-[#111111] text-stone-500 dark:text-neutral-400 text-xs font-sans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-zinc-900 dark:text-white text-sm">
+            <span className="font-serif font-bold text-neutral-900 dark:text-neutral-100 text-sm">
               UniEvent
             </span>
           </div>
           <div className="flex items-center gap-6">
             <span>FastAPI Gateway</span>
             <span>Role-Based Permissions</span>
-            <span>Dual Theme Support</span>
+            <span>Editorial Monochrome</span>
           </div>
         </div>
       </footer>

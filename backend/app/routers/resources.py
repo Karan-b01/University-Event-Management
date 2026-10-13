@@ -244,3 +244,37 @@ def get_resource(
     """Endpoint to fetch specific resource details."""
     return ResourceService.get_resource_by_id(db, resource_id)
 
+
+@router.post(
+    "/unlock",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="Unlock resource slots (Admin / Resource Manager)",
+    description="Releases existing resource reservation locks and cancels active bookings for the specified resource."
+)
+def unlock_resource_slots(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    resource_id = payload.get("resource_id")
+    booking_id = payload.get("booking_id")
+    booking_ids = payload.get("booking_ids") or []
+    if booking_id:
+        booking_ids.append(booking_id)
+
+    query = db.query(Booking).filter(Booking.status == "Confirmed")
+    if booking_ids:
+        query = query.filter(Booking.id.in_(booking_ids))
+    elif resource_id:
+        query = query.filter(Booking.resource_id == resource_id)
+
+    bookings_to_cancel = query.all()
+    for b in bookings_to_cancel:
+        b.status = "Cancelled"
+    db.commit()
+    return {
+        "message": f"Successfully released {len(bookings_to_cancel)} resource slot lock(s).",
+        "count": len(bookings_to_cancel)
+    }
+

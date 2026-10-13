@@ -404,24 +404,17 @@ export const ProposalWizard = ({ onNavigate }) => {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <Badge variant="teal">Module 02: Proposal Engine</Badge>
-        </div>
-        <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
-          Event Proposal Governance Wizard
+        <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+          Event Proposal Governance
         </h1>
-        <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
-          Structured 4-step intake enforcing complete schedules, pessimistic resource locks,
-          and automated compliance validations.
-        </p>
       </div>
 
       {apiFeedback && (
         <div
           className={`mb-6 p-4 rounded-lg border text-xs font-sans flex items-center justify-between ${
             apiFeedback.type === 'success'
-              ? 'bg-emerald-50 text-emerald-900 border-emerald-300 dark:bg-emerald-950/30 dark:text-emerald-200 dark:border-emerald-500/30'
-              : 'bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-500/30'
+              ? 'bg-stone-200/80 text-neutral-900 border-stone-300 dark:bg-[#1A1A1A] dark:text-neutral-200 dark:border-[#2A2A2A]'
+              : 'bg-stone-100 text-neutral-800 border-stone-300 dark:bg-[#1A1A1A] dark:text-neutral-200 dark:border-[#2A2A2A]'
           }`}
         >
           <span>{apiFeedback.text}</span>
@@ -432,7 +425,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       )}
 
       {/* 4-STEP HORIZONTAL STEPPER */}
-      <div className="mb-8 p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-black backdrop-blur-md">
+      <div className="mb-8 p-4 rounded-xl border border-stone-200 dark:border-[#2A2A2A] bg-stone-100/70 dark:bg-[#1A1A1A] backdrop-blur-md">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {steps.map((s) => {
             const isCompleted = currentStep > s.number;
@@ -445,20 +438,20 @@ export const ProposalWizard = ({ onNavigate }) => {
                 onClick={() => setCurrentStep(s.number)}
                 className={`cursor-pointer p-3 rounded-lg border transition-all duration-200 ${
                   isCurrent
-                    ? 'border-black bg-zinc-100/80 dark:border-emerald-400 dark:bg-emerald-500/10'
+                    ? 'border-neutral-900 bg-stone-200/80 dark:border-stone-400 dark:bg-white/5'
                     : isCompleted
-                    ? 'border-zinc-300 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.02]'
-                    : 'border-transparent text-zinc-400 dark:text-slate-500'
+                    ? 'border-stone-300 bg-stone-50 dark:border-[#2A2A2A] dark:bg-[#141414]'
+                    : 'border-transparent text-stone-400 dark:text-neutral-500'
                 }`}
               >
                 <div className="flex items-center gap-2.5 mb-1.5">
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-sans transition-colors ${
                       isCompleted
-                        ? 'bg-black text-white dark:bg-emerald-500 dark:text-black'
+                        ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900'
                         : isCurrent
-                        ? 'bg-black text-white dark:bg-emerald-400 dark:text-black'
-                        : 'bg-zinc-200 dark:bg-white/10 text-zinc-600 dark:text-slate-400'
+                        ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900'
+                        : 'bg-stone-200 dark:bg-[#252525] text-stone-600 dark:text-neutral-400'
                     }`}
                   >
                     {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.number}
@@ -466,10 +459,10 @@ export const ProposalWizard = ({ onNavigate }) => {
                   <span
                     className={`text-xs font-bold font-sans ${
                       isCurrent
-                        ? 'text-zinc-950 dark:text-emerald-400'
+                        ? 'text-neutral-900 dark:text-stone-100'
                         : isCompleted
-                        ? 'text-zinc-800 dark:text-slate-200'
-                        : 'text-zinc-400 dark:text-slate-500'
+                        ? 'text-neutral-800 dark:text-neutral-200'
+                        : 'text-stone-400 dark:text-neutral-500'
                     }`}
                   >
                     {s.title}
@@ -492,7 +485,7 @@ export const ProposalWizard = ({ onNavigate }) => {
             {currentStep === 1 && (
               <div className="space-y-6 animate-fadeIn">
                 <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
-                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                  <h3 className="font-serif text-xl font-bold text-neutral-900 dark:text-neutral-100">
                     Step 1: Event Fundamentals &amp; Scope
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
@@ -533,10 +526,10 @@ export const ProposalWizard = ({ onNavigate }) => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
-                      bg-white text-zinc-900 border border-zinc-300 placeholder:text-zinc-400
-                      focus:border-black focus:ring-1 focus:ring-black
-                      dark:bg-black dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
-                      dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
+                      bg-stone-50 text-neutral-900 border border-stone-200 placeholder:text-stone-400
+                      focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900
+                      dark:bg-[#111111] dark:text-neutral-200 dark:border-[#2A2A2A] dark:placeholder:text-neutral-500
+                      dark:focus:border-stone-400 dark:focus:ring-1 dark:focus:ring-stone-400/30"
                   />
                 </div>
 
@@ -558,6 +551,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Calendar}
                     value={formData.targetDate}
                     onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
 
                   <Input
@@ -566,6 +560,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Calendar}
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
                 </div>
 
@@ -576,6 +571,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Clock}
                     value={formData.startTime}
                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
                   <Input
                     label="Daily End Time"
@@ -583,6 +579,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                     icon={Clock}
                     value={formData.endTime}
                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                    className="dark:[color-scheme:dark]"
                   />
                 </div>
               </div>
@@ -591,11 +588,11 @@ export const ProposalWizard = ({ onNavigate }) => {
             {/* STEP 2: VENUE & LOGISTICS */}
             {currentStep === 2 && (
               <div className="space-y-6 animate-fadeIn">
-                <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
-                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                <div className="border-b border-stone-200 dark:border-[#2A2A2A] pb-4">
+                  <h3 className="font-serif text-xl font-bold text-neutral-900 dark:text-neutral-100">
                     Step 2: Resource Allocation &amp; Concurrency Locking
                   </h3>
-                  <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 font-sans mt-0.5">
                     Select campus facilities. Resources are locked via database pessimistic
                     locks upon submission.
                   </p>
@@ -621,12 +618,12 @@ export const ProposalWizard = ({ onNavigate }) => {
                     })}
                   />
 
-                  <div className="p-3.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] flex items-center justify-between">
+                  <div className="p-3.5 rounded-lg border border-stone-200 dark:border-[#2A2A2A] bg-stone-100/60 dark:bg-[#141414] flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                      <p className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans">
                         Live Availability Status
                       </p>
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-0.5">
+                      <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mt-0.5">
                         {formData.venue || 'No venue chosen'}
                       </p>
                     </div>
@@ -646,7 +643,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold tracking-wider uppercase text-zinc-700 dark:text-slate-300 font-sans block mb-1.5">
+                  <label className="text-xs font-semibold tracking-wider uppercase text-neutral-700 dark:text-neutral-300 font-sans block mb-1.5">
                     Audio/Visual &amp; Specialized Logistics Requirements
                   </label>
                   <textarea
@@ -656,18 +653,18 @@ export const ProposalWizard = ({ onNavigate }) => {
                       setFormData({ ...formData, equipmentNotes: e.target.value })
                     }
                     className="w-full p-3 text-sm font-sans rounded transition-all duration-200 outline-none
-                      bg-white text-zinc-900 border border-zinc-300
-                      focus:border-black focus:ring-1 focus:ring-black
-                      dark:bg-black dark:text-white dark:border-white/15
-                      dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30"
+                      bg-stone-50 text-neutral-900 border border-stone-200
+                      focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900
+                      dark:bg-[#111111] dark:text-neutral-200 dark:border-[#2A2A2A]
+                      dark:focus:border-stone-400 dark:focus:ring-1 dark:focus:ring-stone-400/30"
                   />
                 </div>
 
                 {/* Real-time availability check banner */}
                 {venueAvailability.checking ? (
-                  <div className="p-4 rounded-lg bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/10 flex items-start gap-3">
-                    <Loader2 className="w-5 h-5 text-zinc-500 animate-spin shrink-0 mt-0.5" />
-                    <div className="text-xs text-zinc-700 dark:text-slate-300 font-sans">
+                  <div className="p-4 rounded-lg bg-stone-100 dark:bg-[#161616] border border-stone-200 dark:border-[#2A2A2A] flex items-start gap-3">
+                    <Loader2 className="w-5 h-5 text-stone-500 animate-spin shrink-0 mt-0.5" />
+                    <div className="text-xs text-neutral-700 dark:text-neutral-300 font-sans">
                       <p className="font-bold">Checking Venue Availability…</p>
                       <p className="mt-0.5">
                         Verifying real-time reservations for {formData.venue} between {formData.targetDate} {formData.startTime} and {formData.endDate} {formData.endTime}.
@@ -675,9 +672,9 @@ export const ProposalWizard = ({ onNavigate }) => {
                     </div>
                   </div>
                 ) : venueAvailability.available === true ? (
-                  <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30 flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                    <div className="text-xs text-emerald-900 dark:text-emerald-200 font-sans">
+                  <div className="p-4 rounded-lg bg-stone-200/60 dark:bg-[#202020] border border-stone-300 dark:border-[#303030] flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-neutral-800 dark:text-neutral-200 shrink-0 mt-0.5" />
+                    <div className="text-xs text-neutral-900 dark:text-neutral-200 font-sans">
                       <p className="font-bold">Venue Available at Selection</p>
                       <p className="mt-0.5">{venueAvailability.reason}</p>
                     </div>
@@ -709,7 +706,7 @@ export const ProposalWizard = ({ onNavigate }) => {
             {currentStep === 3 && (
               <div className="space-y-6 animate-fadeIn">
                 <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
-                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                  <h3 className="font-serif text-xl font-bold text-neutral-900 dark:text-neutral-100">
                     Step 3: Itemized Budget &amp; Fiscal Compliance
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
@@ -730,16 +727,16 @@ export const ProposalWizard = ({ onNavigate }) => {
                     required
                   />
 
-                  <div className="p-3.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans">
+                  <div className="p-3.5 rounded-lg border border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#151515]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans">
                       Sum of Itemized Expenses
                     </span>
-                    <p className="text-lg font-bold font-serif text-zinc-900 dark:text-white mt-1">
+                    <p className="text-lg font-bold font-serif text-neutral-900 dark:text-neutral-100 mt-1">
                       $
                       {formData.expenses
                         .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
                         .toLocaleString()}{' '}
-                      <span className="text-xs font-normal text-zinc-500 dark:text-slate-400 font-sans">
+                      <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400 font-sans">
                         / ${parseInt(formData.allocatedBudget || 0).toLocaleString()} cap
                       </span>
                     </p>
@@ -749,16 +746,16 @@ export const ProposalWizard = ({ onNavigate }) => {
                 {/* Sub-Expense Hierarchy Table */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 font-sans">
                       Sub-Expense Itemization (Module 03 Specification)
                     </h4>
-                    <span className="text-xs text-zinc-500 dark:text-slate-400 font-sans">
+                    <span className="text-xs text-stone-500 dark:text-neutral-400 font-sans">
                       {formData.expenses.length} {formData.expenses.length === 1 ? 'item' : 'items'} itemized
                     </span>
                   </div>
-                  <div className="border border-zinc-200 dark:border-white/10 rounded-lg overflow-hidden bg-white dark:bg-black">
+                  <div className="border border-stone-200 dark:border-[#2A2A2A] rounded-lg overflow-hidden bg-stone-100 dark:bg-[#1A1A1A]">
                     <table className="w-full text-left text-xs font-sans">
-                      <thead className="bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400">
+                      <thead className="bg-stone-50 dark:bg-[#161616] border-b border-stone-200 dark:border-[#2A2A2A] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400">
                         <tr>
                           <th className="p-3">Expense Item</th>
                           <th className="p-3">Vendor</th>
@@ -766,9 +763,9 @@ export const ProposalWizard = ({ onNavigate }) => {
                           <th className="p-3 text-center w-20">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
+                      <tbody className="divide-y divide-stone-200 dark:divide-[#2A2A2A]">
                         {/* Interactive Input Row */}
-                        <tr className="bg-zinc-50/60 dark:bg-white/[0.01]">
+                        <tr className="bg-stone-50/60 dark:bg-[#161616]/60">
                           <td className="p-2.5">
                             <input
                               type="text"
@@ -783,7 +780,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                                   handleAddExpense();
                                 }
                               }}
-                              className="w-full px-2.5 py-1.5 text-xs rounded border border-zinc-300 dark:border-white/15 bg-white dark:bg-black text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                              className="w-full px-2.5 py-1.5 text-xs rounded border border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#111111] text-neutral-900 dark:text-neutral-200 placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
                             />
                           </td>
                           <td className="p-2.5">
@@ -800,7 +797,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                                   handleAddExpense();
                                 }
                               }}
-                              className="w-full px-2.5 py-1.5 text-xs rounded border border-zinc-300 dark:border-white/15 bg-white dark:bg-black text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                              className="w-full px-2.5 py-1.5 text-xs rounded border border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#111111] text-neutral-900 dark:text-neutral-200 placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
                             />
                           </td>
                           <td className="p-2.5">
@@ -819,7 +816,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                                   handleAddExpense();
                                 }
                               }}
-                              className="w-full px-2.5 py-1.5 text-xs text-right rounded border border-zinc-300 dark:border-white/15 bg-white dark:bg-black text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                              className="w-full px-2.5 py-1.5 text-xs text-right rounded border border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#111111] text-neutral-900 dark:text-neutral-200 placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
                             />
                           </td>
                           <td className="p-2.5 text-center">
@@ -827,7 +824,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                               type="button"
                               onClick={handleAddExpense}
                               disabled={!newExpense.item.trim() || !newExpense.amount}
-                              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors shadow-sm"
+                              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold rounded bg-neutral-900 hover:bg-neutral-800 dark:bg-stone-200 dark:hover:bg-stone-300 dark:text-neutral-900 disabled:opacity-40 disabled:cursor-not-allowed text-stone-50 transition-colors shadow-sm"
                               title="Add Expense Item"
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -841,7 +838,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                           <tr>
                             <td
                               colSpan={4}
-                              className="p-5 text-center text-zinc-400 dark:text-zinc-500 italic"
+                              className="p-5 text-center text-stone-400 dark:text-neutral-500 italic"
                             >
                               No expense items added yet. Fill in the fields above to add an itemized expense.
                             </td>
@@ -850,15 +847,15 @@ export const ProposalWizard = ({ onNavigate }) => {
                           formData.expenses.map((exp, idx) => (
                             <tr
                               key={idx}
-                              className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                              className="hover:bg-stone-200/50 dark:hover:bg-[#202020] transition-colors"
                             >
-                              <td className="p-3 font-semibold text-zinc-900 dark:text-white">
+                              <td className="p-3 font-semibold text-neutral-900 dark:text-neutral-100">
                                 {exp.item}
                               </td>
-                              <td className="p-3 text-zinc-600 dark:text-slate-300">
+                              <td className="p-3 text-stone-600 dark:text-neutral-300">
                                 {exp.vendor}
                               </td>
-                              <td className="p-3 text-right font-bold text-zinc-900 dark:text-white font-mono">
+                              <td className="p-3 text-right font-bold text-neutral-900 dark:text-neutral-100 font-mono">
                                 ${Number(exp.amount || 0).toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
@@ -889,7 +886,7 @@ export const ProposalWizard = ({ onNavigate }) => {
             {currentStep === 4 && (
               <div className="space-y-6 animate-fadeIn">
                 <div className="border-b border-zinc-100 dark:border-white/5 pb-4">
-                  <h3 className="font-serif text-xl font-bold text-zinc-950 dark:text-white">
+                  <h3 className="font-serif text-xl font-bold text-neutral-900 dark:text-neutral-100">
                     Step 4: Compliance Validation &amp; STI Attachments
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans mt-0.5">
@@ -899,29 +896,29 @@ export const ProposalWizard = ({ onNavigate }) => {
                 </div>
 
                 {/* Automated Pre-Screening Summary Box */}
-                <div className="p-5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50/80 dark:bg-white/[0.02]">
+                <div className="p-5 rounded-lg border border-stone-200 dark:border-[#2A2A2A] bg-stone-100/80 dark:bg-[#1A1A1A]">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-slate-300 font-sans">
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-300 font-sans">
                       Module 05 Pre-Screening Risk Engine Output
                     </span>
                     <Badge variant={calculatedRisk}>{calculatedRisk}</Badge>
                   </div>
 
-                  <ul className="space-y-2 text-xs font-sans text-zinc-700 dark:text-slate-300">
+                  <ul className="space-y-2 text-xs font-sans text-neutral-700 dark:text-neutral-300">
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-neutral-800 dark:text-neutral-200 shrink-0" />
                       <span>
                         Attendance within venue threshold ({formData.expectedAttendance} / {venues.find((v) => v.name === formData.venue)?.capacity || 1800} capacity)
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-neutral-800 dark:text-neutral-200 shrink-0" />
                       <span>
                         Operational schedule complies with institutional noise curfew
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <Info className="w-4 h-4 text-neutral-700 dark:text-neutral-300 shrink-0" />
                       <span>
                         Dynamic routing: Injects Faculty Advisor &rarr; Security Officer review node
                       </span>
@@ -931,18 +928,18 @@ export const ProposalWizard = ({ onNavigate }) => {
 
                 {/* Supporting documents are uploaded to the proposal record. */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-slate-300 font-sans mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 font-sans mb-3">
                     Supporting Documents (Poster &amp; Vendor Quotation)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/[0.01] flex items-center justify-between gap-3 cursor-pointer">
+                    <label className="p-4 rounded-lg border border-dashed border-stone-300 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#111111] flex items-center justify-between gap-3 cursor-pointer">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                        <FileText className="w-6 h-6 text-neutral-700 dark:text-neutral-300" />
                         <div>
-                          <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                          <p className="text-xs font-bold text-neutral-900 dark:text-neutral-100">
                             Event Poster Artwork
                           </p>
-                          <p className="text-[11px] text-zinc-500 dark:text-slate-400 truncate max-w-48">
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate max-w-48">
                             {attachments.poster?.name || uploadedDocuments.poster || 'Choose a poster file'}
                           </p>
                         </div>
@@ -961,14 +958,14 @@ export const ProposalWizard = ({ onNavigate }) => {
                       </Badge>
                     </label>
 
-                    <label className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/[0.01] flex items-center justify-between gap-3 cursor-pointer">
+                    <label className="p-4 rounded-lg border border-dashed border-stone-300 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#111111] flex items-center justify-between gap-3 cursor-pointer">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <FileText className="w-6 h-6 text-neutral-700 dark:text-neutral-300" />
                         <div>
-                          <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                          <p className="text-xs font-bold text-neutral-900 dark:text-neutral-100">
                             Vendor Quotation Package
                           </p>
-                          <p className="text-[11px] text-zinc-500 dark:text-slate-400 truncate max-w-48">
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate max-w-48">
                             {attachments.quotation?.name || uploadedDocuments.quotation || 'Choose a quotation file'}
                           </p>
                         </div>
@@ -987,14 +984,14 @@ export const ProposalWizard = ({ onNavigate }) => {
                       </Badge>
                     </label>
                   </div>
-                  <p className="mt-2 text-[11px] text-zinc-500 dark:text-slate-400">Attach at least one PDF or image before submitting. Drafts can be saved without attachments.</p>
+                  <p className="mt-2 text-[11px] text-stone-500 dark:text-neutral-400">Attach at least one PDF or image before submitting. Drafts can be saved without attachments.</p>
                 </div>
               </div>
             )}
           </div>
 
           {/* FOOTER ACTIONS */}
-          <div className="px-6 py-4 bg-zinc-50 dark:bg-white/[0.02] border-t border-zinc-200 dark:border-white/10 flex items-center justify-between">
+          <div className="px-6 py-4 bg-stone-50 dark:bg-[#161616] border-t border-stone-200 dark:border-[#2A2A2A] flex items-center justify-between">
             <Button
               variant="secondary"
               size="md"
@@ -1012,7 +1009,7 @@ export const ProposalWizard = ({ onNavigate }) => {
                 disabled={submitting}
                 onClick={handleSaveDraft}
               >
-                {submitting ? 'Saving Draft...' : 'Save as Draft (POST /draft)'}
+                {submitting ? 'Saving Draft...' : 'Save As Draft'}
               </Button>
 
               <Button
@@ -1035,7 +1032,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       ) : (
         /* SUBMISSION CONFIRMATION CARD */
         <Card className="text-center p-8 sm:p-12 animate-fadeIn max-w-2xl mx-auto">
-          <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-6">
+          <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-stone-200 dark:bg-[#252525] text-neutral-900 dark:text-stone-200 mb-6">
             <CheckCircle2 className="w-10 h-10" />
           </div>
 
@@ -1043,7 +1040,7 @@ export const ProposalWizard = ({ onNavigate }) => {
             Proposal #{submittedProposalId || 'PRP-2026-089'} Transmitted
           </Badge>
 
-          <h2 className="font-serif text-3xl font-bold text-zinc-950 dark:text-white">
+          <h2 className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">
             Proposal Submitted to FastAPI Gateway
           </h2>
 

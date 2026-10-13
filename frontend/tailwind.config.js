@@ -12,35 +12,25 @@ export default {
         sans: ['"Manrope"', 'system-ui', 'sans-serif'],
       },
       colors: {
-        pitchBlack: {
-          DEFAULT: '#000000',
-          surface: '#000000',
-          card: '#000000',
-          border: 'rgba(255, 255, 255, 0.12)',
+        canvas: {
+          light: '#F7F7F5', // soft off-white
+          dark: '#111111',  // stark off-black
         },
-        scholarEmerald: {
-          DEFAULT: '#10B981',
-          hover: '#059669',
-          dim: '#4EDEA3',
-          glow: 'rgba(16, 185, 129, 0.28)',
-          light: '#6FFBBE',
-          darkText: '#000000',
+        surface: {
+          light: '#F5F5F4', // stone-100 elevated
+          dark: '#1A1A1A',  // off-black elevated
         },
-        scholarTeal: {
-          patina: '#0F766E',
-          deep: '#003733',
-          light: '#80D5CB',
-        },
-        scholarPurple: {
-          DEFAULT: '#382BF0',
-          container: '#9898FF',
-          light: '#C2C1FF',
+        editorial: {
+          border: {
+            light: '#E7E5E4', // stone-200
+            dark: '#2A2A2A',  // hyper-subtle dark
+          },
         },
       },
       boxShadow: {
-        'pitch-glow': '0 0 20px rgba(16, 185, 129, 0.2)',
-        'pitch-modal': '0 25px 50px -12px rgba(0, 0, 0, 0.95), 0 0 30px rgba(16, 185, 129, 0.15)',
-        'light-clean': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+        'editorial-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+        'editorial-card': '0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+        'editorial-modal': '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
       },
     },
   },

@@ -187,8 +187,8 @@ export function AppContent() {
   return (
     <div
       className={`min-h-screen flex flex-col relative ${
-        activePage === 'landing' ? '' : 'bg-white dark:bg-black'
-      } text-black dark:text-white transition-colors duration-300`}
+        activePage === 'landing' ? '' : 'bg-[#F7F7F5] dark:bg-[#111111]'
+      } text-neutral-900 dark:text-neutral-200 transition-colors duration-300`}
     >
       {/* Toast Banner for RBAC Security & Unauthorized Alerts */}
       <ToastNotification toast={toast} onDismiss={() => setToast(null)} />

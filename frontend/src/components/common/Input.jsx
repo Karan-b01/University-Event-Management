@@ -18,14 +18,14 @@ export const Input = ({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-xs font-semibold tracking-wider uppercase text-zinc-700 dark:text-slate-300 font-sans"
+          className="text-xs font-semibold tracking-wider uppercase text-neutral-700 dark:text-neutral-300 font-sans"
         >
           {label}
         </label>
       )}
       <div className="relative flex items-center">
         {Icon && (
-          <div className="absolute left-3 text-zinc-400 dark:text-slate-500 pointer-events-none flex items-center">
+          <div className="absolute left-3 text-stone-500 dark:text-neutral-300 pointer-events-none flex items-center">
             <Icon className="w-4 h-4" />
           </div>
         )}
@@ -33,10 +33,10 @@ export const Input = ({
           id={inputId}
           type={type}
           className={`w-full h-10 px-3 text-sm font-sans rounded transition-all duration-200 outline-none
-            bg-white text-zinc-900 border border-zinc-300 placeholder:text-zinc-400
-            focus:border-black focus:ring-1 focus:ring-black
-            dark:bg-black dark:text-white dark:border-white/15 dark:placeholder:text-slate-500
-            dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30
+            bg-stone-50 text-neutral-900 border border-stone-200 placeholder:text-stone-400
+            focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900
+            dark:bg-[#111111] dark:text-neutral-200 dark:border-[#2A2A2A] dark:placeholder:text-neutral-500
+            dark:focus:border-stone-400 dark:focus:ring-1 dark:focus:ring-stone-400/30 dark:[color-scheme:dark]
             ${Icon ? 'pl-9' : ''}
             ${error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''}
             ${className}`}
@@ -45,7 +45,7 @@ export const Input = ({
       </div>
       {error && <p className="text-xs text-rose-600 dark:text-rose-400 font-sans">{error}</p>}
       {helperText && !error && (
-        <p className="text-xs text-zinc-500 dark:text-slate-400 font-sans">{helperText}</p>
+        <p className="text-xs text-stone-500 dark:text-neutral-400 font-sans">{helperText}</p>
       )}
     </div>
   );
@@ -68,7 +68,7 @@ export const Select = ({
       {label && (
         <label
           htmlFor={selectId}
-          className="text-xs font-semibold tracking-wider uppercase text-zinc-700 dark:text-slate-300 font-sans"
+          className="text-xs font-semibold tracking-wider uppercase text-neutral-700 dark:text-neutral-300 font-sans"
         >
           {label}
         </label>
@@ -76,17 +76,17 @@ export const Select = ({
       <select
         id={selectId}
         className={`w-full h-10 px-3 text-sm font-sans rounded transition-all duration-200 outline-none
-          bg-white text-zinc-900 border border-zinc-300
-          focus:border-black focus:ring-1 focus:ring-black
-          dark:bg-black dark:text-white dark:border-white/15
-          dark:focus:border-emerald-400 dark:focus:ring-1 dark:focus:ring-emerald-400/30
+          bg-stone-50 text-neutral-900 border border-stone-200
+          focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900
+          dark:bg-[#111111] dark:text-neutral-200 dark:border-[#2A2A2A]
+          dark:focus:border-stone-400 dark:focus:ring-1 dark:focus:ring-stone-400/30
           ${error ? 'border-rose-500' : ''}
           ${className}`}
         {...props}
       >
         {children ||
           options.map((opt, idx) => (
-            <option key={idx} value={typeof opt === 'object' ? opt.value : opt} className="bg-white dark:bg-black text-zinc-900 dark:text-white">
+            <option key={idx} value={typeof opt === 'object' ? opt.value : opt} className="bg-stone-50 dark:bg-[#111111] text-neutral-900 dark:text-neutral-200">
               {typeof opt === 'object' ? opt.label : opt}
             </option>
           ))}

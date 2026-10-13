@@ -3,6 +3,7 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Lock,
+  Unlock,
   CheckCircle2,
   AlertCircle,
   Building,
@@ -24,7 +25,9 @@ export const ResourceCalendar = ({ onNavigate }) => {
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [resourceType, setResourceType] = useState('Venue');
   const [selectedSlots, setSelectedSlots] = useState([]);
+  const [selectedLockedSlots, setSelectedLockedSlots] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toastNotification, setToastNotification] = useState(null);
   const [confirmedLocks, setConfirmedLocks] = useState([]);
@@ -82,13 +85,21 @@ export const ResourceCalendar = ({ onNavigate }) => {
     }
   };
 
+  // Auto-sync data fetching on component mount and resource type change
   useEffect(() => {
     fetchLiveResources();
   }, [resourceType]);
 
   const toggleSlotSelection = (day, time, isLocked) => {
-    if (isLocked) return;
     const slotKey = `${day}-${time}`;
+    if (isLocked) {
+      if (selectedLockedSlots.includes(slotKey)) {
+        setSelectedLockedSlots(selectedLockedSlots.filter((k) => k !== slotKey));
+      } else {
+        setSelectedLockedSlots([...selectedLockedSlots, slotKey]);
+      }
+      return;
+    }
     if (selectedSlots.includes(slotKey)) {
       setSelectedSlots(selectedSlots.filter((k) => k !== slotKey));
     } else {
@@ -165,6 +176,49 @@ export const ResourceCalendar = ({ onNavigate }) => {
     }
   };
 
+  const handleUnlockSelectedSlots = async () => {
+    if (selectedLockedSlots.length === 0 || !selectedVenue) return;
+    setUnlocking(true);
+    setToastNotification(null);
+    try {
+      const now = new Date();
+      const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      const bookingsToCancel = (bookings || []).filter((b) => {
+        if (b.resource_id !== selectedVenue.id || b.status !== 'Confirmed') return false;
+        const start = new Date(b.start_time);
+        if (start < now || start >= weekEnd) return false;
+        const slot = `${weekdayNames[start.getDay()]}-${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+        return selectedLockedSlots.includes(slot);
+      });
+
+      if (bookingsToCancel.length > 0) {
+        await Promise.all(bookingsToCancel.map((b) => resourcesApi.cancelBooking(b.id)));
+      } else {
+        await resourcesApi.unlockSlots({
+          resource_id: selectedVenue.id,
+          booking_ids: bookingsToCancel.map((b) => b.id),
+        });
+      }
+
+      setToastNotification({
+        type: 'success',
+        message: `Successfully released locks for ${selectedLockedSlots.length} slot(s) on ${selectedVenue.name}.`,
+      });
+      setSelectedLockedSlots([]);
+      await fetchLiveResources();
+    } catch (err) {
+      console.warn('[ResourceCalendar] Unlock error:', err);
+      setToastNotification({
+        type: 'error',
+        message: err.response?.data?.detail || 'Could not unlock selected slots.',
+      });
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
   const handleCancelBooking = async (bookingId) => {
     try {
       await resourcesApi.cancelBooking(bookingId);
@@ -200,17 +254,14 @@ export const ResourceCalendar = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-zinc-200 dark:border-white/10">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-          <Badge variant="approved">Module 04: Resource Management</Badge>
-          </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Resource Management
           </h1>
-          <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
-            Logged in as <strong className="text-zinc-900 dark:text-white">{currentUser?.name || currentUser?.email}</strong> &bull;{' '}
-            Role: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{currentUser?.role}</span>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 font-sans mt-1">
+            Logged in as <strong className="text-neutral-900 dark:text-neutral-100">{currentUser?.name || currentUser?.email}</strong> &bull;{' '}
+            Role: <span className="text-neutral-900 dark:text-stone-300 font-semibold">{currentUser?.role}</span>
           </p>
         </div>
 
@@ -218,11 +269,12 @@ export const ResourceCalendar = ({ onNavigate }) => {
           <Button
             variant="secondary"
             size="md"
-            icon={RefreshCw}
-            onClick={fetchLiveResources}
-            disabled={loading}
+            disabled={selectedLockedSlots.length === 0 || unlocking || !selectedVenue}
+            onClick={handleUnlockSelectedSlots}
+            icon={unlocking ? Loader2 : Unlock}
+            className={selectedLockedSlots.length > 0 ? 'border-rose-400 text-rose-700 dark:text-rose-300 dark:border-rose-700 font-semibold' : ''}
           >
-            {loading ? 'Refreshing...' : 'Sync Catalog'}
+            {unlocking ? 'Unlocking Slots...' : `Unlock Selected Slots (${selectedLockedSlots.length})`}
           </Button>
           <Button
             variant="primary"
@@ -237,7 +289,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mb-5">
-        <label htmlFor="resource-type" className="text-xs font-semibold text-zinc-700 dark:text-slate-300">Resource type</label>
+        <label htmlFor="resource-type" className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Resource type</label>
         <select
           id="resource-type"
           value={resourceType}
@@ -245,7 +297,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
             setSelectedSlots([]);
             setResourceType(event.target.value);
           }}
-          className="h-10 rounded border border-zinc-300 bg-white px-3 text-sm text-zinc-900 dark:border-white/15 dark:bg-black dark:text-white"
+          className="h-10 rounded border border-stone-300 bg-stone-50 px-3 text-sm text-neutral-900 dark:border-[#2A2A2A] dark:bg-[#111111] dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
         >
           <option value="Venue">Venues</option>
           <option value="Equipment">Equipment</option>
@@ -261,7 +313,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
             toastNotification.type === 'error'
               ? 'bg-rose-50 border-rose-400 text-rose-900 dark:bg-rose-950/60 dark:border-rose-500/50 dark:text-rose-200'
               : toastNotification.type === 'success'
-              ? 'bg-emerald-50 border-emerald-400 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-500/50 dark:text-emerald-200'
+              ? 'bg-stone-200/80 border-stone-300 text-neutral-900 dark:bg-[#1F1F1F] dark:border-[#333333] dark:text-stone-200'
               : 'bg-amber-50 border-amber-400 text-amber-900 dark:bg-amber-950/40 dark:border-amber-500/50 dark:text-amber-200'
           }`}
         >
@@ -269,7 +321,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
             {toastNotification.type === 'error' ? (
               <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
             ) : (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-neutral-900 dark:text-stone-300 shrink-0" />
             )}
             <span className="font-semibold text-sm">{toastNotification.message}</span>
           </div>
@@ -284,15 +336,15 @@ export const ResourceCalendar = ({ onNavigate }) => {
 
       {/* VENUE SELECTOR TABS & CAPACITY CARD */}
       {loading ? (
-        <div className="p-12 text-center border rounded-lg border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-slate-400 mb-8">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-500" />
+        <div className="p-12 text-center border rounded-lg border-stone-200 dark:border-[#2A2A2A] text-neutral-500 dark:text-neutral-400 mb-8 bg-stone-100 dark:bg-[#1A1A1A]">
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-neutral-900 dark:text-stone-300" />
           <p className="text-xs">Loading campus resources...</p>
         </div>
       ) : venues.length === 0 ? (
-        <div className="p-12 text-center border rounded-lg border-dashed border-zinc-300 dark:border-white/10 text-zinc-500 dark:text-slate-400 mb-8">
+        <div className="p-12 text-center border rounded-lg border-dashed border-stone-300 dark:border-[#2A2A2A] text-neutral-500 dark:text-neutral-400 mb-8 bg-stone-100 dark:bg-[#1A1A1A]">
           <Building className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">No records found</p>
-          <p className="text-xs text-zinc-400 dark:text-slate-500 mt-0.5">
+          <p className="font-semibold text-sm text-neutral-800 dark:text-neutral-200">No records found</p>
+          <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
             No {resourceType.toLowerCase()} resources registered in the catalog.
           </p>
         </div>
@@ -307,25 +359,26 @@ export const ResourceCalendar = ({ onNavigate }) => {
                   setSelectedVenue(venue);
                   setConfirmedLocks(getConfirmedSlots(bookings, venue.id));
                   setSelectedSlots([]);
+                  setSelectedLockedSlots([]);
                 }}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                   isSelected
-                    ? 'bg-zinc-100 border-black shadow-sm dark:bg-black dark:border-emerald-400/80 dark:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                    : 'bg-white border-zinc-200 hover:border-zinc-300 dark:bg-black dark:border-white/10 dark:hover:border-white/20'
+                    ? 'bg-stone-200 border-neutral-900 shadow-sm dark:bg-[#222222] dark:border-stone-300'
+                    : 'bg-stone-100 border-stone-200 hover:border-stone-300 dark:bg-[#1A1A1A] dark:border-[#2A2A2A] dark:hover:border-stone-600'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-xs font-bold text-zinc-900 dark:text-white font-sans">
+                  <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100 font-sans">
                     {venue.type}
                   </span>
-                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-slate-400 font-sans">
+                  <span className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 font-sans">
               {venue.type === 'Venue' ? `Capacity: ${venue.capacity ?? '—'}` : venue.status}
                   </span>
                 </div>
-                <h3 className="font-serif font-bold text-sm text-zinc-950 dark:text-white leading-snug">
+                <h3 className="font-serif font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
                   {venue.name}
                 </h3>
-                <p className="text-[11px] text-zinc-500 dark:text-slate-400 font-sans mt-1">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-sans mt-1">
                   {venue.building || venue.details || 'Campus resource'}
                 </p>
               </div>
@@ -342,16 +395,20 @@ export const ResourceCalendar = ({ onNavigate }) => {
           headerAction={
             <div className="flex items-center gap-4 text-xs font-sans">
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10" />
-                <span className="text-zinc-500 dark:text-slate-400">Locked / Confirmed</span>
+                <span className="w-3 h-3 rounded bg-stone-300 dark:bg-[#2E2E2E] border border-stone-400 dark:border-[#3E3E3E]" />
+                <span className="text-neutral-500 dark:text-neutral-400">Locked</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-white dark:bg-black border border-zinc-300 dark:border-white/20" />
-                <span className="text-zinc-500 dark:text-slate-400">Available Slot</span>
+                <span className="w-3 h-3 rounded bg-rose-200 dark:bg-rose-950 border border-rose-400" />
+                <span className="text-rose-700 dark:text-rose-400 font-semibold">Selected to Unlock</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-black dark:bg-emerald-400" />
-                <span className="text-zinc-900 dark:text-white font-semibold">Selected</span>
+                <span className="w-3 h-3 rounded bg-stone-50 dark:bg-[#141414] border border-stone-300 dark:border-[#2A2A2A]" />
+                <span className="text-neutral-500 dark:text-neutral-400">Available</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-neutral-900 dark:bg-stone-200" />
+                <span className="text-neutral-900 dark:text-neutral-100 font-semibold">Selected</span>
               </div>
             </div>
           }
@@ -360,12 +417,12 @@ export const ResourceCalendar = ({ onNavigate }) => {
           <div className="overflow-x-auto">
             <div className="min-w-[800px]">
               {/* Days Header */}
-              <div className="grid grid-cols-8 border-b border-zinc-200 dark:border-white/10 bg-zinc-50/70 dark:bg-white/[0.02] text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-slate-400 font-sans text-center">
-                <div className="p-3 border-r border-zinc-200 dark:border-white/10">Time</div>
+              <div className="grid grid-cols-8 border-b border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#151515] text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-sans text-center">
+                <div className="p-3 border-r border-stone-200 dark:border-[#2A2A2A]">Time</div>
                 {days.map((day) => (
                   <div
                     key={day}
-                    className="p-3 border-r border-zinc-200 dark:border-white/10 last:border-r-0"
+                    className="p-3 border-r border-stone-200 dark:border-[#2A2A2A] last:border-r-0"
                   >
                     {day}
                   </div>
@@ -376,10 +433,10 @@ export const ResourceCalendar = ({ onNavigate }) => {
               {times.map((time) => (
                 <div
                   key={time}
-                  className="grid grid-cols-8 border-b border-zinc-200/60 dark:border-white/5 text-xs font-sans"
+                  className="grid grid-cols-8 border-b border-stone-200 dark:border-[#2A2A2A] text-xs font-sans"
                 >
                   {/* Time Label */}
-                  <div className="p-3 font-mono font-semibold text-zinc-500 dark:text-slate-400 text-center flex items-center justify-center border-r border-zinc-200/60 dark:border-white/5 bg-zinc-50/30 dark:bg-white/[0.01]">
+                  <div className="p-3 font-mono font-semibold text-neutral-500 dark:text-neutral-400 text-center flex items-center justify-center border-r border-stone-200 dark:border-[#2A2A2A] bg-stone-50/60 dark:bg-[#141414]">
                     {time}
                   </div>
 
@@ -388,40 +445,47 @@ export const ResourceCalendar = ({ onNavigate }) => {
                     const slotKey = `${day}-${time}`;
                     const isConfirmedLock = confirmedLocks.includes(slotKey);
                     const isSelected = selectedSlots.includes(slotKey);
+                    const isLockedSelected = selectedLockedSlots.includes(slotKey);
 
                     return (
                       <div
                         key={slotKey}
                         onClick={() => toggleSlotSelection(day, time, isConfirmedLock)}
-                        className={`p-3 border-r border-zinc-200/60 dark:border-white/5 last:border-r-0 min-h-[75px] transition-all duration-150 flex flex-col justify-between ${
+                        className={`p-3 border-r border-stone-200 dark:border-[#2A2A2A] last:border-r-0 min-h-[75px] transition-all duration-150 flex flex-col justify-between cursor-pointer ${
                           isConfirmedLock
-                            ? 'bg-zinc-100/90 dark:bg-white/[0.04] cursor-not-allowed text-zinc-400 dark:text-slate-500'
+                            ? isLockedSelected
+                              ? 'bg-rose-100 text-rose-950 border-rose-300 dark:bg-rose-950/60 dark:text-rose-100 dark:border-rose-500 font-semibold ring-1 ring-rose-500 shadow-inner'
+                              : 'bg-stone-200/70 dark:bg-[#202020] text-stone-600 dark:text-neutral-400 hover:ring-1 hover:ring-rose-400/50'
                             : isSelected
-                            ? 'bg-black text-white dark:bg-emerald-400 dark:text-black font-semibold cursor-pointer shadow-inner'
-                            : 'bg-white hover:bg-zinc-50 dark:bg-black dark:hover:bg-white/[0.02] cursor-pointer'
+                            ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-semibold shadow-inner'
+                            : 'bg-stone-50 hover:bg-stone-100 dark:bg-[#111111] dark:hover:bg-[#181818]'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-1">
                           <span className="text-[10px] font-mono opacity-60">{time}</span>
                           {isConfirmedLock && (
-                            <Lock className="w-3 h-3 text-zinc-400 dark:text-slate-500" />
+                            isLockedSelected ? (
+                              <Unlock className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                            ) : (
+                              <Lock className="w-3 h-3 text-neutral-400 dark:text-neutral-500" />
+                            )
                           )}
                           {isSelected && (
-                            <Check className="w-3.5 h-3.5 text-white dark:text-black" />
+                            <Check className="w-3.5 h-3.5 text-stone-50 dark:text-neutral-900" />
                           )}
                         </div>
 
                         <div className="mt-1">
                           {isConfirmedLock ? (
-                            <span className="text-[10px] font-medium block leading-tight">
-                              Locked
+                            <span className={`text-[10px] font-medium block leading-tight ${isLockedSelected ? 'text-rose-700 dark:text-rose-300 font-bold' : ''}`}>
+                              {isLockedSelected ? 'Unlock' : 'Locked'}
                             </span>
                           ) : isSelected ? (
                             <span className="text-[10px] font-bold block leading-tight">
                               Selected
                             </span>
                           ) : (
-                            <span className="text-[10px] text-zinc-400 dark:text-slate-500 block leading-tight">
+                            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 block leading-tight">
                               Available
                             </span>
                           )}
@@ -444,7 +508,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 text-zinc-500 dark:bg-white/[0.02] dark:text-slate-400">
+            <thead className="bg-stone-50 text-neutral-500 dark:bg-[#151515] dark:text-neutral-400">
               <tr>
                 <th className="px-4 py-3">Resource</th>
                 <th className="px-4 py-3">Start</th>
@@ -453,13 +517,13 @@ export const ResourceCalendar = ({ onNavigate }) => {
                 <th className="px-4 py-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
+            <tbody className="divide-y divide-stone-200 dark:divide-[#2A2A2A]">
               {bookings.length ? bookings.map((booking) => (
                 <tr key={booking.id}>
-                  <td className="px-4 py-3 font-semibold">{booking.resource?.name || `Resource #${booking.resource_id}`}</td>
-                  <td className="px-4 py-3">{new Date(booking.start_time).toLocaleString()}</td>
-                  <td className="px-4 py-3">{new Date(booking.end_time).toLocaleString()}</td>
-                  <td className="px-4 py-3">{booking.status}</td>
+                  <td className="px-4 py-3 font-semibold text-neutral-900 dark:text-neutral-100">{booking.resource?.name || `Resource #${booking.resource_id}`}</td>
+                  <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{new Date(booking.start_time).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{new Date(booking.end_time).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-neutral-700 dark:text-neutral-300">{booking.status}</td>
                   <td className="px-4 py-3 text-right">
                     {booking.status === 'Confirmed' && (
                       <Button variant="secondary" size="sm" onClick={() => handleCancelBooking(booking.id)}>Cancel</Button>
@@ -467,7 +531,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">No bookings found.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-neutral-500">No bookings found.</td></tr>
               )}
             </tbody>
           </table>
@@ -481,7 +545,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
           className="mt-6"
         >
           <form onSubmit={handleDamageReport} className="grid grid-cols-1 md:grid-cols-[1fr_12rem_auto] gap-3 items-end">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+            <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
               Incident description
               <textarea
                 value={damageDescription}
@@ -489,11 +553,11 @@ export const ResourceCalendar = ({ onNavigate }) => {
                 minLength={5}
                 required
                 rows={3}
-                className="mt-1 block w-full rounded border border-zinc-300 bg-white p-2 text-sm font-normal text-zinc-900 dark:border-white/15 dark:bg-black dark:text-white"
+                className="mt-1 block w-full rounded border border-stone-300 bg-stone-50 p-2 text-sm font-normal text-neutral-900 dark:border-[#2A2A2A] dark:bg-[#111111] dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
                 placeholder="Describe the damage or incident"
               />
             </label>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-slate-300">
+            <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
               Estimated repair cost
               <input
                 type="number"
@@ -501,7 +565,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
                 step="0.01"
                 value={damageCost}
                 onChange={(event) => setDamageCost(event.target.value)}
-                className="mt-1 block h-10 w-full rounded border border-zinc-300 bg-white px-3 text-sm font-normal text-zinc-900 dark:border-white/15 dark:bg-black dark:text-white"
+                className="mt-1 block h-10 w-full rounded border border-stone-300 bg-stone-50 px-3 text-sm font-normal text-neutral-900 dark:border-[#2A2A2A] dark:bg-[#111111] dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-stone-400"
                 placeholder="Optional"
               />
             </label>
