@@ -26,7 +26,10 @@ export default function UserManagement() {
     }
   };
 
-  useEffect(() => { refresh(); }, []);
+  // Auto-sync data fetching on component mount
+  useEffect(() => {
+    refresh();
+  }, []);
 
   const saveRole = async (user) => {
     setSaving(user.id);

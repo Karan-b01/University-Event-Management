@@ -88,6 +88,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
     }
   };
 
+  // Auto-sync data fetching on component mount and resource type change
   useEffect(() => {
     fetchLiveResources();
   }, [resourceType]);

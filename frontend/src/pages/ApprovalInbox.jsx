@@ -106,9 +106,17 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
     }
   };
 
+  // Auto-sync data fetching on component mount
   useEffect(() => {
     fetchProposals();
   }, []);
+
+  // Synchronize selection when navigated with an initial proposal
+  useEffect(() => {
+    if (initialSelected?.id) {
+      setSelectedId(initialSelected.id);
+    }
+  }, [initialSelected]);
 
   // Fetch live approval workflow and budget for selected proposal
   useEffect(() => {

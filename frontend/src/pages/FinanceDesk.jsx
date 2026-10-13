@@ -76,6 +76,7 @@ export const FinanceDesk = ({ onNavigate }) => {
     }
   };
 
+  // Auto-sync data fetching on component mount
   useEffect(() => {
     fetchFinanceData();
   }, []);
