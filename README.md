@@ -402,10 +402,10 @@ University-Event-Management/
 
 ---
 
-## 👨‍💻 Authors & Acknowledgments
+## 👨‍💻 Acknowledgments
 
 Developed as an Object-Oriented Analysis and Design (OOAD) project for enterprise university administration.
-
+Made With ❤️ By:  
 - **Prakhar Sethi** 
 - **Karan Bhatia** 
 
