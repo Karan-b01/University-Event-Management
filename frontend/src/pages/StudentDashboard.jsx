@@ -32,7 +32,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [loading, setLoading] = useState(true);
-  const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [actionInProgress, setActionInProgress] = useState(null);
   const [receiptRequests, setReceiptRequests] = useState([]);
@@ -157,15 +156,12 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         } else {
           setProposals(mapped);
         }
-        setIsLiveConnected(true);
       } else {
         setProposals([]);
-        setIsLiveConnected(true);
       }
     } catch (err) {
       console.warn('[StudentDashboard] GET /proposals/ API error:', err);
       setProposals([]);
-      setIsLiveConnected(false);
     } finally {
       setLoading(false);
     }
@@ -317,6 +313,10 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       {/* Top Banner / Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Badge variant="teal">Module 01 &amp; 02 Suite</Badge>
+          </div>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             {dashboardTitle}
           </h1>
@@ -514,6 +514,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
 
       {/* PROPOSALS TABLE SECTION */}
       <Card
+        title="Event Proposals &amp; Status Matrix"
         title="Event Proposals &amp; Status"
         headerAction={
           <div className="flex items-center gap-2">

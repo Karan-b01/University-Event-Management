@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Sparkles,
   Loader2,
-  Wifi,
   Plus,
   Trash2,
 } from 'lucide-react';

@@ -13,7 +13,6 @@ import {
   Sparkles,
   ChevronDown,
   Clock,
-  Play,
   Users,
 } from 'lucide-react';
 import Button from '../components/common/Button';
@@ -409,7 +408,6 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <span className="font-serif font-bold text-neutral-900 dark:text-neutral-100 text-sm">
               UniEvent
             </span>
-            <span>&copy; {new Date().getFullYear()} University Governance Office</span>
           </div>
           <div className="flex items-center gap-6">
             <span>FastAPI Gateway</span>

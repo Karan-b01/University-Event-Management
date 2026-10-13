@@ -11,8 +11,6 @@ import {
   Check,
   Loader2,
   RefreshCw,
-  Wifi,
-  WifiOff,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
@@ -32,7 +30,6 @@ export const ResourceCalendar = ({ onNavigate }) => {
   const [unlocking, setUnlocking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toastNotification, setToastNotification] = useState(null);
-  const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [confirmedLocks, setConfirmedLocks] = useState([]);
   const [damageDescription, setDamageDescription] = useState('');
   const [damageCost, setDamageCost] = useState('');
@@ -74,18 +71,15 @@ export const ResourceCalendar = ({ onNavigate }) => {
         setVenues(mapped);
         setSelectedVenue(mapped[0]);
         setConfirmedLocks(getConfirmedSlots(bookingData, mapped[0].id));
-        setIsLiveConnected(true);
       } else {
         setVenues([]);
         setSelectedVenue(null);
         setConfirmedLocks([]);
-        setIsLiveConnected(true);
       }
     } catch (err) {
       console.warn('[ResourceCalendar] GET /resources/ offline or error:', err);
       setVenues([]);
       setSelectedVenue(null);
-      setIsLiveConnected(false);
     } finally {
       setLoading(false);
     }
