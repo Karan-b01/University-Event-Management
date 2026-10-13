@@ -106,9 +106,17 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
     }
   };
 
+  // Auto-sync data fetching on component mount
   useEffect(() => {
     fetchProposals();
   }, []);
+
+  // Synchronize selection when navigated with an initial proposal
+  useEffect(() => {
+    if (initialSelected?.id) {
+      setSelectedId(initialSelected.id);
+    }
+  }, [initialSelected]);
 
   // Fetch live approval workflow and budget for selected proposal
   useEffect(() => {
@@ -310,12 +318,6 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
       {/* Top Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="security flag">Module 05: Compliance Engine</Badge>
-            <span className="text-xs text-stone-400 dark:text-neutral-400 font-sans">
-              Dynamic Multi-Tier Governance
-            </span>
-          </div>
           <h1 className="font-serif text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Institutional Approval Inbox
           </h1>
@@ -325,17 +327,8 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
           </p>
         </div>
 
-        {/* Quick filters & Sync */}
+        {/* Quick filters */}
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={RefreshCw}
-            onClick={fetchProposals}
-            disabled={loading}
-          >
-            {loading ? 'Refreshing...' : 'Sync'}
-          </Button>
           <div className="flex items-center gap-1.5 border border-stone-200 dark:border-[#2A2A2A] p-1 rounded-lg bg-stone-100 dark:bg-[#161616] flex-wrap">
             {[
               { id: 'All', label: 'All', count: proposals.length },
@@ -410,9 +403,6 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-sans">
               Proposals ({filteredList.length})
-            </span>
-            <span className="text-[11px] text-stone-400 dark:text-neutral-500 font-sans">
-              Live FastAPI Data
             </span>
           </div>
 

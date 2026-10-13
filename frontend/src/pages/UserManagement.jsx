@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, Users, Loader2, RefreshCw } from 'lucide-react';
-import Badge from '../components/common/Badge';
+import { ShieldCheck, Users, Loader2 } from 'lucide-react';
 import Button from '../components/common/Button';
 import { usersApi } from '../api';
 
@@ -27,7 +26,10 @@ export default function UserManagement() {
     }
   };
 
-  useEffect(() => { refresh(); }, []);
+  // Auto-sync data fetching on component mount
+  useEffect(() => {
+    refresh();
+  }, []);
 
   const saveRole = async (user) => {
     setSaving(user.id);
@@ -47,11 +49,9 @@ export default function UserManagement() {
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
       <div className="flex items-center justify-between gap-4 border-b border-stone-200 dark:border-[#2A2A2A] pb-6 mb-6">
         <div>
-          <Badge variant="success">Module 01: User and Role Management</Badge>
-          <h1 className="mt-3 font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">User Access Administration</h1>
+          <h1 className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-100">User Access Administration</h1>
           <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">Review accounts and assign university system roles.</p>
         </div>
-        <Button variant="secondary" icon={RefreshCw} onClick={refresh}>Refresh</Button>
       </div>
       {message && <div role="status" className="mb-5 rounded-lg border border-stone-200 dark:border-[#2A2A2A] bg-stone-100 dark:bg-[#1A1A1A] p-3 text-sm text-neutral-800 dark:text-neutral-200">{message}</div>}
       {loading ? <div className="flex items-center gap-2 py-12 text-neutral-500"><Loader2 className="w-4 h-4 animate-spin" /> Loading accounts...</div> : (

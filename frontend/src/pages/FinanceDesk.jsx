@@ -76,6 +76,7 @@ export const FinanceDesk = ({ onNavigate }) => {
     }
   };
 
+  // Auto-sync data fetching on component mount
   useEffect(() => {
     fetchFinanceData();
   }, []);
@@ -210,12 +211,6 @@ export const FinanceDesk = ({ onNavigate }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-          <Badge variant="warning">Module 03: Finance Management</Badge>
-            <span className="text-xs text-neutral-500 dark:text-neutral-400 font-sans">
-              1-to-1 Budget Tracking &amp; Payment Gateway Integration
-            </span>
-          </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Finance Management
           </h1>
@@ -228,15 +223,6 @@ export const FinanceDesk = ({ onNavigate }) => {
         <div className="flex items-center gap-3">
           <Button variant="secondary" size="md" icon={Download} onClick={exportFinancialReport} disabled={loading}>
             Export CSV
-          </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            icon={RefreshCw}
-            onClick={fetchFinanceData}
-            disabled={loading}
-          >
-            {loading ? 'Syncing...' : 'Sync Live DB'}
           </Button>
         </div>
       </div>

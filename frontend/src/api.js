@@ -112,6 +112,10 @@ export const proposalsApi = {
     const response = await api.get(`/proposals/${proposalId}`);
     return response.data;
   },
+  delete: async (proposalId) => {
+    const response = await api.delete(`/proposals/${proposalId}`);
+    return response.data;
+  },
 };
 
 export const approvalsApi = {
@@ -228,6 +232,10 @@ export const resourcesApi = {
     if (venueName) params.venue_name = venueName;
     if (resourceId) params.resource_id = resourceId;
     const response = await api.get('/resources/check-availability', { params });
+    return response.data;
+  },
+  unlockSlots: async (payload) => {
+    const response = await api.post('/resources/unlock', payload);
     return response.data;
   },
 };

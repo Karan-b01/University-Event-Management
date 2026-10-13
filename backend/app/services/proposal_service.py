@@ -428,3 +428,37 @@ class ProposalService:
             exported_at=datetime.now(timezone.utc),
         )
 
+    @staticmethod
+    def delete_proposal(db: Session, proposal_id: str, user: User) -> dict:
+        """
+        Deletes a proposal (Approved/Rejected/Draft), releasing cascading child resources.
+        """
+        proposal = db.query(EventProposal).filter(EventProposal.id == proposal_id).first()
+        if not proposal:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Proposal with ID '{proposal_id}' not found."
+            )
+
+        user_role_names = {r.role_name for r in user.roles}
+        elevated_roles = {"Admin", "Faculty Advisor"}
+        if proposal.user_id != user.id and not user_role_names.intersection(elevated_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to delete this proposal."
+            )
+
+        from app.models.approval import ApprovalWorkflow
+        workflow = db.query(ApprovalWorkflow).filter(ApprovalWorkflow.proposal_id == proposal_id).first()
+        if workflow:
+            db.delete(workflow)
+
+        from app.models.finance import Budget
+        budget = db.query(Budget).filter(Budget.proposal_id == proposal_id).first()
+        if budget:
+            db.delete(budget)
+
+        db.delete(proposal)
+        db.commit()
+        return {"message": f"Proposal '{proposal_id}' deleted successfully.", "id": proposal_id}
+

@@ -3,6 +3,7 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Lock,
+  Unlock,
   CheckCircle2,
   AlertCircle,
   Building,
@@ -26,7 +27,9 @@ export const ResourceCalendar = ({ onNavigate }) => {
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [resourceType, setResourceType] = useState('Venue');
   const [selectedSlots, setSelectedSlots] = useState([]);
+  const [selectedLockedSlots, setSelectedLockedSlots] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toastNotification, setToastNotification] = useState(null);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
@@ -88,13 +91,21 @@ export const ResourceCalendar = ({ onNavigate }) => {
     }
   };
 
+  // Auto-sync data fetching on component mount and resource type change
   useEffect(() => {
     fetchLiveResources();
   }, [resourceType]);
 
   const toggleSlotSelection = (day, time, isLocked) => {
-    if (isLocked) return;
     const slotKey = `${day}-${time}`;
+    if (isLocked) {
+      if (selectedLockedSlots.includes(slotKey)) {
+        setSelectedLockedSlots(selectedLockedSlots.filter((k) => k !== slotKey));
+      } else {
+        setSelectedLockedSlots([...selectedLockedSlots, slotKey]);
+      }
+      return;
+    }
     if (selectedSlots.includes(slotKey)) {
       setSelectedSlots(selectedSlots.filter((k) => k !== slotKey));
     } else {
@@ -171,6 +182,49 @@ export const ResourceCalendar = ({ onNavigate }) => {
     }
   };
 
+  const handleUnlockSelectedSlots = async () => {
+    if (selectedLockedSlots.length === 0 || !selectedVenue) return;
+    setUnlocking(true);
+    setToastNotification(null);
+    try {
+      const now = new Date();
+      const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      const bookingsToCancel = (bookings || []).filter((b) => {
+        if (b.resource_id !== selectedVenue.id || b.status !== 'Confirmed') return false;
+        const start = new Date(b.start_time);
+        if (start < now || start >= weekEnd) return false;
+        const slot = `${weekdayNames[start.getDay()]}-${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+        return selectedLockedSlots.includes(slot);
+      });
+
+      if (bookingsToCancel.length > 0) {
+        await Promise.all(bookingsToCancel.map((b) => resourcesApi.cancelBooking(b.id)));
+      } else {
+        await resourcesApi.unlockSlots({
+          resource_id: selectedVenue.id,
+          booking_ids: bookingsToCancel.map((b) => b.id),
+        });
+      }
+
+      setToastNotification({
+        type: 'success',
+        message: `Successfully released locks for ${selectedLockedSlots.length} slot(s) on ${selectedVenue.name}.`,
+      });
+      setSelectedLockedSlots([]);
+      await fetchLiveResources();
+    } catch (err) {
+      console.warn('[ResourceCalendar] Unlock error:', err);
+      setToastNotification({
+        type: 'error',
+        message: err.response?.data?.detail || 'Could not unlock selected slots.',
+      });
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
   const handleCancelBooking = async (bookingId) => {
     try {
       await resourcesApi.cancelBooking(bookingId);
@@ -208,22 +262,6 @@ export const ResourceCalendar = ({ onNavigate }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-          <Badge variant="approved">Module 04: Resource Management</Badge>
-            <div className="flex items-center gap-1.5 text-xs font-sans">
-              {isLiveConnected ? (
-                <span className="flex items-center gap-1 text-neutral-900 dark:text-stone-300 font-semibold">
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span>FastAPI Connected (GET /api/v1/resources/)</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
-                  <WifiOff className="w-3.5 h-3.5" />
-                  <span>Connecting to Catalog...</span>
-                </span>
-              )}
-            </div>
-          </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Resource Management
           </h1>
@@ -237,11 +275,12 @@ export const ResourceCalendar = ({ onNavigate }) => {
           <Button
             variant="secondary"
             size="md"
-            icon={RefreshCw}
-            onClick={fetchLiveResources}
-            disabled={loading}
+            disabled={selectedLockedSlots.length === 0 || unlocking || !selectedVenue}
+            onClick={handleUnlockSelectedSlots}
+            icon={unlocking ? Loader2 : Unlock}
+            className={selectedLockedSlots.length > 0 ? 'border-rose-400 text-rose-700 dark:text-rose-300 dark:border-rose-700 font-semibold' : ''}
           >
-            {loading ? 'Refreshing...' : 'Sync Catalog'}
+            {unlocking ? 'Unlocking Slots...' : `Unlock Selected Slots (${selectedLockedSlots.length})`}
           </Button>
           <Button
             variant="primary"
@@ -326,6 +365,7 @@ export const ResourceCalendar = ({ onNavigate }) => {
                   setSelectedVenue(venue);
                   setConfirmedLocks(getConfirmedSlots(bookings, venue.id));
                   setSelectedSlots([]);
+                  setSelectedLockedSlots([]);
                 }}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                   isSelected
@@ -362,11 +402,15 @@ export const ResourceCalendar = ({ onNavigate }) => {
             <div className="flex items-center gap-4 text-xs font-sans">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-stone-300 dark:bg-[#2E2E2E] border border-stone-400 dark:border-[#3E3E3E]" />
-                <span className="text-neutral-500 dark:text-neutral-400">Locked / Confirmed</span>
+                <span className="text-neutral-500 dark:text-neutral-400">Locked</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-rose-200 dark:bg-rose-950 border border-rose-400" />
+                <span className="text-rose-700 dark:text-rose-400 font-semibold">Selected to Unlock</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-stone-50 dark:bg-[#141414] border border-stone-300 dark:border-[#2A2A2A]" />
-                <span className="text-neutral-500 dark:text-neutral-400">Available Slot</span>
+                <span className="text-neutral-500 dark:text-neutral-400">Available</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-neutral-900 dark:bg-stone-200" />
@@ -407,23 +451,30 @@ export const ResourceCalendar = ({ onNavigate }) => {
                     const slotKey = `${day}-${time}`;
                     const isConfirmedLock = confirmedLocks.includes(slotKey);
                     const isSelected = selectedSlots.includes(slotKey);
+                    const isLockedSelected = selectedLockedSlots.includes(slotKey);
 
                     return (
                       <div
                         key={slotKey}
                         onClick={() => toggleSlotSelection(day, time, isConfirmedLock)}
-                        className={`p-3 border-r border-stone-200 dark:border-[#2A2A2A] last:border-r-0 min-h-[75px] transition-all duration-150 flex flex-col justify-between ${
+                        className={`p-3 border-r border-stone-200 dark:border-[#2A2A2A] last:border-r-0 min-h-[75px] transition-all duration-150 flex flex-col justify-between cursor-pointer ${
                           isConfirmedLock
-                            ? 'bg-stone-200/70 dark:bg-[#202020] cursor-not-allowed text-stone-500 dark:text-neutral-500'
+                            ? isLockedSelected
+                              ? 'bg-rose-100 text-rose-950 border-rose-300 dark:bg-rose-950/60 dark:text-rose-100 dark:border-rose-500 font-semibold ring-1 ring-rose-500 shadow-inner'
+                              : 'bg-stone-200/70 dark:bg-[#202020] text-stone-600 dark:text-neutral-400 hover:ring-1 hover:ring-rose-400/50'
                             : isSelected
-                            ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-semibold cursor-pointer shadow-inner'
-                            : 'bg-stone-50 hover:bg-stone-100 dark:bg-[#111111] dark:hover:bg-[#181818] cursor-pointer'
+                            ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-semibold shadow-inner'
+                            : 'bg-stone-50 hover:bg-stone-100 dark:bg-[#111111] dark:hover:bg-[#181818]'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-1">
                           <span className="text-[10px] font-mono opacity-60">{time}</span>
                           {isConfirmedLock && (
-                            <Lock className="w-3 h-3 text-neutral-400 dark:text-neutral-500" />
+                            isLockedSelected ? (
+                              <Unlock className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                            ) : (
+                              <Lock className="w-3 h-3 text-neutral-400 dark:text-neutral-500" />
+                            )
                           )}
                           {isSelected && (
                             <Check className="w-3.5 h-3.5 text-stone-50 dark:text-neutral-900" />
@@ -432,8 +483,8 @@ export const ResourceCalendar = ({ onNavigate }) => {
 
                         <div className="mt-1">
                           {isConfirmedLock ? (
-                            <span className="text-[10px] font-medium block leading-tight">
-                              Locked
+                            <span className={`text-[10px] font-medium block leading-tight ${isLockedSelected ? 'text-rose-700 dark:text-rose-300 font-bold' : ''}`}>
+                              {isLockedSelected ? 'Unlock' : 'Locked'}
                             </span>
                           ) : isSelected ? (
                             <span className="text-[10px] font-bold block leading-tight">
