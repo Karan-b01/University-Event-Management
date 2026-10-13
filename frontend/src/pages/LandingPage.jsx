@@ -13,7 +13,6 @@ import {
   Sparkles,
   ChevronDown,
   Clock,
-  Play,
   Users,
 } from 'lucide-react';
 import Button from '../components/common/Button';
@@ -127,19 +126,6 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
 
         {/* Vertically and Horizontally Centered Content */}
         <div className="max-w-5xl mx-auto text-center relative z-20 flex flex-col items-center justify-center">
-          {/* Platform Status Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-black/50 backdrop-blur-md mb-6 sm:mb-8 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-sans font-bold uppercase tracking-widest text-emerald-300">
-              University Event &amp; Safety Platform
-            </span>
-            <span className="text-white/40">|</span>
-            <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-200">
-              <Play className="w-3 h-3 fill-current text-emerald-400" />
-              <span>Portal</span>
-            </div>
-          </div>
-
           {/* Centered Hero Headline (Noto Serif Display) */}
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-white max-w-4xl mx-auto leading-[1.15] drop-shadow-md">
             University Event Management And{' '}
@@ -409,7 +395,6 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <span className="font-serif font-bold text-zinc-900 dark:text-white text-sm">
               UniEvent
             </span>
-            <span>&copy; {new Date().getFullYear()} University Governance Office</span>
           </div>
           <div className="flex items-center gap-6">
             <span>FastAPI Gateway</span>

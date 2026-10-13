@@ -12,8 +12,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Wifi,
-  WifiOff,
   Inbox,
   Filter,
 } from 'lucide-react';
@@ -34,7 +32,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [loading, setLoading] = useState(true);
-  const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [actionInProgress, setActionInProgress] = useState(null);
   const [receiptRequests, setReceiptRequests] = useState([]);
@@ -148,15 +145,12 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         } else {
           setProposals(mapped);
         }
-        setIsLiveConnected(true);
       } else {
         setProposals([]);
-        setIsLiveConnected(true);
       }
     } catch (err) {
       console.warn('[StudentDashboard] GET /proposals/ API error:', err);
       setProposals([]);
-      setIsLiveConnected(false);
     } finally {
       setLoading(false);
     }
@@ -295,19 +289,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="teal">Module 01 &amp; 02 Suite</Badge>
-            <div className="flex items-center gap-1.5 text-xs font-sans">
-              {isLiveConnected ? (
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span>FastAPI Connected (GET /api/v1/proposals/)</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
-                  <WifiOff className="w-3.5 h-3.5" />
-                  <span>Backend Synchronizing</span>
-                </span>
-              )}
-            </div>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
             {dashboardTitle}
@@ -507,7 +488,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       {/* PROPOSALS TABLE SECTION */}
       <Card
         title="Event Proposals &amp; Status Matrix"
-        subtitle="Live synchronization with FastAPI backend (GET /api/v1/proposals/)"
         headerAction={
           <div className="flex items-center gap-2">
             <div className="relative w-56 hidden sm:block">

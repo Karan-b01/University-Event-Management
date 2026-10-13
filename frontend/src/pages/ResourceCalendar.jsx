@@ -10,8 +10,6 @@ import {
   Check,
   Loader2,
   RefreshCw,
-  Wifi,
-  WifiOff,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
@@ -29,7 +27,6 @@ export const ResourceCalendar = ({ onNavigate }) => {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toastNotification, setToastNotification] = useState(null);
-  const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [confirmedLocks, setConfirmedLocks] = useState([]);
   const [damageDescription, setDamageDescription] = useState('');
   const [damageCost, setDamageCost] = useState('');
@@ -71,18 +68,15 @@ export const ResourceCalendar = ({ onNavigate }) => {
         setVenues(mapped);
         setSelectedVenue(mapped[0]);
         setConfirmedLocks(getConfirmedSlots(bookingData, mapped[0].id));
-        setIsLiveConnected(true);
       } else {
         setVenues([]);
         setSelectedVenue(null);
         setConfirmedLocks([]);
-        setIsLiveConnected(true);
       }
     } catch (err) {
       console.warn('[ResourceCalendar] GET /resources/ offline or error:', err);
       setVenues([]);
       setSelectedVenue(null);
-      setIsLiveConnected(false);
     } finally {
       setLoading(false);
     }
@@ -210,19 +204,6 @@ export const ResourceCalendar = ({ onNavigate }) => {
         <div>
           <div className="flex items-center gap-2 mb-1">
           <Badge variant="approved">Module 04: Resource Management</Badge>
-            <div className="flex items-center gap-1.5 text-xs font-sans">
-              {isLiveConnected ? (
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span>FastAPI Connected (GET /api/v1/resources/)</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
-                  <WifiOff className="w-3.5 h-3.5" />
-                  <span>Connecting to Catalog...</span>
-                </span>
-              )}
-            </div>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
             Resource Management

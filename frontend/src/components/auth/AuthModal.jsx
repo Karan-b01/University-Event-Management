@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, KeyRound, AlertCircle, Loader2, User } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, User } from 'lucide-react';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
 import Button from '../common/Button';
@@ -68,15 +68,6 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {isRegistering && <Input label="Full name" icon={User} value={name} onChange={(e) => setName(e.target.value)} required minLength={2} />}
-        {/* Security protocol banner */}
-        <div className="p-3 rounded-lg bg-zinc-100 dark:bg-emerald-950/20 border border-zinc-200 dark:border-emerald-500/20 flex items-start gap-2.5 text-xs text-zinc-700 dark:text-slate-300 font-sans">
-          <KeyRound className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-          <span>
-            Hybrid Session-JWT binding active. Credentials authenticate directly against
-            FastAPI authenticates your account and loads its assigned access roles.
-          </span>
-        </div>
-
         {errorMessage && (
           <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-500/30 flex items-start gap-2 text-xs text-amber-800 dark:text-amber-200 font-sans">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
