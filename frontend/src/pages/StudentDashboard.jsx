@@ -57,6 +57,7 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
         ]);
         const ownProposalIds = new Set(data.map((proposal) => proposal.id));
         const budgetById = new Map((budgets || []).map((budget) => [budget.id, budget]));
+        const budgetByProposalId = new Map((budgets || []).map((budget) => [budget.proposal_id, budget]));
         setReceiptRequests((expenses || []).filter((expense) => {
           const budget = budgetById.get(expense.budget_id);
           return expense.status === 'Receipt Requested' && ownProposalIds.has(budget?.proposal_id);
@@ -88,6 +89,16 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           const isHigh = participants >= 500;
           const riskLevel = isHigh ? 'High Risk' : participants >= 250 ? 'Medium Risk' : 'Low Risk';
 
+          const matchedBudget = budgetByProposalId.get(item.id);
+          const allocatedBudgetVal =
+            matchedBudget?.allocated_amount != null && matchedBudget.allocated_amount > 0
+              ? matchedBudget.allocated_amount
+              : Number(item.team_data?.requested_budget) ||
+                item.budget?.allocated_amount ||
+                0;
+          const currentSpentVal =
+            matchedBudget?.current_spent ?? item.budget?.current_spent ?? 0;
+
           return {
             id: item.id,
             title: item.title,
@@ -106,8 +117,8 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
             venue,
             expectedParticipants: participants,
             venueCapacity: venueCap,
-            allocatedBudget: item.budget?.allocated_amount || 0,
-            currentSpent: item.budget?.current_spent || 0,
+            allocatedBudget: allocatedBudgetVal,
+            currentSpent: currentSpentVal,
             status: item.status || 'Draft',
             riskLevel,
             riskFlags: isHigh
@@ -242,6 +253,21 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
     } catch (err) {
       printWindow.close();
       setActionMessage(err.response?.data?.detail || 'Could not export this proposal.');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleDeleteProposal = async (proposalId) => {
+    if (!window.confirm('Are you sure you want to delete this proposal?')) return;
+    setActionInProgress(proposalId);
+    setActionMessage(null);
+    try {
+      await proposalsApi.delete(proposalId);
+      setActionMessage('Proposal deleted successfully.');
+      await fetchLiveProposals();
+    } catch (err) {
+      setActionMessage(err.response?.data?.detail || 'Could not delete proposal.');
     } finally {
       setActionInProgress(null);
     }
@@ -628,6 +654,17 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
                             className="text-[11px]"
                           >
                             Withdraw
+                          </Button>
+                        )}
+                        {['Approved', 'Rejected'].includes(proposal.status) && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={actionInProgress === proposal.id}
+                            onClick={() => handleDeleteProposal(proposal.id)}
+                            className="text-[11px] text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300"
+                          >
+                            Delete
                           </Button>
                         )}
                         <Button

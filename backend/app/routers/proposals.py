@@ -234,3 +234,18 @@ def list_my_proposals(
         return db.query(EventProposal).all()
     return db.query(EventProposal).filter(EventProposal.user_id == current_user.id).all()
 
+
+@router.delete(
+    "/{proposal_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete proposal",
+    description="Deletes an event proposal and cleans up cascading records."
+)
+def delete_proposal(
+    proposal_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete proposal endpoint."""
+    return ProposalService.delete_proposal(db=db, proposal_id=proposal_id, user=current_user)
+
