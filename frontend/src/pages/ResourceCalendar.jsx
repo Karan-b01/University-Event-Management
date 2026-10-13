@@ -208,22 +208,6 @@ export const ResourceCalendar = ({ onNavigate }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-          <Badge variant="approved">Module 04: Resource Management</Badge>
-            <div className="flex items-center gap-1.5 text-xs font-sans">
-              {isLiveConnected ? (
-                <span className="flex items-center gap-1 text-neutral-900 dark:text-stone-300 font-semibold">
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span>FastAPI Connected (GET /api/v1/resources/)</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
-                  <WifiOff className="w-3.5 h-3.5" />
-                  <span>Connecting to Catalog...</span>
-                </span>
-              )}
-            </div>
-          </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Resource Management
           </h1>
@@ -234,15 +218,6 @@ export const ResourceCalendar = ({ onNavigate }) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="md"
-            icon={RefreshCw}
-            onClick={fetchLiveResources}
-            disabled={loading}
-          >
-            {loading ? 'Refreshing...' : 'Sync Catalog'}
-          </Button>
           <Button
             variant="primary"
             size="md"

@@ -12,8 +12,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Wifi,
-  WifiOff,
   Inbox,
   Filter,
 } from 'lucide-react';
@@ -293,22 +291,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       {/* Top Banner / Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-stone-200 dark:border-[#2A2A2A]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="teal">Module 01 &amp; 02 Suite</Badge>
-            <div className="flex items-center gap-1.5 text-xs font-sans">
-              {isLiveConnected ? (
-                <span className="flex items-center gap-1 text-neutral-800 dark:text-neutral-300 font-semibold">
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span>FastAPI Connected (GET /api/v1/proposals/)</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-neutral-600 dark:text-neutral-400 font-semibold">
-                  <WifiOff className="w-3.5 h-3.5" />
-                  <span>Backend Synchronizing</span>
-                </span>
-              )}
-            </div>
-          </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             {dashboardTitle}
           </h1>
@@ -507,7 +489,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
       {/* PROPOSALS TABLE SECTION */}
       <Card
         title="Event Proposals &amp; Status Matrix"
-        subtitle="Live synchronization with FastAPI backend (GET /api/v1/proposals/)"
         headerAction={
           <div className="flex items-center gap-2">
             <div className="relative w-56 hidden sm:block">

@@ -405,19 +405,9 @@ export const ProposalWizard = ({ onNavigate }) => {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)]">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <Badge variant="teal">Module 02: Proposal Engine</Badge>
-          <span className="text-xs text-zinc-400 dark:text-slate-400 font-sans">
-            FastAPI Endpoints: POST /proposals/draft &amp; POST /proposals/&#123;id&#125;/submit
-          </span>
-        </div>
         <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
           Event Proposal Governance Wizard
         </h1>
-        <p className="text-sm text-zinc-600 dark:text-slate-300 font-sans mt-1">
-          Structured 4-step intake enforcing complete schedules, pessimistic resource locks,
-          and automated compliance validations.
-        </p>
       </div>
 
       {apiFeedback && (
