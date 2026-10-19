@@ -316,7 +316,6 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="teal">Module 01 &amp; 02 Suite</Badge>
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white">
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             {dashboardTitle}
           </h1>
