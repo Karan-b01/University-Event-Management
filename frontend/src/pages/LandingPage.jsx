@@ -132,11 +132,6 @@ export const LandingPage = ({ onNavigate, onOpenAuth }) => {
             <span className="text-[11px] font-sans font-bold uppercase tracking-widest text-stone-200">
               University Event &amp; Safety Platform
             </span>
-            <span className="text-white/40">|</span>
-            <div className="flex items-center gap-1 text-[11px] font-medium text-stone-200">
-              <Play className="w-3 h-3 fill-current text-stone-300" />
-              <span>Portal</span>
-            </div>
           </div>
 
           {/* Centered Hero Headline (Noto Serif Display) */}
