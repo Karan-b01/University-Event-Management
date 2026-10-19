@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, AlertCircle, Loader2, User, KeyRound } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, User } from 'lucide-react';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
 import Button from '../common/Button';
