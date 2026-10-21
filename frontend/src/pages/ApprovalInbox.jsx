@@ -331,11 +331,12 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 border border-stone-200 dark:border-[#2A2A2A] p-1 rounded-lg bg-stone-100 dark:bg-[#161616] flex-wrap">
             {[
-              { id: 'All', label: 'All', count: proposals.length },
+              { id: 'All', label: 'All', count: proposals.length, variant: 'all' },
               {
                 id: 'Action Required',
                 label: 'Action Required',
                 count: proposals.filter((p) => p.isActionRequired).length,
+                variant: 'action',
               },
               {
                 id: 'Approved',
@@ -346,34 +347,52 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                     p.workflowStatus === 'Approved' ||
                     p.status === 'Approved'
                 ).length,
+                variant: 'approved',
               },
               {
                 id: 'High',
                 label: 'High Risk',
                 count: proposals.filter((p) => p.riskLevel.includes('High')).length,
+                variant: 'high',
               },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setFilterRisk(tab.id)}
-                className={`px-3 py-1 text-xs font-semibold rounded font-sans transition-colors flex items-center gap-1.5 ${
-                  filterRisk === tab.id
-                    ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-bold'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
-                }`}
-              >
-                <span>{tab.label}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    filterRisk === tab.id
-                      ? 'bg-stone-50/20 text-stone-50 dark:bg-neutral-900/20 dark:text-neutral-900'
-                      : 'bg-stone-200 dark:bg-[#252525] text-stone-600 dark:text-neutral-400'
+            ].map((tab) => {
+              const isActive = filterRisk === tab.id;
+              const activeStyles =
+                tab.variant === 'approved'
+                  ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-1 dark:ring-inset dark:ring-emerald-400/20 font-bold'
+                  : tab.variant === 'action'
+                  ? 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-1 dark:ring-inset dark:ring-amber-400/20 font-bold'
+                  : tab.variant === 'high'
+                  ? 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10 dark:bg-red-400/10 dark:text-red-400 dark:ring-1 dark:ring-inset dark:ring-red-400/20 font-bold'
+                  : 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-bold';
+
+              const pillStyles = isActive
+                ? 'bg-current/10 text-current'
+                : tab.variant === 'approved'
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                : tab.variant === 'action'
+                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                : tab.variant === 'high'
+                ? 'bg-red-500/10 text-red-700 dark:text-red-400'
+                : 'bg-stone-200 dark:bg-[#252525] text-stone-600 dark:text-neutral-400';
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilterRisk(tab.id)}
+                  className={`px-3 py-1 text-xs font-semibold rounded font-sans transition-colors flex items-center gap-1.5 ${
+                    isActive
+                      ? activeStyles
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
                   }`}
                 >
-                  {tab.count}
-                </span>
-              </button>
-            ))}
+                  <span>{tab.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${pillStyles}`}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -794,9 +813,9 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                           <div
                             className={`absolute -left-6 top-1 w-3.5 h-3.5 rounded-full border-2 ${
                               item.status === 'completed'
-                                ? 'bg-neutral-900 border-stone-50 dark:bg-stone-200 dark:border-[#111111]'
+                                ? 'bg-emerald-500 border-stone-50 dark:bg-emerald-400 dark:border-[#111111]'
                                 : item.status === 'warning'
-                                ? 'bg-rose-500 border-stone-50 dark:border-[#111111]'
+                                ? 'bg-red-500 border-stone-50 dark:border-[#111111]'
                                 : 'bg-amber-500 border-stone-50 dark:border-[#111111] animate-pulse'
                             }`}
                           />
@@ -938,14 +957,14 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       </div>
                     </div>
                   ) : isFullyApproved ? (
-                    <div className="p-4 rounded-xl border border-stone-300 dark:border-[#2A2A2A] bg-stone-100/70 dark:bg-[#1A1A1A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="p-4 rounded-xl ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-400/20 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-neutral-900 dark:text-stone-300 shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <div>
-                          <h4 className="text-xs font-bold text-neutral-900 dark:text-stone-200">
+                          <h4 className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
                             Institutional Sanction Complete
                           </h4>
-                          <p className="text-[11px] text-neutral-600 dark:text-neutral-400 mt-0.5">
+                          <p className="text-[11px] text-emerald-800/90 dark:text-emerald-300/80 mt-0.5">
                             All dynamic governance tiers have concluded. This proposal is fully sanctioned and approved.
                           </p>
                         </div>
@@ -953,14 +972,14 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       <Badge variant="approved">Sanctioned</Badge>
                     </div>
                   ) : userApprovedNode || activeProposal.userDecision === 'Approved' ? (
-                    <div className="p-4 rounded-xl border border-stone-300 dark:border-[#2A2A2A] bg-stone-100/70 dark:bg-[#1A1A1A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="p-4 rounded-xl ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-400/20 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-neutral-900 dark:text-stone-300 shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <div>
-                          <h4 className="text-xs font-bold text-neutral-900 dark:text-stone-200">
+                          <h4 className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
                             Tier Authorized by You ({userApprovedNode?.required_role || currentUser?.role})
                           </h4>
-                          <p className="text-[11px] text-neutral-600 dark:text-neutral-400 mt-0.5">
+                          <p className="text-[11px] text-emerald-800/90 dark:text-emerald-300/80 mt-0.5">
                             {activeNode
                               ? `Your authorization has been recorded. The proposal is currently undergoing review with Step ${activeNode.step_number} (${activeNode.required_role}).`
                               : 'Your authorization has been committed to the immutable audit trail.'}
@@ -970,14 +989,14 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       <Badge variant="approved">Authorized by You</Badge>
                     </div>
                   ) : workflow?.status === 'Rejected' || activeProposal.status === 'Rejected' ? (
-                    <div className="p-4 rounded-xl border border-rose-200 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-950/20 flex items-center justify-between">
+                    <div className="p-4 rounded-xl ring-1 ring-inset ring-red-600/10 dark:ring-red-400/20 bg-red-50/50 dark:bg-red-950/20 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <XCircle className="w-5 h-5 text-rose-500 shrink-0" />
+                        <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
                         <div>
-                          <h4 className="text-xs font-bold text-rose-900 dark:text-rose-200">
+                          <h4 className="text-xs font-bold text-red-950 dark:text-red-200">
                             Proposal Rejected
                           </h4>
-                          <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5">
+                          <p className="text-[11px] text-red-800/90 dark:text-red-300/80 mt-0.5">
                             This proposal was rejected during compliance routing.
                           </p>
                         </div>
@@ -985,14 +1004,14 @@ export const ApprovalInbox = ({ selectedProposal: initialSelected, onNavigate })
                       <Badge variant="rejected">Rejected</Badge>
                     </div>
                   ) : (
-                    <div className="p-4 rounded-xl border border-stone-200 dark:border-[#2A2A2A] bg-stone-50 dark:bg-[#141414] flex items-center justify-between">
+                    <div className="p-4 rounded-xl ring-1 ring-inset ring-amber-600/20 dark:ring-amber-400/20 bg-amber-50/50 dark:bg-amber-950/20 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Clock className="w-5 h-5 text-amber-500 shrink-0" />
+                        <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
                         <div>
-                          <h4 className="text-xs font-bold text-neutral-900 dark:text-neutral-100">
+                          <h4 className="text-xs font-bold text-amber-950 dark:text-amber-200">
                             Awaiting Preceding Tier
                           </h4>
-                          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                          <p className="text-[11px] text-amber-800/90 dark:text-amber-300/80 mt-0.5">
                             Currently assigned to Step {activeNode?.step_number}: {activeNode?.required_role}.
                           </p>
                         </div>

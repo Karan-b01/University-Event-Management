@@ -650,7 +650,7 @@ export const FinanceDesk = ({ onNavigate }) => {
                     </td>
                     <td className="py-4 px-5 text-right whitespace-nowrap">
                       {item.status === 'Disbursed' ? (
-                        <span className="text-xs font-semibold text-neutral-900 dark:text-stone-300 flex items-center justify-end gap-1">
+                        <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center justify-end gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Paid ({item.paymentMethod})
                         </span>
