@@ -527,19 +527,31 @@ export const StudentDashboard = ({ onNavigate, onSelectProposal }) => {
               />
             </div>
             <div className="flex items-center gap-1 border border-stone-200 dark:border-[#2A2A2A] p-0.5 rounded text-xs">
-              {['All', 'Pending Review', 'Approved', 'Draft', 'Withdrawn'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
-                    statusFilter === status
-                      ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-bold'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
+              {['All', 'Pending Review', 'Approved', 'Draft', 'Withdrawn'].map((status) => {
+                const isActive = statusFilter === status;
+                const activeClasses =
+                  status === 'Approved'
+                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-1 dark:ring-inset dark:ring-emerald-400/20 font-bold'
+                    : status === 'Pending Review'
+                    ? 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-1 dark:ring-inset dark:ring-amber-400/20 font-bold'
+                    : status === 'Withdrawn'
+                    ? 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10 dark:bg-red-400/10 dark:text-red-400 dark:ring-1 dark:ring-inset dark:ring-red-400/20 font-bold'
+                    : 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900 font-bold';
+
+                return (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
+                      isActive
+                        ? activeClasses
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                );
+              })}
             </div>
           </div>
         }

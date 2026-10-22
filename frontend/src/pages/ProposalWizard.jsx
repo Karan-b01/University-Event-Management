@@ -438,23 +438,23 @@ export const ProposalWizard = ({ onNavigate }) => {
                 onClick={() => setCurrentStep(s.number)}
                 className={`cursor-pointer p-3 rounded-lg border transition-all duration-200 ${
                   isCurrent
-                    ? 'border-neutral-900 bg-stone-200/80 dark:border-stone-400 dark:bg-white/5'
+                    ? 'border-amber-600/30 bg-amber-50/40 dark:border-amber-400/20 dark:bg-amber-400/5'
                     : isCompleted
-                    ? 'border-stone-300 bg-stone-50 dark:border-[#2A2A2A] dark:bg-[#141414]'
-                    : 'border-transparent text-stone-400 dark:text-neutral-500'
+                    ? 'border-emerald-600/20 bg-emerald-50/40 dark:border-emerald-400/20 dark:bg-emerald-400/5'
+                    : 'border-transparent text-stone-400 dark:text-neutral-500 hover:border-stone-200 dark:hover:border-[#2A2A2A]'
                 }`}
               >
                 <div className="flex items-center gap-2.5 mb-1.5">
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-sans transition-colors ${
                       isCompleted
-                        ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900'
+                        ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-1 dark:ring-inset dark:ring-emerald-400/20'
                         : isCurrent
-                        ? 'bg-neutral-900 text-stone-50 dark:bg-stone-200 dark:text-neutral-900'
-                        : 'bg-stone-200 dark:bg-[#252525] text-stone-600 dark:text-neutral-400'
+                        ? 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-1 dark:ring-inset dark:ring-amber-400/20'
+                        : 'bg-stone-100 text-stone-400 ring-1 ring-inset ring-stone-300/50 dark:bg-[#1A1A1A] dark:text-neutral-500 dark:ring-1 dark:ring-inset dark:ring-stone-800'
                     }`}
                   >
-                    {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.number}
+                    {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : <Icon className="w-3 h-3" />}
                   </div>
                   <span
                     className={`text-xs font-bold font-sans ${
@@ -906,19 +906,19 @@ export const ProposalWizard = ({ onNavigate }) => {
 
                   <ul className="space-y-2 text-xs font-sans text-neutral-700 dark:text-neutral-300">
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-neutral-800 dark:text-neutral-200 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>
                         Attendance within venue threshold ({formData.expectedAttendance} / {venues.find((v) => v.name === formData.venue)?.capacity || 1800} capacity)
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-neutral-800 dark:text-neutral-200 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>
                         Operational schedule complies with institutional noise curfew
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Info className="w-4 h-4 text-neutral-700 dark:text-neutral-300 shrink-0" />
+                      <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                       <span>
                         Dynamic routing: Injects Faculty Advisor &rarr; Security Officer review node
                       </span>
@@ -1032,7 +1032,7 @@ export const ProposalWizard = ({ onNavigate }) => {
       ) : (
         /* SUBMISSION CONFIRMATION CARD */
         <Card className="text-center p-8 sm:p-12 animate-fadeIn max-w-2xl mx-auto">
-          <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-stone-200 dark:bg-[#252525] text-neutral-900 dark:text-stone-200 mb-6">
+          <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-1 dark:ring-inset dark:ring-emerald-400/20 mb-6">
             <CheckCircle2 className="w-10 h-10" />
           </div>
 
