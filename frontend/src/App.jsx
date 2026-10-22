@@ -186,9 +186,7 @@ export function AppContent() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col relative ${
-        activePage === 'landing' ? '' : 'bg-[#F7F7F5] dark:bg-[#111111]'
-      } text-neutral-900 dark:text-neutral-200 transition-colors duration-300`}
+      className="min-h-screen w-full flex flex-col relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-stone-100 via-stone-50 to-stone-50 dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] dark:from-[#1e1e1e] dark:via-[#111111] dark:to-[#111111] bg-fixed text-neutral-900 dark:text-neutral-200 transition-colors duration-300"
     >
       {/* Toast Banner for RBAC Security & Unauthorized Alerts */}
       <ToastNotification toast={toast} onDismiss={() => setToast(null)} />
