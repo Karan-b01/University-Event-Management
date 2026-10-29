@@ -5,6 +5,7 @@ import Input from '../common/Input';
 import Button from '../common/Button';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api';
+import { jsPDF } from 'jspdf';
 
 export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const { login: updateAuthContext } = useAuth();
@@ -23,7 +24,16 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
     try {
       if (isRegistering) {
-        await authApi.register({ name, email, password, role_name: 'Student Organizer' });
+        const registeredUser = await authApi.register({ name, email, password, role_name: 'Student Organizer' });
+
+        // Generate and automatically download welcome PDF for new user registration
+        const generateWelcomePdf = (userName) => {
+          const doc = new jsPDF();
+          doc.text(`Welcome, ${userName}`, 20, 20);
+          doc.save(`Welcome_${userName}.pdf`);
+        };
+
+        generateWelcomePdf(registeredUser?.name || name);
       }
       const data = await authApi.login(email, password);
       
